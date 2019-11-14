@@ -6,11 +6,13 @@ import androidx.core.app.NotificationCompat
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseService
-import io.legado.app.constant.Action
+import io.legado.app.constant.IntentAction
 import io.legado.app.constant.AppConst
+import io.legado.app.constant.EventBus
 import io.legado.app.help.IntentHelp
 import io.legado.app.utils.NetworkUtils
 import io.legado.app.utils.getPrefInt
+import io.legado.app.utils.postEvent
 import io.legado.app.web.HttpServer
 import io.legado.app.web.WebSocketServer
 import kotlinx.coroutines.launch
@@ -30,11 +32,10 @@ class WebService : BaseService() {
         fun stop(context: Context) {
             if (isRun) {
                 val intent = Intent(context, WebService::class.java)
-                intent.action = Action.stop
+                intent.action = IntentAction.stop
                 context.startService(intent)
             }
         }
-
     }
 
     private var httpServer: HttpServer? = null
@@ -49,11 +50,18 @@ class WebService : BaseService() {
     override fun onDestroy() {
         super.onDestroy()
         isRun = false
+        if (httpServer?.isAlive == true) {
+            httpServer?.stop()
+        }
+        if (webSocketServer?.isAlive == true) {
+            webSocketServer?.stop()
+        }
+        postEvent(EventBus.WEB_SERVICE_STOP, true)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            Action.stop -> stopSelf()
+            IntentAction.stop -> stopSelf()
             else -> upWebServer()
         }
         return super.onStartCommand(intent, flags, startId)
@@ -78,7 +86,7 @@ class WebService : BaseService() {
                 updateNotification(getString(R.string.http_ip, address.hostAddress, port))
             } catch (e: IOException) {
                 launch {
-                    toast(e.localizedMessage)
+                    toast(e.localizedMessage ?: "")
                     stopSelf()
                 }
             }
@@ -107,7 +115,7 @@ class WebService : BaseService() {
         builder.addAction(
             R.drawable.ic_stop_black_24dp,
             getString(R.string.cancel),
-            IntentHelp.servicePendingIntent<WebService>(this, Action.stop)
+            IntentHelp.servicePendingIntent<WebService>(this, IntentAction.stop)
         )
         builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         val notification = builder.build()

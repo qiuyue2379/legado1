@@ -9,6 +9,8 @@ import android.graphics.BitmapFactory
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -16,21 +18,23 @@ import androidx.core.app.NotificationCompat
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseService
-import io.legado.app.constant.Action
+import io.legado.app.constant.IntentAction
 import io.legado.app.constant.AppConst
-import io.legado.app.constant.Bus
+import io.legado.app.constant.EventBus
 import io.legado.app.constant.Status
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.BookHelp
 import io.legado.app.help.IntentHelp
 import io.legado.app.help.MediaHelp
+import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.receiver.MediaButtonReceiver
 import io.legado.app.service.help.AudioPlay
 import io.legado.app.ui.audio.AudioPlayActivity
-import io.legado.app.utils.LogUtils
 import io.legado.app.utils.postEvent
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.anko.toast
 
 
@@ -42,10 +46,10 @@ class AudioPlayService : BaseService(),
 
     companion object {
         var isRun = false
+        var pause = false
         var timeMinute: Int = 0
     }
 
-    var pause = false
     private val handler = Handler()
     private lateinit var audioManager: AudioManager
     private var mFocusRequest: AudioFocusRequest? = null
@@ -77,21 +81,21 @@ class AudioPlayService : BaseService(),
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.action?.let { action ->
             when (action) {
-                Action.play -> {
+                IntentAction.play -> {
                     AudioPlay.book?.let {
                         title = it.name
                         position = it.durChapterPos
                         loadContent(it.durChapterIndex)
                     }
                 }
-                Action.pause -> pause(true)
-                Action.resume -> resume()
-                Action.prev -> moveToPrev()
-                Action.next -> moveToNext()
-                Action.moveTo -> moveTo(intent.getIntExtra("index", AudioPlay.durChapterIndex))
-                Action.addTimer -> addTimer()
-                Action.setTimer -> setTimer(intent.getIntExtra("minute", 0))
-                Action.adjustProgress -> adjustProgress(intent.getIntExtra("position", position))
+                IntentAction.pause -> pause(true)
+                IntentAction.resume -> resume()
+                IntentAction.prev -> moveToPrev()
+                IntentAction.next -> moveToNext()
+                IntentAction.adjustSpeed -> upSpeed(intent.getFloatExtra("adjust", 1f))
+                IntentAction.addTimer -> addTimer()
+                IntentAction.setTimer -> setTimer(intent.getIntExtra("minute", 0))
+                IntentAction.adjustProgress -> adjustProgress(intent.getIntExtra("position", position))
                 else -> stopSelf()
             }
         }
@@ -108,7 +112,7 @@ class AudioPlayService : BaseService(),
         unregisterReceiver(broadcastReceiver)
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         AudioPlay.status = Status.STOP
-        postEvent(Bus.AUDIO_STATE, Status.STOP)
+        postEvent(EventBus.AUDIO_STATE, Status.STOP)
     }
 
     private fun play() {
@@ -116,14 +120,16 @@ class AudioPlayService : BaseService(),
         if (requestFocus()) {
             try {
                 AudioPlay.status = Status.PLAY
-                postEvent(Bus.AUDIO_STATE, Status.PLAY)
+                postEvent(EventBus.AUDIO_STATE, Status.PLAY)
                 mediaPlayer.reset()
-                mediaPlayer.setDataSource(url)
+                val analyzeUrl =
+                    AnalyzeUrl(url, headerMapF = AudioPlay.headers(), useWebView = true)
+                val uri = Uri.parse(analyzeUrl.url)
+                mediaPlayer.setDataSource(this, uri, analyzeUrl.headerMap)
                 mediaPlayer.prepareAsync()
             } catch (e: Exception) {
-                LogUtils.d("AudioPlayService", e.localizedMessage + " " + url)
                 launch {
-                    toast(e.localizedMessage + " " + url)
+                    toast("$url ${e.localizedMessage}")
                     stopSelf()
                 }
             }
@@ -131,14 +137,18 @@ class AudioPlayService : BaseService(),
     }
 
     private fun pause(pause: Boolean) {
-        this.pause = pause
-        handler.removeCallbacks(mpRunnable)
-        position = mediaPlayer.currentPosition
-        mediaPlayer.pause()
-        upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED)
-        AudioPlay.status = Status.PAUSE
-        postEvent(Bus.AUDIO_STATE, Status.PAUSE)
-        upNotification()
+        if (url.contains(".m3u8", false)) {
+            stopSelf()
+        } else {
+            AudioPlayService.pause = pause
+            handler.removeCallbacks(mpRunnable)
+            position = mediaPlayer.currentPosition
+            mediaPlayer.pause()
+            upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED)
+            AudioPlay.status = Status.PAUSE
+            postEvent(EventBus.AUDIO_STATE, Status.PAUSE)
+            upNotification()
+        }
     }
 
     private fun resume() {
@@ -149,7 +159,7 @@ class AudioPlayService : BaseService(),
         handler.postDelayed(mpRunnable, 1000)
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
         AudioPlay.status = Status.PLAY
-        postEvent(Bus.AUDIO_STATE, Status.PLAY)
+        postEvent(EventBus.AUDIO_STATE, Status.PLAY)
         upNotification()
     }
 
@@ -161,31 +171,42 @@ class AudioPlayService : BaseService(),
         }
     }
 
+    private fun upSpeed(adjust: Float) {
+        kotlin.runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                with(mediaPlayer) {
+                    if (isPlaying) {
+                        playbackParams = playbackParams.apply { speed += adjust }
+                    }
+                    postEvent(EventBus.AUDIO_SPEED, playbackParams.speed)
+                }
+            }
+        }
+    }
+
     /**
      * 加载完成
      */
     override fun onPrepared(mp: MediaPlayer?) {
         if (pause) return
-        mp?.let {
-            mp.start()
-            mp.seekTo(position)
-            postEvent(Bus.AUDIO_SIZE, mp.duration)
-            bookChapter?.let {
-                it.end = mp.duration.toLong()
-            }
-            handler.removeCallbacks(mpRunnable)
-            handler.post(mpRunnable)
+        mediaPlayer.start()
+        mediaPlayer.seekTo(position)
+        postEvent(EventBus.AUDIO_SIZE, mediaPlayer.duration)
+        bookChapter?.let {
+            it.end = mediaPlayer.duration.toLong()
         }
+        handler.removeCallbacks(mpRunnable)
+        handler.post(mpRunnable)
     }
 
     /**
      * 播放出错
      */
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-        AudioPlay.status = Status.STOP
-        postEvent(Bus.AUDIO_STATE, Status.STOP)
-        launch {
-            toast("error: $what $extra $url")
+        if (!mediaPlayer.isPlaying) {
+            AudioPlay.status = Status.STOP
+            postEvent(EventBus.AUDIO_STATE, Status.STOP)
+            launch { toast("error: $what $extra $url") }
         }
         return true
     }
@@ -217,7 +238,7 @@ class AudioPlayService : BaseService(),
             handler.removeCallbacks(dsRunnable)
             handler.postDelayed(dsRunnable, 60000)
         }
-        postEvent(Bus.TTS_DS, timeMinute)
+        postEvent(EventBus.TTS_DS, timeMinute)
         upNotification()
     }
 
@@ -226,7 +247,7 @@ class AudioPlayService : BaseService(),
      */
     private fun upPlayProgress() {
         saveProgress()
-        postEvent(Bus.AUDIO_PROGRESS, mediaPlayer.currentPosition)
+        postEvent(EventBus.AUDIO_PROGRESS, mediaPlayer.currentPosition)
         handler.postDelayed(mpRunnable, 1000)
     }
 
@@ -239,26 +260,25 @@ class AudioPlayService : BaseService(),
                         if (index == AudioPlay.durChapterIndex) {
                             bookChapter = chapter
                             subtitle = chapter.title
-                            postEvent(Bus.AUDIO_SUB_TITLE, subtitle)
-                            postEvent(Bus.AUDIO_SIZE, chapter.end?.toInt() ?: 0)
-                            postEvent(Bus.AUDIO_PROGRESS, position)
+                            postEvent(EventBus.AUDIO_SUB_TITLE, subtitle)
+                            postEvent(EventBus.AUDIO_SIZE, chapter.end?.toInt() ?: 0)
+                            postEvent(EventBus.AUDIO_PROGRESS, position)
                         }
-                        BookHelp.getContent(book, chapter)?.let {
-                            contentLoadFinish(chapter, it)
-                            removeLoading(chapter.index)
-                        } ?: download(chapter)
+                        loadContent(chapter)
                     } ?: removeLoading(index)
                 }
             }
         }
     }
 
-    private fun download(chapter: BookChapter) {
+    private fun loadContent(chapter: BookChapter) {
         AudioPlay.book?.let { book ->
             AudioPlay.webBook?.getContent(book, chapter, scope = this)
                 ?.onSuccess(IO) { content ->
                     if (content.isNullOrEmpty()) {
-                        contentLoadFinish(chapter, getString(R.string.content_empty))
+                        withContext(Main) {
+                            toast("未获取到资源链接")
+                        }
                         removeLoading(chapter.index)
                     } else {
                         BookHelp.saveContent(book, chapter, content)
@@ -266,7 +286,7 @@ class AudioPlayService : BaseService(),
                         removeLoading(chapter.index)
                     }
                 }?.onError {
-                    contentLoadFinish(chapter, it.localizedMessage)
+                    contentLoadFinish(chapter, it.localizedMessage ?: toString())
                     removeLoading(chapter.index)
                 }
         }
@@ -294,18 +314,7 @@ class AudioPlayService : BaseService(),
             subtitle = chapter.title
             url = content
             play()
-            loadContent(AudioPlay.durChapterIndex + 1)
         }
-    }
-
-    private fun moveTo(index: Int) {
-        mediaPlayer.pause()
-        AudioPlay.durChapterIndex = index
-        AudioPlay.durPageIndex = 0
-        AudioPlay.book?.durChapterIndex = AudioPlay.durChapterIndex
-        saveRead()
-        position = 0
-        loadContent(AudioPlay.durChapterIndex)
     }
 
     private fun moveToPrev() {
@@ -341,6 +350,7 @@ class AudioPlayService : BaseService(),
                 book.durChapterTime = System.currentTimeMillis()
                 book.durChapterIndex = AudioPlay.durChapterIndex
                 book.durChapterPos = AudioPlay.durPageIndex
+                book.durChapterTitle = subtitle
                 App.db.bookDao().update(book)
             }
         }
@@ -366,7 +376,7 @@ class AudioPlayService : BaseService(),
                 handler.postDelayed(dsRunnable, 60000)
             }
         }
-        postEvent(Bus.TTS_DS, timeMinute)
+        postEvent(EventBus.TTS_DS, timeMinute)
         upNotification()
     }
 
@@ -475,24 +485,24 @@ class AudioPlayService : BaseService(),
             builder.addAction(
                 R.drawable.ic_play_24dp,
                 getString(R.string.resume),
-                thisPendingIntent(Action.resume)
+                thisPendingIntent(IntentAction.resume)
             )
         } else {
             builder.addAction(
                 R.drawable.ic_pause_24dp,
                 getString(R.string.pause),
-                thisPendingIntent(Action.pause)
+                thisPendingIntent(IntentAction.pause)
             )
         }
         builder.addAction(
             R.drawable.ic_stop_black_24dp,
             getString(R.string.stop),
-            thisPendingIntent(Action.stop)
+            thisPendingIntent(IntentAction.stop)
         )
         builder.addAction(
             R.drawable.ic_time_add_24dp,
             getString(R.string.set_timer),
-            thisPendingIntent(Action.addTimer)
+            thisPendingIntent(IntentAction.addTimer)
         )
         builder.setStyle(
             androidx.media.app.NotificationCompat.MediaStyle()

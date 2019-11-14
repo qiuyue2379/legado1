@@ -1,23 +1,35 @@
+@file:Suppress("unused")
 package io.legado.app.utils
 
-import android.content.Context
+import android.annotation.SuppressLint
+import android.content.*
 import android.content.res.ColorStateList
+import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.net.Uri
+import android.os.BatteryManager
+import android.provider.Settings
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.edit
-import org.jetbrains.anko.connectivityManager
+import cn.bingoogolapple.qrcode.zxing.QRCodeEncoder
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import io.legado.app.BuildConfig
+import io.legado.app.R
 import org.jetbrains.anko.defaultSharedPreferences
-
-fun Context.isOnline() = connectivityManager.activeNetworkInfo?.isConnected == true
+import org.jetbrains.anko.toast
+import java.io.File
+import java.io.FileOutputStream
 
 fun Context.getPrefBoolean(key: String, defValue: Boolean = false) =
     defaultSharedPreferences.getBoolean(key, defValue)
 
 fun Context.putPrefBoolean(key: String, value: Boolean = false) =
     defaultSharedPreferences.edit { putBoolean(key, value) }
-
 
 fun Context.getPrefInt(key: String, defValue: Int = 0) =
     defaultSharedPreferences.getInt(key, defValue)
@@ -51,20 +63,112 @@ fun Context.getCompatColor(@ColorRes id: Int): Int = ContextCompat.getColor(this
 
 fun Context.getCompatDrawable(@DrawableRes id: Int): Drawable? = ContextCompat.getDrawable(this, id)
 
-fun Context.getCompatColorStateList(@ColorRes id: Int): ColorStateList? = ContextCompat.getColorStateList(this, id)
+fun Context.getCompatColorStateList(@ColorRes id: Int): ColorStateList? =
+    ContextCompat.getColorStateList(this, id)
 
-fun Context.getStatusBarHeight(): Int {
-    val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-    return resources.getDimensionPixelSize(resourceId)
+/**
+ * 系统息屏时间
+ */
+val Context.sysScreenOffTime: Int
+    get() {
+        var screenOffTime = 0
+        try {
+            screenOffTime = Settings.System.getInt(contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return screenOffTime
 }
 
-fun Context.getNavigationBarHeight(): Int {
-    val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-    return resources.getDimensionPixelSize(resourceId)
+val Context.statusBarHeight: Int
+    get() {
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        return resources.getDimensionPixelSize(resourceId)
 }
 
-val Context.isNightTheme: Boolean
-    get() = getPrefBoolean("isNightTheme")
+val Context.navigationBarHeight: Int
+    get() {
+        val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return resources.getDimensionPixelSize(resourceId)
+}
 
-val Context.isTransparentStatusBar: Boolean
-    get() = getPrefBoolean("transparentStatusBar")
+@SuppressLint("SetWorldReadable")
+fun Context.shareWithQr(title: String, text: String) {
+    QRCodeEncoder.HINTS[EncodeHintType.ERROR_CORRECTION] = ErrorCorrectionLevel.L
+    val bitmap = QRCodeEncoder.syncEncodeQRCode(text, 600)
+    QRCodeEncoder.HINTS[EncodeHintType.ERROR_CORRECTION] = ErrorCorrectionLevel.H
+    if (bitmap == null) {
+        toast(R.string.text_too_long_qr_error)
+    } else {
+        try {
+            val file = File(externalCacheDir, "qr.png")
+            val fOut = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fOut)
+            fOut.flush()
+            fOut.close()
+            file.setReadable(true, false)
+            val contentUri = FileProvider.getUriForFile(
+                this,
+                "${BuildConfig.APPLICATION_ID}.fileProvider",
+                file
+            )
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            intent.putExtra(Intent.EXTRA_STREAM, contentUri)
+            intent.type = "image/png"
+            startActivity(Intent.createChooser(intent, title))
+        } catch (e: Exception) {
+            toast(e.localizedMessage ?: "ERROR")
+        }
+    }
+}
+
+fun Context.sendToClip(text: String) {
+    val clipboard =
+        getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+    val clipData = ClipData.newPlainText(null, text)
+    clipboard?.let {
+        clipboard.setPrimaryClip(clipData)
+        toast(R.string.copy_complete)
+    }
+}
+
+/**
+ * 系统是否暗色主题
+ */
+fun Context.sysIsDarkMode(): Boolean {
+    val mode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+    return mode == Configuration.UI_MODE_NIGHT_YES
+}
+
+/**
+ * 获取电量
+ */
+val Context.sysBattery: Int
+    get() {
+        val iFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val batteryStatus = registerReceiver(null, iFilter)
+        return batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+}
+
+fun Context.openUrl(url: String) {
+    openUrl(Uri.parse(url))
+}
+
+fun Context.openUrl(uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.data = uri
+    if (intent.resolveActivity(packageManager) != null) {
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            toast(e.localizedMessage ?: "open url error")
+        }
+    } else {
+        try {
+            startActivity(Intent.createChooser(intent, "请选择浏览器"))
+        } catch (e: Exception) {
+            toast(e.localizedMessage ?: "open url error")
+        }
+    }
+}

@@ -6,11 +6,12 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import io.legado.app.R
 import io.legado.app.constant.AppConst
-import io.legado.app.constant.Bus
+import io.legado.app.constant.EventBus
+import io.legado.app.help.AppConfig
 import io.legado.app.help.IntentHelp
 import io.legado.app.help.MediaHelp
+import io.legado.app.service.help.ReadBook
 import io.legado.app.utils.getPrefBoolean
-import io.legado.app.utils.getPrefInt
 import io.legado.app.utils.postEvent
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.toast
@@ -44,16 +45,10 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
     override fun onInit(status: Int) {
         launch {
             if (status == TextToSpeech.SUCCESS) {
-                val result = textToSpeech?.setLanguage(Locale.CHINA)
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    toast(R.string.tts_fix)
-                    IntentHelp.toTTSSetting(this@TTSReadAloudService)
-                    stopSelf()
-                } else {
-                    textToSpeech?.setOnUtteranceProgressListener(TTSUtteranceListener())
-                    ttsIsSuccess = true
-                    play()
-                }
+                textToSpeech?.language = Locale.CHINA
+                textToSpeech?.setOnUtteranceProgressListener(TTSUtteranceListener())
+                ttsIsSuccess = true
+                play()
             } else {
                 toast(R.string.tts_init_failed)
             }
@@ -101,7 +96,7 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
                 textToSpeech = TextToSpeech(this, this)
             }
         } else {
-            textToSpeech?.setSpeechRate((this.getPrefInt("ttsSpeechRate", 5) + 5) / 10f)
+            textToSpeech?.setSpeechRate((AppConfig.ttsSpeechRate + 5) / 10f)
         }
     }
 
@@ -154,17 +149,17 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
             textChapter?.let {
                 if (readAloudNumber + 1 > it.getReadLength(pageIndex + 1)) {
                     pageIndex++
-                    postEvent(Bus.TTS_TURN_PAGE, 1)
+                    ReadBook.moveToNextPage()
                 }
             }
-            postEvent(Bus.TTS_START, readAloudNumber + 1)
+            postEvent(EventBus.TTS_PROGRESS, readAloudNumber + 1)
         }
 
         override fun onDone(s: String) {
             readAloudNumber += contentList[nowSpeak].length + 1
             nowSpeak++
             if (nowSpeak >= contentList.size) {
-                postEvent(Bus.TTS_TURN_PAGE, 2)
+                nextChapter()
             }
         }
 
@@ -173,8 +168,8 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
             textChapter?.let {
                 if (readAloudNumber + start > it.getReadLength(pageIndex + 1)) {
                     pageIndex++
-                    postEvent(Bus.TTS_TURN_PAGE, 1)
-                    postEvent(Bus.TTS_START, readAloudNumber + start)
+                    ReadBook.moveToNextPage()
+                    postEvent(EventBus.TTS_PROGRESS, readAloudNumber + start)
                 }
             }
         }

@@ -10,9 +10,11 @@ import android.widget.SeekBar
 import androidx.core.view.isVisible
 import io.legado.app.App
 import io.legado.app.R
-import io.legado.app.constant.PreferKey
+import io.legado.app.help.AppConfig
+import io.legado.app.help.ReadBookConfig
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.lib.theme.buttonDisabledColor
+import io.legado.app.service.help.ReadBook
 import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.view_read_menu.view.*
 import org.jetbrains.anko.sdk27.listeners.onClick
@@ -40,7 +42,7 @@ class ReadMenu : FrameLayout {
     init {
         callBack = activity as? CallBack
         inflate(context, R.layout.view_read_menu, this)
-        if (context.isNightTheme) {
+        if (AppConfig.isNightTheme) {
             fabNightTheme.setImageResource(R.drawable.ic_daytime)
         } else {
             fabNightTheme.setImageResource(R.drawable.ic_brightness)
@@ -131,7 +133,7 @@ class ReadMenu : FrameLayout {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                callBack?.skipToPage(seekBar.progress)
+                ReadBook.skipToPage(seekBar.progress)
             }
         })
 
@@ -143,15 +145,15 @@ class ReadMenu : FrameLayout {
 
         //夜间模式
         fabNightTheme.onClick {
-            context.putPrefBoolean("isNightTheme", !context.isNightTheme)
+            AppConfig.isNightTheme = !AppConfig.isNightTheme
             App.INSTANCE.applyDayNight()
         }
 
         //上一章
-        tv_pre.onClick { callBack?.moveToPrevChapter(upContent = true, last = false) }
+        tv_pre.onClick { ReadBook.moveToPrevChapter(upContent = true, toLast = false) }
 
         //下一章
-        tv_next.onClick { callBack?.moveToNextChapter(true) }
+        tv_next.onClick { ReadBook.moveToNextChapter(true) }
 
         //目录
         ll_catalog.onClick {
@@ -197,9 +199,8 @@ class ReadMenu : FrameLayout {
                 vw_menu_bg.onClick { runMenuOut() }
                 vwNavigationBar.layoutParams = vwNavigationBar.layoutParams.apply {
                     height =
-                        if (context.getPrefBoolean(PreferKey.hideStatusBar)
-                            && Help.isNavigationBarExist(activity)
-                        ) context.getNavigationBarHeight()
+                        if (ReadBookConfig.hideNavigationBar && Help.isNavigationBarExist(activity))
+                            context.navigationBarHeight
                         else 0
                 }
             }
@@ -244,9 +245,6 @@ class ReadMenu : FrameLayout {
 
     interface CallBack {
         fun autoPage()
-        fun skipToPage(page: Int)
-        fun moveToPrevChapter(upContent: Boolean, last: Boolean): Boolean
-        fun moveToNextChapter(upContent: Boolean): Boolean
         fun openReplaceRule()
         fun openChapterList()
         fun showReadStyle()

@@ -1,20 +1,27 @@
 package io.legado.app.data.entities
 
 import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room.*
 import io.legado.app.utils.GSON
 import io.legado.app.utils.fromJsonObject
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-@Entity(tableName = "searchBooks", indices = [(Index(value = ["bookUrl"], unique = true))])
+@Entity(
+    tableName = "searchBooks",
+    indices = [(Index(value = ["bookUrl"], unique = true)),
+        (Index(value = ["origin"], unique = false))],
+    foreignKeys = [(ForeignKey(
+        entity = BookSource::class,
+        parentColumns = ["bookSourceUrl"],
+        childColumns = ["origin"],
+        onDelete = ForeignKey.CASCADE
+    ))]
+)
 data class SearchBook(
     @PrimaryKey
-    var bookUrl: String = "",
+    override var bookUrl: String = "",
     var origin: String = "",                     // 书源规则
     var originName: String = "",
     var type: Int = 0,                          // @BookType
@@ -71,16 +78,21 @@ data class SearchBook(
         variable = GSON.toJson(variableMap)
     }
 
-    @Ignore
+    @delegate:Ignore
     @IgnoredOnParcel
-    var origins: LinkedHashSet<String>? = null
-        private set
+    val origins: LinkedHashSet<String> by lazy { linkedSetOf(origin) }
 
     fun addOrigin(origin: String) {
-        if (origins == null) {
-            origins = linkedSetOf(this.origin)
+        origins.add(origin)
+    }
+
+    fun getDisplayLastChapterTitle(): String {
+        latestChapterTitle?.let {
+            if (it.isNotEmpty()) {
+                return it
+            }
         }
-        origins?.add(origin)
+        return "无最新章节"
     }
 
     fun toBook(): Book {

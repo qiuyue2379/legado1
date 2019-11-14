@@ -15,10 +15,8 @@ import kotlinx.android.parcel.Parcelize
 @Entity(
     tableName = "chapters",
     primaryKeys = ["url", "bookUrl"],
-    indices = [(Index(value = ["bookUrl"], unique = false)), (Index(
-        value = ["bookUrl", "index"],
-        unique = true
-    ))],
+    indices = [(Index(value = ["bookUrl"], unique = false)),
+        (Index(value = ["bookUrl", "index"], unique = true))],
     foreignKeys = [(ForeignKey(
         entity = Book::class,
         parentColumns = ["bookUrl"],
@@ -35,7 +33,7 @@ data class BookChapter(
     var tag: String? = null,            //
     var start: Long? = null,            // 章节起始位置
     var end: Long? = null,               // 章节终止位置
-    var variable: String? = null
+    var variable: String? = null        //变量
 ) : Parcelable {
 
     @Ignore
@@ -52,6 +50,17 @@ data class BookChapter(
     fun putVariable(key: String, value: String) {
         variableMap?.put(key, value)
         variable = GSON.toJson(variableMap)
+    }
+
+    override fun hashCode(): Int {
+        return url.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is BookChapter) {
+            return other.url == url
+        }
+        return false
     }
 
 }

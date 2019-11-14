@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.Menu
@@ -18,7 +20,6 @@ import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
 import io.legado.app.data.entities.BookSource
-import io.legado.app.data.entities.EditEntity
 import io.legado.app.data.entities.rule.*
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.ATH
@@ -27,8 +28,10 @@ import io.legado.app.ui.widget.KeyboardToolPop
 import io.legado.app.utils.GSON
 import io.legado.app.utils.applyTint
 import io.legado.app.utils.getViewModel
+import io.legado.app.utils.shareWithQr
 import kotlinx.android.synthetic.main.activity_book_source_edit.*
 import org.jetbrains.anko.displayMetrics
+import org.jetbrains.anko.share
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
 import kotlin.math.abs
@@ -80,11 +83,24 @@ class BookSourceEditActivity :
             }
             R.id.menu_copy_source -> {
                 GSON.toJson(getSource())?.let { sourceStr ->
-                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
-                    clipboard?.primaryClip = ClipData.newPlainText(null, sourceStr)
+                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                    clipboard?.setPrimaryClip(ClipData.newPlainText(null, sourceStr))
                 }
             }
             R.id.menu_paste_source -> viewModel.pasteSource { upRecyclerView(it) }
+            R.id.menu_share_str -> GSON.toJson(getSource())?.let { share(it) }
+            R.id.menu_share_qr -> GSON.toJson(getSource())?.let { sourceStr ->
+                shareWithQr(getString(R.string.share_book_source), sourceStr)
+            }
+            R.id.menu_rule_summary -> {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = Uri.parse(getString(R.string.source_rule_url))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    toast(R.string.can_not_open)
+                }
+            }
         }
         return super.onCompatOptionsItemSelected(item)
     }
@@ -151,10 +167,10 @@ class BookSourceEditActivity :
         //基本信息
         sourceEntities.clear()
         sourceEntities.apply {
-            add(EditEntity("bookSourceUrl", source?.bookSourceUrl, R.string.book_source_url))
-            add(EditEntity("bookSourceName", source?.bookSourceName, R.string.book_source_name))
-            add(EditEntity("bookSourceGroup", source?.bookSourceGroup, R.string.book_source_group))
-            add(EditEntity("loginUrl", source?.loginUrl, R.string.book_source_login_url))
+            add(EditEntity("bookSourceUrl", source?.bookSourceUrl, R.string.source_url))
+            add(EditEntity("bookSourceName", source?.bookSourceName, R.string.source_name))
+            add(EditEntity("bookSourceGroup", source?.bookSourceGroup, R.string.source_group))
+            add(EditEntity("loginUrl", source?.loginUrl, R.string.login_url))
             add(EditEntity("bookUrlPattern", source?.bookUrlPattern, R.string.book_url_pattern))
             add(EditEntity("header", source?.header, R.string.source_http_header))
         }
@@ -162,24 +178,24 @@ class BookSourceEditActivity :
         val sr = source?.getSearchRule()
         searchEntities.clear()
         searchEntities.apply {
-            add(EditEntity("searchUrl", source?.searchUrl, R.string.rule_search_url))
-            add(EditEntity("bookList", sr?.bookList, R.string.rule_book_list))
-            add(EditEntity("name", sr?.name, R.string.rule_book_name))
-            add(EditEntity("author", sr?.author, R.string.rule_book_author))
+            add(EditEntity("searchUrl", source?.searchUrl, R.string.r_search_url))
+            add(EditEntity("bookList", sr?.bookList, R.string.r_book_list))
+            add(EditEntity("name", sr?.name, R.string.r_book_name))
+            add(EditEntity("author", sr?.author, R.string.r_author))
             add(EditEntity("kind", sr?.kind, R.string.rule_book_kind))
             add(EditEntity("wordCount", sr?.wordCount, R.string.rule_word_count))
             add(EditEntity("lastChapter", sr?.lastChapter, R.string.rule_last_chapter))
             add(EditEntity("intro", sr?.intro, R.string.rule_book_intro))
             add(EditEntity("coverUrl", sr?.coverUrl, R.string.rule_cover_url))
-            add(EditEntity("bookUrl", sr?.bookUrl, R.string.rule_book_url))
+            add(EditEntity("bookUrl", sr?.bookUrl, R.string.r_book_url))
         }
         //详情页
         val ir = source?.getBookInfoRule()
         infoEntities.clear()
         infoEntities.apply {
             add(EditEntity("init", ir?.init, R.string.rule_book_info_init))
-            add(EditEntity("name", ir?.name, R.string.rule_book_name))
-            add(EditEntity("author", ir?.author, R.string.rule_book_author))
+            add(EditEntity("name", ir?.name, R.string.r_book_name))
+            add(EditEntity("author", ir?.author, R.string.r_author))
             add(EditEntity("kind", ir?.kind, R.string.rule_book_kind))
             add(EditEntity("wordCount", ir?.wordCount, R.string.rule_word_count))
             add(EditEntity("lastChapter", ir?.lastChapter, R.string.rule_last_chapter))
@@ -194,6 +210,8 @@ class BookSourceEditActivity :
             add(EditEntity("chapterList", tr?.chapterList, R.string.rule_chapter_list))
             add(EditEntity("chapterName", tr?.chapterName, R.string.rule_chapter_name))
             add(EditEntity("chapterUrl", tr?.chapterUrl, R.string.rule_chapter_url))
+            add(EditEntity("isVip", tr?.isVip, R.string.rule_is_vip))
+            add(EditEntity("updateTime", tr?.updateTime, R.string.rule_update_time))
             add(EditEntity("nextTocUrl", tr?.nextTocUrl, R.string.rule_next_toc_url))
         }
         //正文页
@@ -209,16 +227,16 @@ class BookSourceEditActivity :
         val er = source?.getExploreRule()
         findEntities.clear()
         findEntities.apply {
-            add(EditEntity("exploreUrl", source?.exploreUrl, R.string.rule_find_url))
-            add(EditEntity("bookList", er?.bookList, R.string.rule_book_list))
-            add(EditEntity("name", er?.name, R.string.rule_book_name))
-            add(EditEntity("author", er?.author, R.string.rule_book_author))
+            add(EditEntity("exploreUrl", source?.exploreUrl, R.string.r_find_url))
+            add(EditEntity("bookList", er?.bookList, R.string.r_book_list))
+            add(EditEntity("name", er?.name, R.string.r_book_name))
+            add(EditEntity("author", er?.author, R.string.r_author))
             add(EditEntity("kind", er?.kind, R.string.rule_book_kind))
             add(EditEntity("wordCount", er?.wordCount, R.string.rule_word_count))
             add(EditEntity("lastChapter", er?.lastChapter, R.string.rule_last_chapter))
             add(EditEntity("intro", er?.intro, R.string.rule_book_intro))
             add(EditEntity("coverUrl", er?.coverUrl, R.string.rule_cover_url))
-            add(EditEntity("bookUrl", er?.bookUrl, R.string.rule_book_url))
+            add(EditEntity("bookUrl", er?.bookUrl, R.string.r_book_url))
         }
         setEditEntities(0)
     }
@@ -293,6 +311,8 @@ class BookSourceEditActivity :
                 "chapterName" -> tocRule.chapterName = it.value
                 "chapterUrl" -> tocRule.chapterUrl = it.value
                 "nextTocUrl" -> tocRule.nextTocUrl = it.value
+                "isVip" -> tocRule.isVip = it.value
+                "updateTime" -> tocRule.updateTime = it.value
             }
         }
         contentEntities.forEach {
@@ -335,18 +355,16 @@ class BookSourceEditActivity :
     }
 
     private fun showKeyboardTopPopupWindow() {
-        mSoftKeyboardTool?.isShowing?.let { if (it) return }
-        if (!isFinishing) {
-            mSoftKeyboardTool?.showAtLocation(ll_content, Gravity.BOTTOM, 0, 0)
+        mSoftKeyboardTool?.let {
+            if (it.isShowing) return
+            if (!isFinishing) {
+                it.showAtLocation(ll_content, Gravity.BOTTOM, 0, 0)
+            }
         }
     }
 
     private fun closePopupWindow() {
-        mSoftKeyboardTool?.let {
-            if (it.isShowing) {
-                it.dismiss()
-            }
-        }
+        mSoftKeyboardTool?.dismiss()
     }
 
     private inner class KeyboardOnGlobalChangeListener : ViewTreeObserver.OnGlobalLayoutListener {

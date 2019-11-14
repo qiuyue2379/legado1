@@ -2,6 +2,7 @@ package io.legado.app.model.rss
 
 import io.legado.app.constant.RSSKeywords
 import io.legado.app.data.entities.RssArticle
+import io.legado.app.model.Debug
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -11,7 +12,7 @@ import java.io.StringReader
 object RssParser {
 
     @Throws(XmlPullParserException::class, IOException::class)
-    fun parseXML(xml: String, sourceUrl: String): MutableList<RssArticle> {
+    fun parseXML(xml: String, sourceUrl: String): Result {
 
         val articleList = mutableListOf<RssArticle>()
         var currentArticle = RssArticle()
@@ -39,8 +40,6 @@ object RssParser {
                         if (insideItem) currentArticle.title = xmlPullParser.nextText().trim()
                     xmlPullParser.name.equals(RSSKeywords.RSS_ITEM_LINK, true) ->
                         if (insideItem) currentArticle.link = xmlPullParser.nextText().trim()
-                    xmlPullParser.name.equals(RSSKeywords.RSS_ITEM_CATEGORY, true) ->
-                        if (insideItem) currentArticle.categoryList.add(xmlPullParser.nextText().trim())
                     xmlPullParser.name.equals(RSSKeywords.RSS_ITEM_THUMBNAIL, true) ->
                         if (insideItem) currentArticle.image =
                             xmlPullParser.getAttributeValue(null, RSSKeywords.RSS_ITEM_URL)
@@ -88,18 +87,25 @@ object RssParser {
             ) {
                 // The item is correctly parsed
                 insideItem = false
-                currentArticle.categories = currentArticle.categoryList.joinToString(",")
                 currentArticle.origin = sourceUrl
                 articleList.add(currentArticle)
                 currentArticle = RssArticle()
             }
             eventType = xmlPullParser.next()
         }
-        articleList.reverse()
-        for ((index: Int, item: RssArticle) in articleList.withIndex()) {
-            item.order = System.currentTimeMillis() + index
+        articleList.firstOrNull()?.let {
+            Debug.log(sourceUrl, "┌获取标题")
+            Debug.log(sourceUrl, "└${it.title}")
+            Debug.log(sourceUrl, "┌获取时间")
+            Debug.log(sourceUrl, "└${it.pubDate}")
+            Debug.log(sourceUrl, "┌获取描述")
+            Debug.log(sourceUrl, "└${it.description}")
+            Debug.log(sourceUrl, "┌获取图片url")
+            Debug.log(sourceUrl, "└${it.image}")
+            Debug.log(sourceUrl, "┌获取文章链接")
+            Debug.log(sourceUrl, "└${it.link}")
         }
-        return articleList
+        return Result(articleList, null)
     }
 
     /**
@@ -116,9 +122,9 @@ object RssParser {
         if (matcherImg.find()) {
             val imgTag = matcherImg.group(1)
             val patternLink = "src\\s*=\\s*\"(.+?)\"".toPattern()
-            val matcherLink = patternLink.matcher(imgTag)
+            val matcherLink = patternLink.matcher(imgTag!!)
             if (matcherLink.find()) {
-                url = matcherLink.group(1).trim()
+                url = matcherLink.group(1)!!.trim()
             }
         }
         return url

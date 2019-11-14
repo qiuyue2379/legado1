@@ -13,5 +13,10 @@
         android:title="@string/refresh"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/menu_can_update"
+        android:title="@string/allow_update"
+        android:checkable="true"
+        app:showAsAction="never" />
 
 </menu>

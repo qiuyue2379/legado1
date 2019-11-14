@@ -2,9 +2,12 @@ package io.legado.app.ui.rss.read
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
+import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.lifecycle.Observer
 import io.legado.app.R
@@ -13,17 +16,26 @@ import io.legado.app.lib.theme.DrawableUtils
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.utils.NetworkUtils
 import io.legado.app.utils.getViewModel
+import io.legado.app.utils.openUrl
 import kotlinx.android.synthetic.main.activity_rss_read.*
+import kotlinx.coroutines.launch
+import org.apache.commons.text.StringEscapeUtils
+import org.jetbrains.anko.share
+import org.jsoup.Jsoup
+import org.jsoup.safety.Whitelist
 
-class ReadRssActivity : VMBaseActivity<ReadRssViewModel>(R.layout.activity_rss_read) {
+class ReadRssActivity : VMBaseActivity<ReadRssViewModel>(R.layout.activity_rss_read),
+    ReadRssViewModel.CallBack {
 
     override val viewModel: ReadRssViewModel
         get() = getViewModel(ReadRssViewModel::class.java)
 
     private var starMenuItem: MenuItem? = null
+    private var ttsMenuItem: MenuItem? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        title = intent.getStringExtra("title")
+        viewModel.callBack = this
+        title_bar.title = intent.getStringExtra("title")
         initWebView()
         initLiveData()
         viewModel.initData(intent)
@@ -31,68 +43,141 @@ class ReadRssActivity : VMBaseActivity<ReadRssViewModel>(R.layout.activity_rss_r
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.rss_read, menu)
-        starMenuItem = menu.findItem(R.id.menu_rss_star)
-        upStarMenu()
         return super.onCompatCreateOptionsMenu(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        starMenuItem = menu?.findItem(R.id.menu_rss_star)
+        ttsMenuItem = menu?.findItem(R.id.menu_aloud)
+        upStarMenu()
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_rss_star -> viewModel.rssArticleLiveData.value?.let {
-                it.star = !it.star
-                viewModel.upRssArticle(it) { upStarMenu() }
+            R.id.menu_rss_star -> viewModel.favorite()
+            R.id.menu_share_it -> viewModel.rssArticle?.let {
+                share(it.link)
             }
+            R.id.menu_aloud -> readAloud()
         }
         return super.onCompatOptionsItemSelected(item)
     }
 
     private fun initWebView() {
-        webView.webViewClient = WebViewClient()
-        webView.settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-        webView.settings.domStorageEnabled = true
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                if (request?.url?.scheme == "http" || request?.url?.scheme == "https") {
+                    return false
+                }
+                request?.url?.let {
+                    openUrl(it)
+                }
+                return true
+            }
+        }
+        webView.settings.apply {
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            domStorageEnabled = true
+            allowContentAccess = true
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun initLiveData() {
-        viewModel.rssArticleLiveData.observe(this, Observer { upStarMenu() })
-        viewModel.rssSourceLiveData.observe(this, Observer {
-            if (it.enableJs) {
-                webView.settings.javaScriptEnabled = true
-            }
-        })
         viewModel.contentLiveData.observe(this, Observer { content ->
-            viewModel.rssArticleLiveData.value?.let {
-                val url = NetworkUtils.getAbsoluteURL(it.origin, it.link ?: "")
-                if (viewModel.rssSourceLiveData.value?.loadWithBaseUrl == true) {
-                    webView.loadDataWithBaseURL(
-                        url,
-                        "<style>img{max-width:100%}</style>$content",
-                        "text/html",
-                        "utf-8",
-                        url
-                    )
+            viewModel.rssArticle?.let {
+                upJavaScriptEnable()
+                val url = NetworkUtils.getAbsoluteURL(it.origin, it.link)
+                val html = viewModel.clHtml(content)
+                if (viewModel.rssSource?.loadWithBaseUrl == true) {
+                    webView.loadDataWithBaseURL(url, html, "text/html", "utf-8", url)//不想用baseUrl进else
                 } else {
-                    webView.loadData(
-                        "<style>img{max-width:100%}</style>$content",
-                        "text/html",
-                        "utf-8"
-                    )
+                    //webView.loadData(html, "text/html;charset=utf-8", "utf-8")//经测试可以解决中文乱码
+                    webView.loadDataWithBaseURL(null, html, "text/html;charset=utf-8", "utf-8", url)
                 }
             }
         })
         viewModel.urlLiveData.observe(this, Observer {
-            webView.loadUrl(it)
+            upJavaScriptEnable()
+            webView.loadUrl(it.url, it.headerMap)
         })
     }
 
-    private fun upStarMenu() {
-        if (viewModel.rssArticleLiveData.value?.star == true) {
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun upJavaScriptEnable() {
+        if (viewModel.rssSource?.enableJs == true) {
+            webView.settings.javaScriptEnabled = true
+        }
+    }
+
+    override fun upStarMenu() {
+        if (viewModel.star) {
             starMenuItem?.setIcon(R.drawable.ic_star)
-            starMenuItem?.setTitle(R.string.y_store_up)
+            starMenuItem?.setTitle(R.string.in_favorites)
         } else {
             starMenuItem?.setIcon(R.drawable.ic_star_border)
-            starMenuItem?.setTitle(R.string.w_store_up)
+            starMenuItem?.setTitle(R.string.out_favorites)
         }
         DrawableUtils.setTint(starMenuItem?.icon, primaryTextColor)
     }
+
+    override fun upTtsMenu(isPlaying: Boolean) {
+        launch {
+            if (isPlaying) {
+                ttsMenuItem?.setIcon(R.drawable.ic_stop_black_24dp)
+                ttsMenuItem?.setTitle(R.string.aloud_stop)
+            } else {
+                ttsMenuItem?.setIcon(R.drawable.ic_volume_up)
+                ttsMenuItem?.setTitle(R.string.read_aloud)
+            }
+            DrawableUtils.setTint(ttsMenuItem?.icon, primaryTextColor)
+        }
+    }
+
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_BACK -> {
+                finish()
+                return true
+            }
+        }
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        event?.let {
+            when (keyCode) {
+                KeyEvent.KEYCODE_BACK -> if (event.isTracking && !event.isCanceled && webView.canGoBack()) {
+                    if (webView.copyBackForwardList().size > 1) {
+                        webView.goBack()
+                        return true
+                    }
+                }
+            }
+        }
+        return super.onKeyUp(keyCode, event)
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun readAloud() {
+        if (viewModel.textToSpeech.isSpeaking) {
+            viewModel.textToSpeech.stop()
+            upTtsMenu(false)
+        } else {
+            webView.settings.javaScriptEnabled = true
+            webView.evaluateJavascript("document.documentElement.outerHTML") {
+                val html = StringEscapeUtils.unescapeJson(it)
+                val text = Jsoup.clean(html, Whitelist.none())
+                    .replace(Regex("""&\w+;"""), "")
+                    .trim()//朗读过程中总是听到一些杂音，清理一下
+                //longToast(需读内容)调试一下
+                viewModel.readAloud(text)
+            }
+        }
+    }
+
 }

@@ -10,13 +10,14 @@ import androidx.fragment.app.FragmentPagerAdapter
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.lib.theme.ATH
+import io.legado.app.lib.theme.accentColor
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.utils.getViewModel
 import io.legado.app.utils.gone
 import io.legado.app.utils.visible
 import kotlinx.android.synthetic.main.activity_chapter_list.*
 import kotlinx.android.synthetic.main.view_tab_layout.*
-import kotlinx.android.synthetic.main.view_title_bar.*
+
 
 class ChapterListActivity : VMBaseActivity<ChapterListViewModel>(R.layout.activity_chapter_list) {
     override val viewModel: ChapterListViewModel
@@ -25,12 +26,11 @@ class ChapterListActivity : VMBaseActivity<ChapterListViewModel>(R.layout.activi
     private var searchView: SearchView? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        setSupportActionBar(toolbar)
-        viewModel.bookUrl = intent.getStringExtra("bookUrl")
-        viewModel.loadBook {
-            view_pager.adapter = TabFragmentPageAdapter(supportFragmentManager)
-            tab_layout.setupWithViewPager(view_pager)
-        }
+        tab_layout.isTabIndicatorFullWidth = false
+        tab_layout.setSelectedTabIndicatorColor(accentColor)
+        viewModel.bookUrl = intent.getStringExtra("bookUrl") ?: ""
+        view_pager.adapter = TabFragmentPageAdapter(supportFragmentManager)
+        tab_layout.setupWithViewPager(view_pager)
     }
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
@@ -51,6 +51,11 @@ class ChapterListActivity : VMBaseActivity<ChapterListViewModel>(R.layout.activi
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
+                if (tab_layout.selectedTabPosition == 1) {
+                    viewModel.startBookmarkSearch(newText)
+                } else {
+                    viewModel.startChapterListSearch(newText)
+                }
                 return false
             }
         })

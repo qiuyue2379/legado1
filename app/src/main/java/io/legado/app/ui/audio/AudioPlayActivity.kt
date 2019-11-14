@@ -3,34 +3,41 @@ package io.legado.app.ui.audio
 import android.app.Activity
 import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.SeekBar
 import androidx.lifecycle.Observer
 import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
-import io.legado.app.constant.Bus
+import io.legado.app.constant.EventBus
 import io.legado.app.constant.Status
+import io.legado.app.constant.Theme
+import io.legado.app.data.entities.Book
 import io.legado.app.help.BlurTransformation
 import io.legado.app.help.ImageLoader
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.noButton
 import io.legado.app.lib.dialogs.okButton
+import io.legado.app.service.AudioPlayService
 import io.legado.app.service.help.AudioPlay
+import io.legado.app.ui.changesource.ChangeSourceDialog
 import io.legado.app.ui.chapterlist.ChapterListActivity
-import io.legado.app.utils.applyTint
-import io.legado.app.utils.getViewModel
-import io.legado.app.utils.observeEvent
-import io.legado.app.utils.observeEventSticky
+import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.activity_audio_play.*
-import kotlinx.android.synthetic.main.view_title_bar.*
 import org.apache.commons.lang3.time.DateFormatUtils
 import org.jetbrains.anko.sdk27.listeners.onClick
 import org.jetbrains.anko.sdk27.listeners.onLongClick
 import org.jetbrains.anko.startActivityForResult
 
-class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_audio_play) {
+
+class AudioPlayActivity :
+    VMBaseActivity<AudioPlayViewModel>(R.layout.activity_audio_play, theme = Theme.Dark),
+    ChangeSourceDialog.CallBack {
 
     override val viewModel: AudioPlayViewModel
         get() = getViewModel(AudioPlayViewModel::class.java)
@@ -39,11 +46,25 @@ class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_a
     private var adjustProgress = false
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        setSupportActionBar(toolbar)
+        title_bar.background.alpha = 0
         AudioPlay.titleData.observe(this, Observer { title_bar.title = it })
         AudioPlay.coverData.observe(this, Observer { upCover(it) })
         viewModel.initData(intent)
         initView()
+    }
+
+    override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.audio_play, menu)
+        return super.onCompatCreateOptionsMenu(menu)
+    }
+
+    override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_change_source -> AudioPlay.book?.let {
+                ChangeSourceDialog.show(supportFragmentManager, it.name, it.author)
+            }
+        }
+        return super.onCompatOptionsItemSelected(item)
     }
 
     private fun initView() {
@@ -82,15 +103,26 @@ class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_a
                 )
             }
         }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            iv_fast_rewind.invisible()
+            iv_fast_forward.invisible()
+        }
+        iv_fast_forward.onClick {
+            AudioPlay.adjustSpeed(this, 0.1f)
+        }
+        iv_fast_rewind.onClick {
+            AudioPlay.adjustSpeed(this, -0.1f)
+        }
     }
 
-    private fun upCover(path: String) {
+    private fun upCover(path: String?) {
         ImageLoader.load(this, path)
             .placeholder(R.drawable.image_cover_default)
             .error(R.drawable.image_cover_default)
             .centerCrop()
             .into(iv_cover)
         ImageLoader.load(this, path)
+            .transition(DrawableTransitionOptions.withCrossFade(1500))
             .thumbnail(defaultCover())
             .centerCrop()
             .apply(RequestOptions.bitmapTransform(BlurTransformation(this, 25)))
@@ -108,6 +140,13 @@ class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_a
             Status.PAUSE -> AudioPlay.resume(this)
             else -> AudioPlay.play(this)
         }
+    }
+
+    override val oldBook: Book?
+        get() = AudioPlay.book
+
+    override fun changeTo(book: Book) {
+        viewModel.changeTo(book)
     }
 
     override fun finish() {
@@ -137,7 +176,16 @@ class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_a
             when (requestCode) {
                 requestCodeChapter -> data?.getIntExtra("index", AudioPlay.durChapterIndex)?.let {
                     if (it != AudioPlay.durChapterIndex) {
-                        AudioPlay.moveTo(this, it)
+                        val isPlay = !AudioPlayService.pause
+                        AudioPlay.pause(this)
+                        AudioPlay.status = Status.STOP
+                        AudioPlay.durChapterIndex = it
+                        AudioPlay.durPageIndex = 0
+                        AudioPlay.book?.durChapterIndex = AudioPlay.durChapterIndex
+                        viewModel.saveRead()
+                        if (isPlay) {
+                            AudioPlay.play(this)
+                        }
                     }
                 }
             }
@@ -145,12 +193,12 @@ class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_a
     }
 
     override fun observeLiveBus() {
-        observeEvent<Boolean>(Bus.MEDIA_BUTTON) {
+        observeEvent<Boolean>(EventBus.MEDIA_BUTTON) {
             if (it) {
                 playButton()
             }
         }
-        observeEventSticky<Int>(Bus.AUDIO_STATE) {
+        observeEventSticky<Int>(EventBus.AUDIO_STATE) {
             AudioPlay.status = it
             if (it == Status.PLAY) {
                 fab_play_stop.setImageResource(R.drawable.ic_pause_24dp)
@@ -158,17 +206,21 @@ class AudioPlayActivity : VMBaseActivity<AudioPlayViewModel>(R.layout.activity_a
                 fab_play_stop.setImageResource(R.drawable.ic_play_24dp)
             }
         }
-        observeEventSticky<String>(Bus.AUDIO_SUB_TITLE) {
+        observeEventSticky<String>(EventBus.AUDIO_SUB_TITLE) {
             tv_sub_title.text = it
         }
-        observeEventSticky<Int>(Bus.AUDIO_SIZE) {
+        observeEventSticky<Int>(EventBus.AUDIO_SIZE) {
             player_progress.max = it
             tv_all_time.text = DateFormatUtils.format(it.toLong(), "mm:ss")
         }
-        observeEventSticky<Int>(Bus.AUDIO_PROGRESS) {
+        observeEventSticky<Int>(EventBus.AUDIO_PROGRESS) {
             AudioPlay.durPageIndex = it
             if (!adjustProgress) player_progress.progress = it
             tv_dur_time.text = DateFormatUtils.format(it.toLong(), "mm:ss")
+        }
+        observeEventSticky<Float>(EventBus.AUDIO_SPEED) {
+            tv_speed.text = String.format("%.1fX", it)
+            tv_speed.visible()
         }
     }
 

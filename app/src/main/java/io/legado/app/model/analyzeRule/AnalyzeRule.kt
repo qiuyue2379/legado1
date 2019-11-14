@@ -1,13 +1,14 @@
 package io.legado.app.model.analyzeRule
 
 import android.text.TextUtils
-import android.util.Base64
 import androidx.annotation.Keep
 import io.legado.app.constant.AppConst.SCRIPT_ENGINE
 import io.legado.app.constant.Pattern.JS_PATTERN
 import io.legado.app.data.entities.BaseBook
 import io.legado.app.data.entities.BookChapter
+import io.legado.app.help.JsExtensions
 import io.legado.app.utils.*
+import org.jsoup.nodes.Entities
 import org.mozilla.javascript.NativeObject
 import java.util.*
 import java.util.regex.Pattern
@@ -21,7 +22,7 @@ import kotlin.collections.HashMap
  */
 @Keep
 @Suppress("unused")
-class AnalyzeRule(var book: BaseBook? = null) {
+class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
     var chapter: BookChapter? = null
     private var content: Any? = null
     private var baseUrl: String? = null
@@ -108,18 +109,21 @@ class AnalyzeRule(var book: BaseBook? = null) {
      */
     @Throws(Exception::class)
     @JvmOverloads
-    fun getStringList(rule: String, isUrl: Boolean = false): List<String>? {
-        if (TextUtils.isEmpty(rule)) return null
+    fun getStringList(rule: String?, isUrl: Boolean = false): List<String>? {
+        if (rule.isNullOrEmpty()) return null
         val ruleList = splitSourceRule(rule)
         return getStringList(ruleList, isUrl)
     }
 
     @Throws(Exception::class)
-    fun getStringList(ruleList: List<SourceRule>, isUrl: Boolean): List<String>? {
+    fun getStringList(ruleList: List<SourceRule>, isUrl: Boolean = false): List<String>? {
         var result: Any? = null
-        content?.let { o ->
-            if (ruleList.isNotEmpty()) {
-                if (ruleList.isNotEmpty()) result = o
+        val content = this.content
+        if (content != null && ruleList.isNotEmpty()) {
+            result = content
+            if (content is NativeObject) {
+                result = content[ruleList[0].rule]?.toString()
+            } else {
                 for (sourceRule in ruleList) {
                     putRule(sourceRule.putMap)
                     sourceRule.makeUpRule(result)
@@ -170,8 +174,8 @@ class AnalyzeRule(var book: BaseBook? = null) {
      * 获取文本
      */
     @Throws(Exception::class)
-    fun getString(ruleStr: String, isUrl: Boolean = false): String? {
-        if (TextUtils.isEmpty(ruleStr)) return null
+    fun getString(ruleStr: String?, isUrl: Boolean = false): String {
+        if (TextUtils.isEmpty(ruleStr)) return ""
         val ruleList = splitSourceRule(ruleStr)
         return getString(ruleList, isUrl)
     }
@@ -190,7 +194,7 @@ class AnalyzeRule(var book: BaseBook? = null) {
                     putRule(sourceRule.putMap)
                     sourceRule.makeUpRule(result)
                     result?.let {
-                        if (sourceRule.rule.isNotBlank()) {
+                        if (sourceRule.rule.isNotBlank() || sourceRule.replaceRegex.isEmpty()) {
                             result = when (sourceRule.mode) {
                                 Mode.Js -> evalJS(sourceRule.rule, it)
                                 Mode.Json -> getAnalyzeByJSonPath(it).getString(sourceRule.rule)
@@ -203,7 +207,7 @@ class AnalyzeRule(var book: BaseBook? = null) {
                                 else -> sourceRule.rule
                             }
                         }
-                        if (sourceRule.replaceRegex.isNotEmpty()) {
+                        if ((result != null) && sourceRule.replaceRegex.isNotEmpty()) {
                             result = replaceRegex(result.toString(), sourceRule)
                         }
                     }
@@ -211,10 +215,15 @@ class AnalyzeRule(var book: BaseBook? = null) {
             }
         }
         if (result == null) result = ""
-        if (isUrl) {
-            return NetworkUtils.getAbsoluteURL(baseUrl, result.toString()) ?: ""
+        val str = try {
+            Entities.unescape(result.toString())
+        } catch (e: Exception) {
+            result.toString()
         }
-        return result.toString()
+        if (isUrl) {
+            return NetworkUtils.getAbsoluteURL(baseUrl, str) ?: ""
+        }
+        return str
     }
 
     /**
@@ -291,9 +300,7 @@ class AnalyzeRule(var book: BaseBook? = null) {
     @Throws(Exception::class)
     private fun putRule(map: Map<String, String>) {
         for ((key, value) in map) {
-            getString(value)?.let {
-                put(key, it)
-            }
+            put(key, getString(value))
         }
     }
 
@@ -322,7 +329,7 @@ class AnalyzeRule(var book: BaseBook? = null) {
                 val pattern = Pattern.compile(rule.replaceRegex)
                 val matcher = pattern.matcher(vResult)
                 if (matcher.find()) {
-                    matcher.group(0).replaceFirst(rule.replaceRegex.toRegex(), rule.replacement)
+                    matcher.group(0)!!.replaceFirst(rule.replaceRegex.toRegex(), rule.replacement)
                 } else {
                     ""
                 }
@@ -337,10 +344,10 @@ class AnalyzeRule(var book: BaseBook? = null) {
      * 分解规则生成规则列表
      */
     @Throws(Exception::class)
-    fun splitSourceRule(ruleStr: String, mode: Mode = Mode.Default): List<SourceRule> {
+    fun splitSourceRule(ruleStr: String?, mode: Mode = Mode.Default): List<SourceRule> {
         var vRuleStr = ruleStr
         val ruleList = ArrayList<SourceRule>()
-        if (TextUtils.isEmpty(vRuleStr)) return ruleList
+        if (vRuleStr.isNullOrEmpty()) return ruleList
         //检测Mode
         var mMode: Mode = mode
         when {
@@ -584,18 +591,23 @@ class AnalyzeRule(var book: BaseBook? = null) {
      */
     @Throws(Exception::class)
     private fun evalJS(jsStr: String, result: Any?): Any? {
-        val bindings = SimpleBindings()
-        bindings["java"] = this
-        bindings["book"] = book
-        bindings["result"] = result
-        bindings["baseUrl"] = baseUrl
-        return SCRIPT_ENGINE.eval(jsStr, bindings)
+        try {
+            val bindings = SimpleBindings()
+            bindings["java"] = this
+            bindings["book"] = book
+            bindings["result"] = result
+            bindings["baseUrl"] = baseUrl
+            return SCRIPT_ENGINE.eval(jsStr, bindings)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
+        }
     }
 
     /**
      * js实现跨域访问,不能删
      */
-    fun ajax(urlStr: String): String? {
+    override fun ajax(urlStr: String): String? {
         return try {
             val analyzeUrl = AnalyzeUrl(urlStr, null, null, null, baseUrl, book)
             val call = analyzeUrl.getResponse()
@@ -604,29 +616,6 @@ class AnalyzeRule(var book: BaseBook? = null) {
         } catch (e: Exception) {
             e.localizedMessage
         }
-    }
-
-    /**
-     * js实现解码,不能删
-     */
-    fun base64Decode(str: String): String {
-        return EncoderUtils.base64Decode(str)
-    }
-
-    fun base64Encode(str: String): String? {
-        return EncoderUtils.base64Encode(str)
-    }
-
-    fun base64Encode(str: String, flags: Int = Base64.NO_WRAP): String? {
-        return EncoderUtils.base64Encode(str, flags)
-    }
-
-    fun md5Encode(str: String): String? {
-        return MD5Utils.md5Encode(str)
-    }
-
-    fun md5Encode16(str: String): String? {
-        return MD5Utils.md5Encode16(str)
     }
 
     /**
@@ -639,7 +628,7 @@ class AnalyzeRule(var book: BaseBook? = null) {
         val pattern = Pattern.compile("(第)(.+?)(章)")
         val matcher = pattern.matcher(s)
         return if (matcher.find()) {
-            matcher.group(1) + StringUtils.stringToInt(matcher.group(2)) + matcher.group(3)
+            matcher.group(1)!! + StringUtils.stringToInt(matcher.group(2)) + matcher.group(3)
         } else {
             s
         }

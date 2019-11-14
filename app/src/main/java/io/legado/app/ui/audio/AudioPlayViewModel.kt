@@ -9,7 +9,6 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.BookHelp
 import io.legado.app.model.WebBook
-import io.legado.app.service.AudioPlayService
 import io.legado.app.service.help.AudioPlay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,9 +17,10 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
 
     fun initData(intent: Intent) {
         execute {
-            if (!AudioPlayService.isRun) {
+            val bookUrl = intent.getStringExtra("bookUrl")
+            if (AudioPlay.book?.bookUrl != bookUrl) {
+                AudioPlay.stop(context)
                 AudioPlay.inBookshelf = intent.getBooleanExtra("inBookshelf", true)
-                val bookUrl = intent.getStringExtra("bookUrl")
                 AudioPlay.book = if (!bookUrl.isNullOrEmpty()) {
                     App.db.bookDao().getBook(bookUrl)
                 } else {
@@ -91,7 +91,7 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
     fun changeTo(book1: Book) {
         execute {
             AudioPlay.book?.let {
-                App.db.bookDao().delete(it.bookUrl)
+                App.db.bookDao().delete(it)
             }
             withContext(Dispatchers.Main) {
 
@@ -124,13 +124,16 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
         }
     }
 
-    private fun saveRead() {
+    fun saveRead() {
         execute {
             AudioPlay.book?.let { book ->
                 book.lastCheckCount = 0
                 book.durChapterTime = System.currentTimeMillis()
                 book.durChapterIndex = AudioPlay.durChapterIndex
                 book.durChapterPos = AudioPlay.durPageIndex
+                App.db.bookChapterDao().getChapter(book.bookUrl, book.durChapterIndex)?.let {
+                    book.durChapterTitle = it.title
+                }
                 App.db.bookDao().update(book)
             }
         }
@@ -139,7 +142,7 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
     fun removeFromBookshelf(success: (() -> Unit)?) {
         execute {
             AudioPlay.book?.let {
-                App.db.bookDao().delete(it.bookUrl)
+                App.db.bookDao().delete(it)
             }
         }.onSuccess {
             success?.invoke()

@@ -1,7 +1,6 @@
 package io.legado.app.data.entities
 
 import androidx.room.Entity
-import androidx.room.Ignore
 
 
 @Entity(
@@ -17,12 +16,33 @@ data class RssArticle(
     var description: String? = null,
     var content: String? = null,
     var image: String? = null,
-    var categories: String? = null,
-    var read: Boolean = false,
-    var star: Boolean = false
+    var read: Boolean = false
 ) {
 
-    @Ignore
-    var categoryList: MutableList<String> = mutableListOf()
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
 
+    override fun equals(other: Any?): Boolean {
+        if (other == null) {
+            return false
+        }
+        if (other is RssArticle) {
+            return origin == other.origin && link == other.link
+        }
+        return false
+    }
+
+    fun toStar(): RssStar {
+        return RssStar(
+            origin = origin,
+            title = title,
+            starTime = System.currentTimeMillis(),
+            link = link,
+            pubDate = pubDate,
+            description = description,
+            content = content,
+            image = image
+        )
+    }
 }

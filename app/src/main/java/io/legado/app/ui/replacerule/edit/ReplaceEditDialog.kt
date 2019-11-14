@@ -9,8 +9,10 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Observer
 import io.legado.app.R
+import io.legado.app.constant.Theme
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.utils.applyTint
 import io.legado.app.utils.getViewModel
@@ -21,14 +23,13 @@ class ReplaceEditDialog : DialogFragment(),
 
     companion object {
 
-        fun newInstance(id: Long? = null): ReplaceEditDialog {
+        fun show(fragmentManager: FragmentManager, id: Long = -1, pattern: String? = null) {
             val dialog = ReplaceEditDialog()
-            id?.let {
-                val bundle = Bundle()
-                bundle.putLong("id", id)
-                dialog.arguments = bundle
-            }
-            return dialog
+            val bundle = Bundle()
+            bundle.putLong("id", id)
+            bundle.putString("pattern", pattern)
+            dialog.arguments = bundle
+            dialog.show(fragmentManager, "editReplace")
         }
     }
 
@@ -53,9 +54,9 @@ class ReplaceEditDialog : DialogFragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         tool_bar.inflateMenu(R.menu.replace_edit)
-        tool_bar.menu.applyTint(requireContext(), false)
+        tool_bar.menu.applyTint(requireContext(), Theme.getTheme())
         tool_bar.setOnMenuItemClickListener(this)
-        viewModel.replaceRuleData.observe(this, Observer {
+        viewModel.replaceRuleData.observe(viewLifecycleOwner, Observer {
             upReplaceView(it)
         })
         arguments?.let {
@@ -87,7 +88,7 @@ class ReplaceEditDialog : DialogFragment(),
         val replaceRule: ReplaceRule = viewModel.replaceRuleData.value ?: ReplaceRule()
         replaceRule.name = et_name.text.toString()
         replaceRule.group = et_group.text.toString()
-        replaceRule.pattern = et_group.text.toString()
+        replaceRule.pattern = et_replace_rule.text.toString()
         replaceRule.isRegex = cb_use_regex.isChecked
         replaceRule.replacement = et_replace_to.text.toString()
         replaceRule.scope = et_scope.text.toString()

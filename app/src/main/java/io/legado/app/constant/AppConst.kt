@@ -22,7 +22,7 @@ object AppConst {
     const val UA_NAME = "User-Agent"
 
     val userAgent: String by lazy {
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"
     }
 
     val SCRIPT_ENGINE: ScriptEngine by lazy {
@@ -31,6 +31,10 @@ object AppConst {
 
     val TIME_FORMAT: SimpleDateFormat by lazy {
         SimpleDateFormat("HH:mm")
+    }
+
+    val DATE_FORMAT: SimpleDateFormat by lazy {
+        SimpleDateFormat("yyyy/MM/dd HH:mm")
     }
 
     val keyboardToolChars: List<String> by lazy {
@@ -56,7 +60,8 @@ object AppConst {
             App.INSTANCE.putPrefBoolean("bookGroupAudio", value)
         }
 
-    const val notificationIdRead = 12
-    const val notificationIdAudio = 13
-    const val notificationIdWeb = 14
+    const val notificationIdRead = 1144771
+    const val notificationIdAudio = 1144772
+    const val notificationIdWeb = 1144773
+    const val notificationIdDownload = 1144774
 }

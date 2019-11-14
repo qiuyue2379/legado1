@@ -5,6 +5,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.annotation.RequiresApi
@@ -15,13 +16,12 @@ import io.legado.app.constant.AppConst.channelIdReadAloud
 import io.legado.app.constant.AppConst.channelIdWeb
 import io.legado.app.data.AppDatabase
 import io.legado.app.help.ActivityHelp
+import io.legado.app.help.AppConfig
 import io.legado.app.help.CrashHandler
 import io.legado.app.help.ReadBookConfig
 import io.legado.app.lib.theme.ThemeStore
-import io.legado.app.ui.widget.page.ChapterProvider
 import io.legado.app.utils.getCompatColor
 import io.legado.app.utils.getPrefInt
-import io.legado.app.utils.isNightTheme
 
 @Suppress("DEPRECATION")
 class App : Application() {
@@ -50,7 +50,7 @@ class App : Application() {
         }
 
         if (!ThemeStore.isConfigured(this, versionCode)) applyTheme()
-        initNightTheme()
+        initNightMode()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) createChannelId()
 
@@ -63,48 +63,59 @@ class App : Application() {
         registerActivityLife()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        when (newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+            Configuration.UI_MODE_NIGHT_YES, Configuration.UI_MODE_NIGHT_NO -> applyDayNight()
+        }
+    }
+
     /**
      * 更新主题
      */
     fun applyTheme() {
-        if (isNightTheme) {
+        if (AppConfig.isNightTheme) {
             ThemeStore.editTheme(this)
                 .primaryColor(
                     getPrefInt("colorPrimaryNight", getCompatColor(R.color.md_blue_grey_600))
                 )
                 .accentColor(
-                    getPrefInt("colorAccentNight", getCompatColor(R.color.md_deep_orange_800))
+                    getPrefInt("colorAccentNight", getCompatColor(R.color.md_brown_800))
                 )
                 .backgroundColor(
-                    getPrefInt("colorBackgroundNight", getCompatColor(R.color.md_grey_800))
+                    getPrefInt("colorBackgroundNight", getCompatColor(R.color.shine_color))
                 )
                 .apply()
         } else {
             ThemeStore.editTheme(this)
-                .primaryColor(getPrefInt("colorPrimary", getCompatColor(R.color.md_light_blue_500)))
-                .accentColor(getPrefInt("colorAccent", getCompatColor(R.color.md_pink_800)))
-                .backgroundColor(getPrefInt("colorBackground", getCompatColor(R.color.md_grey_100)))
+                .primaryColor(
+                    getPrefInt("colorPrimary", getCompatColor(R.color.md_indigo_800))
+                )
+                .accentColor(
+                    getPrefInt("colorAccent", getCompatColor(R.color.md_red_600))
+                )
+                .backgroundColor(
+                    getPrefInt("colorBackground", getCompatColor(R.color.md_grey_100))
+                )
                 .apply()
         }
-        ChapterProvider.upReadAloudSpan()
     }
 
     fun applyDayNight() {
         ReadBookConfig.upBg()
         applyTheme()
-        initNightTheme()
+        initNightMode()
     }
 
-
-    private fun initNightTheme() {
-        val targetMode = if (isNightTheme) {
-            AppCompatDelegate.MODE_NIGHT_YES
-        } else {
-            AppCompatDelegate.MODE_NIGHT_NO
-        }
+    private fun initNightMode() {
+        val targetMode =
+            if (AppConfig.isNightTheme) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
         AppCompatDelegate.setDefaultNightMode(targetMode)
     }
-
 
     /**
      * 创建通知ID

@@ -2,19 +2,17 @@ package io.legado.app.ui.explore
 
 import android.os.Bundle
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.SearchBook
-import io.legado.app.help.IntentDataHelp
 import io.legado.app.ui.book.info.BookInfoActivity
-import io.legado.app.ui.widget.LoadMoreView
+import io.legado.app.ui.widget.recycler.LoadMoreView
+import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.getViewModel
 import kotlinx.android.synthetic.main.activity_explore_show.*
-import kotlinx.android.synthetic.main.view_load_more.view.*
 import org.jetbrains.anko.startActivity
 
 class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activity_explore_show),
@@ -36,11 +34,11 @@ class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activi
     private fun initRecyclerView() {
         adapter = ExploreShowAdapter(this, this)
         recycler_view.layoutManager = LinearLayoutManager(this)
-        recycler_view.addItemDecoration(DividerItemDecoration(this, RecyclerView.VERTICAL))
+        recycler_view.addItemDecoration(VerticalDivider(this))
         recycler_view.adapter = adapter
         loadMoreView = LoadMoreView(this)
         adapter.addFooterView(loadMoreView)
-        loadMoreView.rotate_loading.show()
+        loadMoreView.startLoad()
         recycler_view.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -74,8 +72,7 @@ class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activi
 
     override fun showBookInfo(book: Book) {
         startActivity<BookInfoActivity>(
-            Pair("searchBookUrl", book.bookUrl),
-            Pair("key", IntentDataHelp.putData(book))
+            Pair("bookUrl", book.bookUrl)
         )
     }
 }

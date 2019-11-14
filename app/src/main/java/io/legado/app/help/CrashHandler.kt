@@ -9,12 +9,12 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import io.legado.app.service.TTSReadAloudService
-import java.io.File
-import java.io.FileOutputStream
+import io.legado.app.utils.FileUtils
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * 异常管理类
@@ -103,7 +103,9 @@ class CrashHandler : Thread.UncaughtExceptionHandler {
         kotlin.runCatching {
             for (field in fields) {
                 field.isAccessible = true
-                paramsMap[field.name] = field.get(null).toString()
+                field.get(null)?.toString()?.let {
+                    paramsMap[field.name] = it
+                }
             }
         }
     }
@@ -139,14 +141,15 @@ class CrashHandler : Thread.UncaughtExceptionHandler {
             val timestamp = System.currentTimeMillis()
             val time = format.format(Date())
             val fileName = "crash-$time-$timestamp.log"
-            val path = mContext?.externalCacheDir?.toString() + "/crash/"
-            val dir = File(path)
-            if (!dir.exists()) {
-                dir.mkdirs()
+            mContext?.externalCacheDir?.let { rootFile ->
+                FileUtils.getDirFile(rootFile, "crash").listFiles()?.forEach {
+                    if (it.lastModified() < System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)) {
+                        it.delete()
+                    }
+                }
+                FileUtils.createFileIfNotExist(rootFile, fileName, "crash")
+                    .writeText(sb.toString())
             }
-            val fos = FileOutputStream(path + fileName)
-            fos.write(sb.toString().toByteArray())
-            fos.close()
         }
     }
 

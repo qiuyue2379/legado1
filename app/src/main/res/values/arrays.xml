@@ -35,12 +35,6 @@
         <item>9</item>
     </string-array>
 
-    <string-array name="bookshelf_layout">
-        <item>@string/layout_list</item>
-        <item>@string/layout_grid3</item>
-        <item>@string/layout_grid4</item>
-    </string-array>
-
     <string-array name="indent">
         <item>@string/indent_0</item>
         <item>@string/indent_1</item>
@@ -61,6 +55,18 @@
         <item>@string/jf_convert_f</item>
     </string-array>
 
+    <string-array name="theme_mode">
+        <item>跟随系统</item>
+        <item>亮色主题</item>
+        <item>暗色主题</item>
+    </string-array>
+
+    <string-array name="theme_mode_v">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <string-array name="NavBarColors">
         <item>自动</item>
         <item>黑色</item>
@@ -76,31 +82,25 @@
         <item>常亮</item>
     </string-array>
 
-    <integer-array name="screen_time_out_value">
+    <string-array name="screen_time_out_value">
         <item>0</item>
         <item>60</item>
         <item>120</item>
         <item>180</item>
         <item>-1</item>
-    </integer-array>
+    </string-array>
+
+    <string-array name="select_folder">
+        <item>@string/default_path</item>
+        <item>@string/sys_folder_picker</item>
+        <item>@string/app_folder_picker</item>
+    </string-array>
 
     <string-array name="screen_direction_list_title">
         <item>@string/screen_unspecified</item>
         <item>@string/screen_portrait</item>
         <item>@string/screen_landscape</item>
         <item>@string/screen_sensor</item>
-    </string-array>
-
-    <string-array name="bookshelf_px_title">
-        <item>@string/bookshelf_px_0</item>
-        <item>@string/bookshelf_px_1</item>
-        <item>@string/bookshelf_px_2</item>
-    </string-array>
-
-    <string-array name="bookshelf_px_value">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
     </string-array>
 
     <declare-styleable name="Battery">
@@ -113,13 +113,28 @@
     </declare-styleable>
 
     <string-array name="icon_names">
+        <item>iconMain</item>
         <item>icon1</item>
         <item>icon2</item>
+        <item>icon3</item>
     </string-array>
 
     <string-array name="icons">
-        <item>@string/icon_main</item>
-        <item>@string/icon_book</item>
+        <item>ic_launcher</item>
+        <item>launcher1</item>
+        <item>launcher2</item>
+        <item>launcher3</item>
     </string-array>
 
+    <string-array name="chinese_mode">
+        <item>关闭</item>
+        <item>繁体转简体</item>
+        <item>简体转繁体</item>
+    </string-array>
+
+    <string-array name="system_typefaces">
+        <item>系统默认字体</item>
+        <item>系统衬线字体</item>
+        <item>系统等宽字体</item>
+    </string-array>
 </resources>

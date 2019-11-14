@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 import io.legado.app.App
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.userAgent
+import io.legado.app.constant.BookType
 import io.legado.app.data.entities.rule.*
 import io.legado.app.help.JsExtensions
 import io.legado.app.utils.ACache
@@ -25,27 +26,39 @@ import javax.script.SimpleBindings
     indices = [(Index(value = ["bookSourceUrl"], unique = false))]
 )
 data class BookSource(
-    var bookSourceName: String = "",                    // 名称
-    var bookSourceGroup: String? = null,                // 分组
+    var bookSourceName: String = "",                // 名称
+    var bookSourceGroup: String? = null,            // 分组
     @PrimaryKey
-    var bookSourceUrl: String = "",                  // 地址，包括 http/https
-    var bookSourceType: Int = 0,                        // 类型，0 文本，1 音频
-    var bookUrlPattern: String? = null,
-    var customOrder: Int = 0,                 // 手动排序编号
-    var enabled: Boolean = true,            // 是否启用
-    var enabledExplore: Boolean = true,     //启用发现
-    var header: String? = null,               // header
-    var loginUrl: String? = null,             // 登录地址
-    var lastUpdateTime: Long = 0,             // 最后更新时间，用于排序
-    var weight: Int = 0,                      // 智能排序的权重
-    var exploreUrl: String? = null,           //发现url
-    var ruleExplore: String? = null,          // 发现规则
-    var searchUrl: String? = null,            //搜索url
-    var ruleSearch: String? = null,           // 搜索规则
-    var ruleBookInfo: String? = null,         // 书籍信息页规则
-    var ruleToc: String? = null,          // 目录页规则
-    var ruleContent: String? = null           // 正文页规则
-) : Parcelable {
+    var bookSourceUrl: String = "",                 // 地址，包括 http/https
+    var bookSourceType: Int = BookType.default,     // 类型，0 文本，1 音频
+    var bookUrlPattern: String? = null,             // 详情页url正则
+    var customOrder: Int = 0,                       // 手动排序编号
+    var enabled: Boolean = true,                    // 是否启用
+    var enabledExplore: Boolean = true,             // 启用发现
+    var header: String? = null,                     // 请求头
+    var loginUrl: String? = null,                   // 登录地址
+    var lastUpdateTime: Long = 0,                   // 最后更新时间，用于排序
+    var weight: Int = 0,                            // 智能排序的权重
+    var exploreUrl: String? = null,                 // 发现url
+    var ruleExplore: String? = null,                // 发现规则
+    var searchUrl: String? = null,                  // 搜索url
+    var ruleSearch: String? = null,                 // 搜索规则
+    var ruleBookInfo: String? = null,               // 书籍信息页规则
+    var ruleToc: String? = null,                    // 目录页规则
+    var ruleContent: String? = null                 // 正文页规则
+) : Parcelable, JsExtensions {
+
+    override fun hashCode(): Int {
+        return bookSourceUrl.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is BookSource) {
+            return other.bookSourceUrl == bookSourceUrl
+        }
+        return false
+    }
+
     @Ignore
     @IgnoredOnParcel
     private var searchRuleV: SearchRule? = null
@@ -125,6 +138,16 @@ data class BookSource(
         return contentRuleV!!
     }
 
+    fun addGroup(group: String) {
+        bookSourceGroup?.let {
+            if (!it.contains(group)) {
+                bookSourceGroup = "$it;$group"
+            }
+        } ?: let {
+            bookSourceGroup = group
+        }
+    }
+
     fun getExploreKinds(): ArrayList<ExploreKind>? {
         val exploreKinds = arrayListOf<ExploreKind>()
         exploreUrl?.let {
@@ -137,7 +160,7 @@ data class BookSource(
                         if (a.isBlank()) {
                             val bindings = SimpleBindings()
                             bindings["baseUrl"] = bookSourceUrl
-                            bindings["java"] = JsExtensions
+                            bindings["java"] = this
                             a = AppConst.SCRIPT_ENGINE.eval(
                                 it.substring(4, it.lastIndexOf("<")),
                                 bindings
@@ -152,7 +175,7 @@ data class BookSource(
                             exploreKinds.add(ExploreKind(d[0], d[1]))
                     }
                 } catch (e: Exception) {
-                    exploreKinds.add(ExploreKind(e.localizedMessage))
+                    exploreKinds.add(ExploreKind(e.localizedMessage ?: ""))
                 }
             }
         }
@@ -165,7 +188,7 @@ data class BookSource(
     @Throws(Exception::class)
     private fun evalJS(jsStr: String): Any {
         val bindings = SimpleBindings()
-        bindings["java"] = JsExtensions
+        bindings["java"] = this
         return AppConst.SCRIPT_ENGINE.eval(jsStr, bindings)
     }
 
