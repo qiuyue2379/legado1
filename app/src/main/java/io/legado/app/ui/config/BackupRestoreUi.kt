@@ -3,7 +3,6 @@ package io.legado.app.ui.config
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import io.legado.app.App
@@ -23,6 +22,7 @@ import io.legado.app.utils.isContentPath
 import io.legado.app.utils.toast
 import kotlinx.coroutines.Dispatchers.Main
 import org.jetbrains.anko.toast
+import java.io.File
 
 object BackupRestoreUi {
     private const val selectFolderRequestCode = 21
@@ -78,9 +78,7 @@ object BackupRestoreUi {
     }
 
     fun selectBackupFolder(fragment: Fragment, requestCode: Int = selectFolderRequestCode) {
-        FilePicker.selectFolder(fragment, requestCode) {
-            backupUsePermission(fragment, requestCode = requestCode)
-        }
+        FilePicker.selectFolder(fragment, requestCode)
     }
 
     fun restore(fragment: Fragment) {
@@ -97,13 +95,13 @@ object BackupRestoreUi {
                             Restore.restore(fragment.requireContext(), backupPath)
                             fragment.toast(R.string.restore_success)
                         } else {
-                            selectRestoreFolder(fragment)
+                            selectBackupFolder(fragment, restoreSelectRequestCode)
                         }
                     } else {
                         restoreUsePermission(fragment, backupPath)
                     }
                 } else {
-                    selectRestoreFolder(fragment)
+                    selectBackupFolder(fragment, restoreSelectRequestCode)
                 }
             }
         }
@@ -124,29 +122,8 @@ object BackupRestoreUi {
             .request()
     }
 
-    private fun selectRestoreFolder(fragment: Fragment) {
-        FilePicker.selectFolder(fragment, restoreSelectRequestCode) {
-            restoreUsePermission(fragment)
-        }
-    }
-
     fun importOldData(fragment: Fragment) {
-        FilePicker.selectFolder(fragment, oldDataRequestCode) {
-            importOldUsePermission(fragment)
-        }
-    }
-
-    private fun importOldUsePermission(fragment: Fragment) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-            fragment.toast(R.string.a10_permission_toast)
-        }
-        PermissionsCompat.Builder(fragment)
-            .addPermissions(*Permissions.Group.STORAGE)
-            .rationale(R.string.tip_perm_request_storage)
-            .onGranted {
-                ImportOldData.import(fragment.requireContext())
-            }
-            .request()
+        FilePicker.selectFolder(fragment, oldDataRequestCode)
     }
 
     fun onFilePicked(requestCode: Int, currentPath: String) {
@@ -169,6 +146,9 @@ object BackupRestoreUi {
             }
             selectFolderRequestCode -> {
                 AppConfig.backupPath = currentPath
+            }
+            oldDataRequestCode -> {
+                ImportOldData.import(App.INSTANCE, File(currentPath))
             }
         }
     }
