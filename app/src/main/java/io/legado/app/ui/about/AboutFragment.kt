@@ -10,10 +10,12 @@ import androidx.preference.PreferenceFragmentCompat
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.ui.update.MainActivity
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.openUrl
 import io.legado.app.utils.sendToClip
 import io.legado.app.utils.toast
+import org.jetbrains.anko.startActivity
 
 class AboutFragment : PreferenceFragmentCompat() {
 
@@ -44,7 +46,7 @@ class AboutFragment : PreferenceFragmentCompat() {
         when (preference?.key) {
             "contributors" -> openUrl(R.string.contributors_url)
             "update_log" -> showUpdateLog()
-            "check_update" -> openUrl(R.string.latest_release_url)
+            "check_update" -> context?.startActivity<MainActivity>()//openUrl(R.string.latest_release_url)
             "mail" -> sendMail()
             "git" -> openUrl(R.string.this_github_url)
             "home_page" -> openUrl(R.string.home_page_url)
