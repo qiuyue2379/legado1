@@ -16,6 +16,49 @@ class CoverPageDelegate(pageView: PageView) : HorizontalPageDelegate(pageView) {
         shadowDrawableR.gradientType = GradientDrawable.LINEAR_GRADIENT
     }
 
+    override fun setStartPoint(x: Float, y: Float, invalidate: Boolean) {
+        curPage.x = 0.toFloat()
+        prevPage.x = -viewWidth.toFloat()
+        nextPage.x = 0.toFloat()
+        super.setStartPoint(x, y, invalidate)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val offsetX = touchX - startX
+
+        if ((mDirection == Direction.NEXT && offsetX > 0)
+            || (mDirection == Direction.PREV && offsetX < 0)
+        ) return
+
+        val distanceX = if (offsetX > 0) offsetX - viewWidth else offsetX + viewWidth
+        if (!isRunning) return
+        if (mDirection == Direction.PREV) {
+            prevPage.translationX = offsetX - viewWidth
+            addShadow(distanceX.toInt(), canvas)
+        } else if (mDirection == Direction.NEXT) {
+            curPage.translationX = offsetX
+            addShadow(distanceX.toInt(), canvas)
+        }
+    }
+
+    private fun addShadow(left: Int, canvas: Canvas) {
+        if (left < 0) {
+            shadowDrawableR.setBounds(left + viewWidth, 0, left + viewWidth + 30, viewHeight)
+            shadowDrawableR.draw(canvas)
+        } else if (left > 0) {
+            shadowDrawableR.setBounds(left, 0, left + 30, viewHeight)
+            shadowDrawableR.draw(canvas)
+        }
+    }
+
+    override fun onAnimStop() {
+        curPage.x = 0.toFloat()
+        prevPage.x = -viewWidth.toFloat()
+        if (!isCancel) {
+            pageView.fillPage(mDirection)
+        }
+    }
+
     override fun onAnimStart() {
         val distanceX: Float
         when (mDirection) {
@@ -39,38 +82,4 @@ class CoverPageDelegate(pageView: PageView) : HorizontalPageDelegate(pageView) {
         startScroll(touchX.toInt(), 0, distanceX.toInt(), 0)
     }
 
-    override fun onDraw(canvas: Canvas) {
-        val offsetX = touchX - startX
-
-        if ((mDirection == Direction.NEXT && offsetX > 0)
-            || (mDirection == Direction.PREV && offsetX < 0)
-        ) return
-
-        val distanceX = if (offsetX > 0) offsetX - viewWidth else offsetX + viewWidth
-        if (!isMoved) return
-        if (mDirection == Direction.PREV) {
-            prevPage.translationX = offsetX - viewWidth
-        } else if (mDirection == Direction.NEXT) {
-            curPage.translationX = offsetX
-        }
-        addShadow(distanceX.toInt(), canvas)
-    }
-
-    private fun addShadow(left: Int, canvas: Canvas) {
-        if (left < 0) {
-            shadowDrawableR.setBounds(left + viewWidth, 0, left + viewWidth + 30, viewHeight)
-            shadowDrawableR.draw(canvas)
-        } else if (left > 0) {
-            shadowDrawableR.setBounds(left, 0, left + 30, viewHeight)
-            shadowDrawableR.draw(canvas)
-        }
-    }
-
-    override fun onAnimStop() {
-        curPage.x = 0.toFloat()
-        prevPage.x = -viewWidth.toFloat()
-        if (!isCancel) {
-            pageView.fillPage(mDirection)
-        }
-    }
 }

@@ -15,6 +15,8 @@ import com.maning.updatelibrary.InstallUtils.*
 import okhttp3.*
 
 import io.legado.app.R
+import io.legado.app.base.BaseActivity
+import io.legado.app.ui.about.AboutFragment
 import kotlinx.android.synthetic.main.activity_down.*
 
 import org.jetbrains.anko.toast
@@ -24,10 +26,19 @@ import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity(R.layout.activity_down) {
     private var downloadCallBack: DownloadCallBack? = null
     private var apkDownloadPath: String? = null
     lateinit var upload_fath: String
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        val fTag = "aboutFragment"
+        var aboutFragment = supportFragmentManager.findFragmentByTag(fTag)
+        if (aboutFragment == null) aboutFragment = AboutFragment()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fl_fragment, aboutFragment, fTag)
+            .commit()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -181,7 +192,7 @@ class MainActivity : AppCompatActivity() {
                                 Looper.prepare()
                                 //   toast(res.getString("msg"))
                                 if (status) {
-                                    val jsonArray = res.getJSONArray("apkData")
+                                    val jsonArray = res.getJSONArray("data")
                                     for (i in 0 until jsonArray.length()) {
                                         val jsonObject: JSONObject = jsonArray.getJSONObject(i)
                                         upload_fath = jsonObject.getString("upload_fath")

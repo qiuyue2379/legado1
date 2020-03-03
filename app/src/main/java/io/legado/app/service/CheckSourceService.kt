@@ -62,11 +62,13 @@ class CheckSourceService : BaseService() {
         }
     }
 
+
     private fun check() {
-        processIndex++
+        synchronized(this) {
+            processIndex++
+        }
         if (processIndex < allIds.size) {
             val sourceUrl = allIds[processIndex]
-
             App.db.bookSourceDao().getBookSource(sourceUrl)?.let { source ->
                 val webBook = WebBook(source)
                 webBook.searchBook("我的", scope = this, context = searchPool)
@@ -80,8 +82,10 @@ class CheckSourceService : BaseService() {
                             checkedIds.size,
                             getString(R.string.progress_show, checkedIds.size, allIds.size)
                         )
-                        if (processIndex >= allIds.size + threadCount - 1) {
-                            stopSelf()
+                        synchronized(this) {
+                            if (processIndex >= allIds.size + threadCount - 1) {
+                                stopSelf()
+                            }
                         }
                     }
             }
