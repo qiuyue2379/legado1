@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -11,81 +12,77 @@
         android:layout_height="wrap_content"
         app:title="@string/down" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnDownload"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary"
-                android:text="下载"
-                android:textColor="#FFFFFF" />
-
-            <Button
-                android:id="@+id/btnCancle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_marginLeft="10dp"
-                android:layout_weight="1"
-                android:background="@color/colorPrimary"
-                android:text="取消"
-                android:textColor="#FFFFFF" />
-
-        </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btnDownloadBrowser"
-            android:layout_width="match_parent"
+            android:id="@+id/btnDownload"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
+            android:layout_weight="1"
             android:background="@color/colorPrimary"
-            android:text="下载-浏览器下载安装"
+            android:text="下载"
             android:textColor="#FFFFFF" />
 
         <Button
-            android:id="@+id/btnOther"
-            android:layout_width="match_parent"
+            android:id="@+id/btnCancle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
             android:background="@color/colorPrimary"
-            android:text="其他页面"
+            android:text="取消"
             android:textColor="#FFFFFF" />
 
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnDownloadBrowser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@color/colorPrimary"
+        android:text="下载-浏览器下载安装"
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnOther"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:text="其他页面"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/tv_info"
+        android:visibility="invisible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="30dp"
+        android:text=""
+        android:textColor="#535353"
+        android:textSize="16sp" />
 
 
-        <TextView
-            android:id="@+id/tv_info"
-            android:visibility="invisible"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="30dp"
-            android:text=""
-            android:textColor="#535353"
-            android:textSize="16sp" />
+    <ProgressBar
+        android:id="@+id/onProgressUpdateBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="0"
+        android:visibility="invisible" />
 
-
-        <ProgressBar
-            android:id="@+id/onProgressUpdateBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            android:progress="0"
-            android:visibility="invisible"
-            />
-
-        <TextView
-            android:id="@+id/tv_progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="invisible"
-            android:text="0%"
-            />
+    <TextView
+        android:id="@+id/tv_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        android:text="0%" />
 
 </LinearLayout>

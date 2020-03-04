@@ -26,19 +26,10 @@ import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class MainActivity : BaseActivity(R.layout.activity_down) {
+class MainActivity : AppCompatActivity() {
     private var downloadCallBack: DownloadCallBack? = null
     private var apkDownloadPath: String? = null
     lateinit var upload_fath: String
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        val fTag = "aboutFragment"
-        var aboutFragment = supportFragmentManager.findFragmentByTag(fTag)
-        if (aboutFragment == null) aboutFragment = AboutFragment()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fl_fragment, aboutFragment, fTag)
-            .commit()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
