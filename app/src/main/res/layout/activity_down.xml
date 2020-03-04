@@ -12,6 +12,15 @@
         android:layout_height="wrap_content"
         app:title="@string/down" />
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,23 +49,6 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btnDownloadBrowser"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:background="@color/colorPrimary"
-        android:text="下载-浏览器下载安装"
-        android:textColor="#FFFFFF" />
-
-    <Button
-        android:id="@+id/btnOther"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:text="其他页面"
-        android:textColor="#FFFFFF" />
-
     <TextView
         android:id="@+id/tv_info"
         android:visibility="invisible"
@@ -69,14 +61,14 @@
         android:textSize="16sp" />
 
 
-    <ProgressBar
-        android:id="@+id/onProgressUpdateBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="100"
-        android:progress="0"
-        android:visibility="invisible" />
+            <ProgressBar
+                android:id="@+id/onProgressUpdateBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:max="100"
+                android:progress="0"
+                android:visibility="invisible" />
 
     <TextView
         android:id="@+id/tv_progress"
@@ -85,4 +77,6 @@
         android:visibility="invisible"
         android:text="0%" />
 
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import io.legado.app.ui.update.getVersion.getLocalVersionName
 import com.maning.updatelibrary.InstallUtils
 import com.maning.updatelibrary.InstallUtils.*
@@ -16,24 +15,23 @@ import okhttp3.*
 
 import io.legado.app.R
 import io.legado.app.base.BaseActivity
-import io.legado.app.ui.about.AboutFragment
 import kotlinx.android.synthetic.main.activity_down.*
 
 import org.jetbrains.anko.toast
 import org.json.JSONException
 import org.json.JSONObject
+import org.json.JSONArray;
 import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity(R.layout.activity_down) {
+
     private var downloadCallBack: DownloadCallBack? = null
     private var apkDownloadPath: String? = null
     lateinit var upload_fath: String
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_down)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
         initView()
         initCallBack()
     }
@@ -110,17 +108,11 @@ class MainActivity : AppCompatActivity() {
                     "TAG", "InstallUtils----onLoading:-----total:$total,current:$current"
                 )
                 val progress = (current * 100 / total).toInt()
-
                 onProgressUpdateBar.setVisibility(View.VISIBLE)
                 tv_progress.setVisibility(View.VISIBLE)
                 tv_info.setVisibility(View.VISIBLE)
-
-
                 tv_progress.setText("$progress%")
-
                 onProgressUpdateBar.setProgress(progress, true)
-
-
             }
 
             override fun onFail(e: Exception) {
@@ -143,7 +135,6 @@ class MainActivity : AppCompatActivity() {
         installAPK(this, path, object : InstallCallBack {
             override fun onSuccess() { //onSuccess：表示系统的安装界面被打开
                 //防止用户取消安装，在这里可以关闭当前应用，以免出现安装被取消
-
                 toast("正在安装程序")
             }
 
@@ -153,21 +144,18 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-
     private fun initView() {
 
         object : Thread() {
             override fun run() {
                 val okHttpClient = OkHttpClient()
-
                 val request = Request.Builder()
-                    .url("http://qiuyue.vicp.net:85/apk/release/js.json")//请求的url
+                    .url("http://qiuyue.vicp.net:86/apk/release/output.json")//请求的url
                     .get()
                     .build()
 
                 //创建/Call
                 val call = okHttpClient.newCall(request)
-
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                     }
@@ -178,18 +166,13 @@ class MainActivity : AppCompatActivity() {
                         print(string)
                         if (string != null) {
                             try {
-                                val res = JSONObject(string)
-                                val status = res.getBoolean("status")
+                                val getJsonArray = JSONArray(string);
+                                val jsonObject: JSONObject = getJsonArray.getJSONObject(0)
+                                val obj = jsonObject.getJSONObject("apkData");
                                 Looper.prepare()
-                                //   toast(res.getString("msg"))
-                                if (status) {
-                                    val jsonArray = res.getJSONArray("data")
-                                    for (i in 0 until jsonArray.length()) {
-                                        val jsonObject: JSONObject = jsonArray.getJSONObject(i)
-                                        upload_fath = jsonObject.getString("upload_fath")
-                                        val version = jsonObject.getString("version")
-                                        // toast(upload_fath)
-                                        //   val a = "love23next234csdn3423javaeye"
+                                        upload_fath = obj.getString("outputFile")
+                                        val version = obj.getString("versionName")
+
                                         val regEx = "[^0-9]"
                                         val p: Pattern = Pattern.compile(regEx)
                                         val remoteVersion: Matcher = p.matcher(version)
@@ -202,11 +185,8 @@ class MainActivity : AppCompatActivity() {
                                                 ""
                                             ).trim().toInt()
                                         ) {
-                                            //    toast("hahaahah")
                                             dialog()
                                         }
-                                    }
-                                }
                                 Looper.loop()
                             } catch (e: JSONException) {
                                 e.printStackTrace()
@@ -226,7 +206,6 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
-
 
     private fun dialog() {
         val normalDialog = AlertDialog.Builder(this)
