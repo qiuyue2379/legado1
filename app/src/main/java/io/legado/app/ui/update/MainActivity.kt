@@ -167,7 +167,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
                         if (string != null) {
                             try {
                                 val getJsonArray = JSONArray(string);
-                                val jsonObject: JSONObject = getJsonArray.getJSONObject(0)
+                                val jsonObject : JSONObject = getJsonArray.getJSONObject(0)
                                 val obj = jsonObject.getJSONObject("apkData");
                                 Looper.prepare()
                                         upload_fath = obj.getString("outputFile")
@@ -176,16 +176,13 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
                                         val regEx = "[^0-9]"
                                         val p: Pattern = Pattern.compile(regEx)
                                         val remoteVersion: Matcher = p.matcher(version)
-                                        val localVersion: Matcher =
-                                            p.matcher(getLocalVersionName(this@MainActivity))
-                                        print(remoteVersion.toString())
-                                        toast(remoteVersion.replaceAll("").trim())
-
-                                        if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll(
-                                                ""
-                                            ).trim().toInt()
-                                        ) {
+                                        val localVersion: Matcher = p.matcher(getLocalVersionName(this@MainActivity))
+                                        //print(remoteVersion.toString())
+                                        //toast(remoteVersion.replaceAll("").trim())
+                                        if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
                                             dialog()
+                                        } else {
+                                            toast("已是最新版本")
                                         }
                                 Looper.loop()
                             } catch (e: JSONException) {
@@ -218,7 +215,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
 
             InstallUtils.with(this@MainActivity)
                 //必须-下载地址
-                .setApkUrl("http://qiuyue.vicp.net:85/apk/release/" + "${upload_fath}")
+                .setApkUrl("http://qiuyue.vicp.net:86/apk/release/" + "${upload_fath}")
                 //非必须-下载保存的文件的完整路径+name.apk
                 //  .setApkPath(Constants.APK_SAVE_PATH)
                 // 非必须-下载回调
