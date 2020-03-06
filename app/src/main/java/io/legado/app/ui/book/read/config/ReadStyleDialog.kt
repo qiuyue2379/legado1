@@ -1,5 +1,6 @@
 package io.legado.app.ui.book.read.config
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.Gravity
@@ -68,21 +69,13 @@ class ReadStyleDialog : DialogFragment(), FontSelectDialog.CallBack {
         initViewEvent()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
         ReadBookConfig.save()
     }
 
     private fun initView() {
         root_view.setBackgroundColor(requireContext().bottomBackground)
-        dsb_text_size.valueFormat = {
-            (it + 5).toString()
-        }
-        dsb_text_letter_spacing.valueFormat = {
-            ((it - 50) / 100f).toString()
-        }
-        dsb_line_size.valueFormat = { ((it - 10) / 10f).toString() }
-        dsb_paragraph_spacing.valueFormat = { (it / 10f).toString() }
     }
 
     private fun initData() {
@@ -131,21 +124,9 @@ class ReadStyleDialog : DialogFragment(), FontSelectDialog.CallBack {
             dismiss()
             callBack?.showPaddingConfig()
         }
-        dsb_text_size.onChanged = {
-            ReadBookConfig.textSize = it + 10
-            postEvent(EventBus.UP_CONFIG, true)
-        }
-        dsb_text_letter_spacing.onChanged = {
-            ReadBookConfig.letterSpacing = (it - 50) / 100f
-            postEvent(EventBus.UP_CONFIG, true)
-        }
-        dsb_line_size.onChanged = {
-            ReadBookConfig.lineSpacingExtra = it
-            postEvent(EventBus.UP_CONFIG, true)
-        }
-        dsb_paragraph_spacing.onChanged = {
-            ReadBookConfig.paragraphSpacing = it
-            postEvent(EventBus.UP_CONFIG, true)
+        tv_type.onClick {
+            dismiss()
+            callBack?.showTypeConfig()
         }
         rg_page_anim.onCheckedChange { _, checkedId ->
             rg_page_anim.getIndexById(checkedId).let {
@@ -159,6 +140,21 @@ class ReadStyleDialog : DialogFragment(), FontSelectDialog.CallBack {
                 upStyle()
                 postEvent(EventBus.UP_CONFIG, true)
             }
+        }
+        iv_default1.onClick {
+            ReadBookConfig.lineSpacingExtra = 16
+            ReadBookConfig.paragraphSpacing = 6
+            postEvent(EventBus.UP_CONFIG, true)
+        }
+        iv_default2.onClick {
+            ReadBookConfig.lineSpacingExtra = 13
+            ReadBookConfig.paragraphSpacing = 3
+            postEvent(EventBus.UP_CONFIG, true)
+        }
+        iv_default3.onClick {
+            ReadBookConfig.lineSpacingExtra = 10
+            ReadBookConfig.paragraphSpacing = 0
+            postEvent(EventBus.UP_CONFIG, true)
         }
         bg0.onClick { changeBg(0) }
         bg0.onLongClick { showBgTextConfig(0) }
@@ -193,10 +189,6 @@ class ReadStyleDialog : DialogFragment(), FontSelectDialog.CallBack {
         ReadBookConfig.let {
             tv_title_mode.text = titleModes.getOrElse(it.titleMode) { titleModes[0] }
             tv_text_bold.isSelected = it.textBold
-            dsb_text_size.progress = it.textSize - 5
-            dsb_text_letter_spacing.progress = (it.letterSpacing * 100).toInt() + 50
-            dsb_line_size.progress = it.lineSpacingExtra
-            dsb_paragraph_spacing.progress = it.paragraphSpacing
         }
     }
 
