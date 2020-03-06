@@ -630,4 +630,6 @@
     <string name="other_aloud_setting">其它朗读设置</string>
     <string name="system_typeface">系统内置字体样式</string>
     <string name="sure_delete_book_file">是否删除源文件</string>
+
+    <string name="down">下载更新</string>
 </resources>
