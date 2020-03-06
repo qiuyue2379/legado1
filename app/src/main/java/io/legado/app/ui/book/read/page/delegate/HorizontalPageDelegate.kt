@@ -125,4 +125,5 @@ abstract class HorizontalPageDelegate(pageView: PageView) : PageDelegate(pageVie
         nextBitmap?.recycle()
         nextBitmap = null
     }
+
 }

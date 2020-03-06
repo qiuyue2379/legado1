@@ -1,4 +1,4 @@
-﻿﻿var $ = document.querySelector.bind(document)
+﻿var $ = document.querySelector.bind(document)
     , $$ = document.querySelectorAll.bind(document)
     , $c = document.createElement.bind(document)
     , randomImg = "http://acg.bakayun.cn/randbg.php?t=dfzh"

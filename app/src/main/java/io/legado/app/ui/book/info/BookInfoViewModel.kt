@@ -10,8 +10,8 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.BookHelp
 import io.legado.app.model.WebBook
-import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.localBook.AnalyzeTxtFile
+import io.legado.app.model.localBook.LocalBook
 import kotlinx.coroutines.Dispatchers.IO
 
 class BookInfoViewModel(application: Application) : BaseViewModel(application) {

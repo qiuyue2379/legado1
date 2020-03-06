@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.method.ScrollingMovementMethod
 import android.view.Menu
 import android.view.MenuItem
 import androidx.lifecycle.Observer
@@ -22,13 +21,13 @@ import io.legado.app.help.ImageLoader
 import io.legado.app.help.IntentDataHelp
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.ui.audio.AudioPlayActivity
+import io.legado.app.ui.book.changecover.ChangeCoverDialog
+import io.legado.app.ui.book.changesource.ChangeSourceDialog
+import io.legado.app.ui.book.chapterlist.ChapterListActivity
 import io.legado.app.ui.book.group.GroupSelectDialog
 import io.legado.app.ui.book.info.edit.BookInfoEditActivity
 import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
-import io.legado.app.ui.book.changecover.ChangeCoverDialog
-import io.legado.app.ui.book.changesource.ChangeSourceDialog
-import io.legado.app.ui.book.chapterlist.ChapterListActivity
 import io.legado.app.utils.getViewModel
 import io.legado.app.utils.gone
 import io.legado.app.utils.visible
@@ -55,7 +54,6 @@ class BookInfoActivity :
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        tv_intro.movementMethod = ScrollingMovementMethod.getInstance()
         viewModel.bookData.observe(this, Observer { showBook(it) })
         viewModel.chapterListData.observe(this, Observer { upLoading(false, it) })
         viewModel.initData(intent)
@@ -126,7 +124,6 @@ class BookInfoActivity :
         ImageLoader.load(this, book.getDisplayCover())
             .transition(DrawableTransitionOptions.withCrossFade(1500))
             .thumbnail(defaultCover())
-            .centerCrop()
             .apply(bitmapTransform(BlurTransformation(this, 25)))
             .into(bg_book)  //模糊、渐变、缩小效果
     }

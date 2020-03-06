@@ -74,7 +74,7 @@ interface BookDao {
 
     @Query(
         """
-                 update books set 
+        update books set 
         durChapterIndex = :durChapterIndex, durChapterPos = :durChapterPos, 
         durChapterTime = :durChapterTime, durChapterTitle = :durChapterTitle
         where bookUrl = :bookUrl and durChapterTime < :durChapterTime
@@ -87,5 +87,4 @@ interface BookDao {
         durChapterTime: Long,
         durChapterTitle: String?
     )
-
 }
