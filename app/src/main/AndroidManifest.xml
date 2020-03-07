@@ -209,7 +209,7 @@
         <activity
             android:name="io.legado.app.ui.book.download.DownloadActivity"
             android:launchMode="singleTop" />
-        <activity android:name="io.legado.app.ui.update.MainActivity"
+        <activity android:name=".ui.update.MainActivity"
             android:launchMode="singleTop" />
         <activity
             android:name=".ui.login.SourceLogin"
