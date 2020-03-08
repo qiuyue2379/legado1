@@ -44,6 +44,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
         }
     }
 
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private fun initCallBack() {
         downloadCallBack = object : DownloadCallBack {
             override fun onStart() {
@@ -204,6 +205,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private fun dialog() {
         val normalDialog = AlertDialog.Builder(this)
         normalDialog.setIcon(R.mipmap.ic_launcher)

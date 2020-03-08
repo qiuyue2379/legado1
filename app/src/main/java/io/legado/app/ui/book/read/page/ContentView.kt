@@ -7,7 +7,7 @@ import android.view.MotionEvent
 import android.widget.FrameLayout
 import com.github.houbb.opencc4j.core.impl.ZhConvertBootstrap
 import io.legado.app.R
-import io.legado.app.constant.AppConst.TIME_FORMAT
+import io.legado.app.constant.AppConst.timeFormat
 import io.legado.app.help.AppConfig
 import io.legado.app.help.ReadBookConfig
 import io.legado.app.ui.book.read.page.entities.TextPage
@@ -18,6 +18,8 @@ import java.util.*
 
 class ContentView(context: Context) : FrameLayout(context) {
 
+    private var battery = 100
+
     init {
         //设置背景防止切换背景时文字重叠
         setBackgroundColor(context.getCompatColor(R.color.background))
@@ -26,8 +28,7 @@ class ContentView(context: Context) : FrameLayout(context) {
         upStyle()
         upTime()
         content_text_view.upView = {
-            tv_bottom_left.text = it.title
-            setPageIndex(it.index, it.pageSize)
+            setProgress(it)
         }
     }
 
@@ -67,6 +68,16 @@ class ContentView(context: Context) : FrameLayout(context) {
                 tv_top_right.setTextColor(it)
                 tv_bottom_left.setTextColor(it)
                 tv_bottom_right.setTextColor(it)
+                battery_view.setColor(it)
+            }
+            if (hideStatusBar) {
+                tv_bottom_left.text = timeFormat.format(Date(System.currentTimeMillis()))
+                tv_bottom_right.gone()
+                battery_view.visible()
+                battery_view.setBattery(battery)
+            } else {
+                tv_bottom_right.visible()
+                battery_view.gone()
             }
         }
     }
@@ -85,20 +96,20 @@ class ContentView(context: Context) : FrameLayout(context) {
     }
 
     fun upTime() {
-        tv_top_left.text = TIME_FORMAT.format(Date(System.currentTimeMillis()))
+        if (ReadBookConfig.hideStatusBar) {
+            tv_bottom_left.text = timeFormat.format(Date(System.currentTimeMillis()))
+        }
     }
 
     fun upBattery(battery: Int) {
-        tv_top_right.text = context.getString(R.string.battery_show, battery)
+        this.battery = battery
+        if (ReadBookConfig.hideStatusBar) {
+            battery_view.setBattery(battery)
+        }
     }
 
     fun setContent(textPage: TextPage) {
-        tv_bottom_left.text = when (AppConfig.chineseConverterType) {
-            1 -> ZhConvertBootstrap.newInstance().toSimple(textPage.title)
-            2 -> ZhConvertBootstrap.newInstance().toTraditional(textPage.title)
-            else -> textPage.title
-        }
-        setPageIndex(textPage.index, textPage.pageSize)
+        setProgress(textPage)
         content_text_view.resetPageOffset()
         content_text_view.setContent(textPage)
     }
@@ -108,9 +119,19 @@ class ContentView(context: Context) : FrameLayout(context) {
     }
 
     @SuppressLint("SetTextI18n")
-    fun setPageIndex(pageIndex: Int?, pageSize: Int) {
-        pageIndex?.let {
-            tv_bottom_right.text = "${pageIndex.plus(1)}/${pageSize}"
+    fun setProgress(textPage: TextPage) = textPage.apply {
+        val title = when (AppConfig.chineseConverterType) {
+            1 -> ZhConvertBootstrap.newInstance().toSimple(textPage.title)
+            2 -> ZhConvertBootstrap.newInstance().toTraditional(textPage.title)
+            else -> textPage.title
+        }
+        val progress = "${index.plus(1)}/$pageSize  $readProgress"
+        if (ReadBookConfig.hideStatusBar) {
+            tv_top_left.text = title
+            tv_top_right.text = progress
+        } else {
+            tv_bottom_left.text = title
+            tv_bottom_right.text = progress
         }
     }
 
