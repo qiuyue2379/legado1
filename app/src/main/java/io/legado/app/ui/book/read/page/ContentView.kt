@@ -61,6 +61,7 @@ class ContentView(context: Context) : FrameLayout(context) {
                 footerPaddingRight.dp,
                 footerPaddingBottom.dp
             )
+            vw_top_divider.visible(showHeaderLine)
             vw_bottom_divider.visible(showFooterLine)
             content_text_view.upVisibleRect()
             durConfig.textColor().let {
@@ -72,11 +73,9 @@ class ContentView(context: Context) : FrameLayout(context) {
             }
             if (hideStatusBar) {
                 tv_bottom_left.text = timeFormat.format(Date(System.currentTimeMillis()))
-                tv_bottom_right.gone()
                 battery_view.visible()
                 battery_view.setBattery(battery)
             } else {
-                tv_bottom_right.visible()
                 battery_view.gone()
             }
         }
@@ -97,7 +96,7 @@ class ContentView(context: Context) : FrameLayout(context) {
 
     fun upTime() {
         if (ReadBookConfig.hideStatusBar) {
-            tv_bottom_left.text = timeFormat.format(Date(System.currentTimeMillis()))
+            tv_bottom_right.text = timeFormat.format(Date(System.currentTimeMillis()))
         }
     }
 
@@ -110,7 +109,6 @@ class ContentView(context: Context) : FrameLayout(context) {
 
     fun setContent(textPage: TextPage) {
         setProgress(textPage)
-        content_text_view.resetPageOffset()
         content_text_view.setContent(textPage)
     }
 
@@ -125,13 +123,13 @@ class ContentView(context: Context) : FrameLayout(context) {
             2 -> ZhConvertBootstrap.newInstance().toTraditional(textPage.title)
             else -> textPage.title
         }
-        val progress = "${index.plus(1)}/$pageSize  $readProgress"
         if (ReadBookConfig.hideStatusBar) {
             tv_top_left.text = title
-            tv_top_right.text = progress
+            tv_top_right.text = readProgress
+            tv_bottom_left.text = "${index.plus(1)}/$pageSize"
         } else {
             tv_bottom_left.text = title
-            tv_bottom_right.text = progress
+            tv_bottom_right.text = "${index.plus(1)}/$pageSize  $readProgress"
         }
     }
 
