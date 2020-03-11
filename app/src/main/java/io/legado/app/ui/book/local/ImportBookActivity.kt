@@ -40,7 +40,8 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
     private val subDocs = arrayListOf<DocumentFile>()
     private lateinit var adapter: ImportBookAdapter
     private var localUriLiveData: LiveData<List<String>>? = null
-    private var path = FileUtils.getSdCardPath()
+    private var sdPath = FileUtils.getSdCardPath()
+    private var path = sdPath
 
     override val viewModel: ImportBookViewModel
         get() = getViewModel(ImportBookViewModel::class.java)
@@ -159,17 +160,19 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
                 }
             }
         } ?: let {
+            tv_path.text = path.replace(sdPath, "SD")
             val docList = arrayListOf<DocItem>()
             File(path).listFiles()?.forEach {
                 if (it.isDirectory) {
-                    docList.add(
-                        DocItem(
-                            it.name,
-                            DocumentsContract.Document.MIME_TYPE_DIR,
-                            it.length(),
-                            Date(it.lastModified()),
-                            Uri.parse(it.absolutePath)
-                        )
+                    if (!it.name.startsWith("."))
+                        docList.add(
+                            DocItem(
+                                it.name,
+                                DocumentsContract.Document.MIME_TYPE_DIR,
+                                it.length(),
+                                Date(it.lastModified()),
+                                Uri.parse(it.absolutePath)
+                            )
                     )
                 } else if (it.name.endsWith(".txt", true)) {
                     docList.add(
@@ -183,6 +186,7 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
                     )
                 }
             }
+            docList.sortWith(compareBy({ !it.isDir }, { it.name }))
             adapter.setData(docList)
         }
     }
@@ -225,7 +229,7 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
     @Synchronized
     private fun goBackDir(): Boolean {
         if (rootDoc == null) {
-            if (path != FileUtils.getSdCardPath()) {
+            if (path != sdPath) {
                 File(path).parent?.let {
                     path = it
                     upPath()
