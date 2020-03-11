@@ -151,7 +151,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
             override fun run() {
                 val okHttpClient = OkHttpClient()
                 val request = Request.Builder()
-                    .url("http://qiuyue.vicp.net:86/apk/release/output.json")//请求的url
+                    .url("http://qiuyue.vicp.net:86/apk/app/release/output.json")//请求的url
                     .get()
                     .build()
 
@@ -217,7 +217,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
 
             InstallUtils.with(this@MainActivity)
                 //必须-下载地址
-                .setApkUrl("http://qiuyue.vicp.net:86/apk/release/" + "${upload_fath}")
+                .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/" + "${upload_fath}")
                 //非必须-下载保存的文件的完整路径+name.apk
                 //  .setApkPath(Constants.APK_SAVE_PATH)
                 // 非必须-下载回调
