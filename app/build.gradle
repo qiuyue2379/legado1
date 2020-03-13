@@ -192,6 +192,7 @@ dependencies {
     implementation 'com.github.houbb:opencc4j:1.4.0'
 
     implementation 'com.github.maning0303:MNUpdateAPK:V2.0.3'
+
 }
 
 apply plugin: 'com.google.gms.google-services'

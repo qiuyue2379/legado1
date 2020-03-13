@@ -75,7 +75,6 @@ object Help {
     }
 
 
-
     /**
      * 返回NavigationBar是否存在
      * 该方法需要在View完全被绘制出来之后调用，否则判断不了
