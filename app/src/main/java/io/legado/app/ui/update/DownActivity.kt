@@ -25,7 +25,7 @@ import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class MainActivity : BaseActivity(R.layout.activity_down) {
+class DownActivity : BaseActivity(R.layout.activity_down) {
 
     private var downloadCallBack: DownloadCallBack? = null
     private var apkDownloadPath: String? = null
@@ -63,7 +63,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
                 btnDownload.setClickable(true)
                 btnDownload.setBackgroundResource(R.color.colorPrimary)
                 //先判断有没有安装权限
-                checkInstallPermission(this@MainActivity, object : InstallPermissionCallBack {
+                checkInstallPermission(this@DownActivity, object : InstallPermissionCallBack {
                     override fun onGranted() { //去安装APK
                         installApk(apkDownloadPath.toString())
                     }
@@ -79,7 +79,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
                                 ) { dialog, which ->
                                     //打开设置页面
                                     openInstallPermissionSetting(
-                                        this@MainActivity,
+                                        this@DownActivity,
                                         object : InstallPermissionCallBack {
                                             override fun onGranted() { //去安装APK
                                                 installApk(apkDownloadPath.toString())
@@ -177,7 +177,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
                                         val regEx = "[^0-9]"
                                         val p: Pattern = Pattern.compile(regEx)
                                         val remoteVersion: Matcher = p.matcher(version)
-                                        val localVersion: Matcher = p.matcher(getLocalVersionName(this@MainActivity))
+                                        val localVersion: Matcher = p.matcher(getLocalVersionName(this@DownActivity))
                                         //print(remoteVersion.toString())
                                         //toast(remoteVersion.replaceAll("").trim())
                                         if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
@@ -215,7 +215,7 @@ class MainActivity : BaseActivity(R.layout.activity_down) {
             "确定"
         ) { dialog, which ->
 
-            InstallUtils.with(this@MainActivity)
+            InstallUtils.with(this@DownActivity)
                 //必须-下载地址
                 .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/" + "${upload_fath}")
                 //非必须-下载保存的文件的完整路径+name.apk
