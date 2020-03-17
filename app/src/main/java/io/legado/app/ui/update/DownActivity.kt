@@ -33,6 +33,13 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         initView()
         initCallBack()
+
+        findViewById<View>(R.id.btnDownload).setOnClickListener {
+            dialog()
+        }
+        findViewById<View>(R.id.btnCancle).setOnClickListener {
+            Toast.makeText(this, "点击了", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onResume() {
@@ -40,15 +47,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         //设置监听,防止其他页面设置回调后当前页面回调失效
         if (isDownloading()) {
             setDownloadCallBack(downloadCallBack)
-        }
-    }
-
-    fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.btnDownload ->
-                dialog()
-            R.id.btnCancle ->
-                Toast.makeText(this, "点击了", Toast.LENGTH_SHORT).show()
         }
     }
 
