@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import io.legado.app.ui.update.getVersion.getLocalVersionName
-import com.maning.updatelibrary.InstallUtils
 import com.maning.updatelibrary.InstallUtils.*
 import okhttp3.*
 
@@ -41,6 +40,15 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         //设置监听,防止其他页面设置回调后当前页面回调失效
         if (isDownloading()) {
             setDownloadCallBack(downloadCallBack)
+        }
+    }
+
+    fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.btnDownload ->
+                dialog()
+            R.id.btnCancle ->
+                Toast.makeText(this, "点击了", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -178,8 +186,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                                         val p: Pattern = Pattern.compile(regEx)
                                         val remoteVersion: Matcher = p.matcher(version)
                                         val localVersion: Matcher = p.matcher(getLocalVersionName(this@DownActivity))
-                                        //print(remoteVersion.toString())
-                                        //toast(remoteVersion.replaceAll("").trim())
                                         if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
                                             dialog()
                                         } else {
@@ -214,13 +220,8 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         normalDialog.setPositiveButton(
             "确定"
         ) { dialog, which ->
-
-            InstallUtils.with(this@DownActivity)
-                //必须-下载地址
+            with(this@DownActivity)
                 .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/" + "${upload_fath}")
-                //非必须-下载保存的文件的完整路径+name.apk
-                //  .setApkPath(Constants.APK_SAVE_PATH)
-                // 非必须-下载回调
                 .setCallBack(downloadCallBack) //开始下载
                 .startDownload()
         }
