@@ -64,6 +64,11 @@ object ReadBook {
         }
     }
 
+    fun upMsg(msg: String?) {
+        this.msg = msg
+        callBack?.upContent()
+    }
+
     fun moveToNextPage() {
         durPageIndex++
         callBack?.upContent()
