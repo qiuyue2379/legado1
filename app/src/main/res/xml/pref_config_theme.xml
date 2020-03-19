@@ -26,21 +26,26 @@
         android:title="@string/navigation_bar_color_change"
         app:iconSpaceReserved="false" />
 
-    <androidx.preference.Preference
+    <io.legado.app.ui.widget.prefs.Preference
         android:defaultValue="true"
         android:key="barElevation"
         android:summary="@string/bar_elevation_s"
         android:title="@string/bar_elevation"
         app:iconSpaceReserved="false" />
 
-    <androidx.preference.Preference
+    <io.legado.app.ui.widget.prefs.Preference
         android:key="defaultTheme"
         android:summary="@string/restore_default_theme"
         android:title="@string/default_theme"
+        app:allowDividerAbove="false"
+        app:allowDividerBelow="false"
         app:iconSpaceReserved="false" />
 
     <io.legado.app.ui.widget.prefs.PreferenceCategory
         android:title="白天"
+        app:layout="@layout/view_preference_category"
+        app:allowDividerAbove="true"
+        app:allowDividerBelow="false"
         app:iconSpaceReserved="false">
 
         <io.legado.app.ui.widget.prefs.ColorPreference
@@ -49,6 +54,8 @@
             android:summary="白天，主色调"
             android:title="主色调"
             app:cpv_dialogType="preset"
+            app:allowDividerAbove="false"
+            app:allowDividerBelow="false"
             app:iconSpaceReserved="false" />
 
         <io.legado.app.ui.widget.prefs.ColorPreference
@@ -79,6 +86,9 @@
 
     <io.legado.app.ui.widget.prefs.PreferenceCategory
         android:title="夜间"
+        app:layout="@layout/view_preference_category"
+        app:allowDividerAbove="true"
+        app:allowDividerBelow="false"
         app:iconSpaceReserved="false">
 
         <io.legado.app.ui.widget.prefs.ColorPreference
