@@ -1,5 +1,6 @@
 package io.legado.app.ui.update
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Build
 import android.os.Bundle
@@ -15,11 +16,12 @@ import okhttp3.*
 import io.legado.app.R
 import io.legado.app.base.BaseActivity
 import kotlinx.android.synthetic.main.activity_down.*
+import org.jetbrains.anko.sdk27.listeners.onClick
 
 import org.jetbrains.anko.toast
 import org.json.JSONException
 import org.json.JSONObject
-import org.json.JSONArray;
+import org.json.JSONArray
 import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -33,13 +35,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         initView()
         initCallBack()
-
-        findViewById<View>(R.id.btnDownload).setOnClickListener {
-            dialog()
-        }
-        findViewById<View>(R.id.btnCancle).setOnClickListener {
-            Toast.makeText(this, "点击了", Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun onResume() {
@@ -55,18 +50,19 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         downloadCallBack = object : DownloadCallBack {
             override fun onStart() {
                 Log.i("TAG", "InstallUtils---onStart")
-                tv_progress.setText("0%")
-                tv_info.setText("正在下载...")
-                btnDownload.setClickable(false)
+                tv_progress.text = "0%"
+                tv_info.text = "正在下载..."
+                btnDownload.isClickable = false
                 btnDownload.setBackgroundResource(R.color.colorAccent)
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onComplete(path: String) {
                 Log.i("TAG", "InstallUtils---onComplete:$path")
                 apkDownloadPath = path
-                tv_progress.setText("100%")
-                tv_info.setText("下载成功")
-                btnDownload.setClickable(true)
+                tv_progress.text = "100%"
+                tv_info.text = "下载成功"
+                btnDownload.isClickable = true
                 btnDownload.setBackgroundResource(R.color.colorPrimary)
                 //先判断有没有安装权限
                 checkInstallPermission(this@DownActivity, object : InstallPermissionCallBack {
@@ -106,6 +102,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                 })
             }
 
+            @SuppressLint("SetTextI18n")
             @RequiresApi(Build.VERSION_CODES.N)
             override fun onLoading(
                 total: Long,
@@ -115,24 +112,25 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                     "TAG", "InstallUtils----onLoading:-----total:$total,current:$current"
                 )
                 val progress = (current * 100 / total).toInt()
-                onProgressUpdateBar.setVisibility(View.VISIBLE)
-                tv_progress.setVisibility(View.VISIBLE)
-                tv_info.setVisibility(View.VISIBLE)
-                tv_progress.setText("$progress%")
+                onProgressUpdateBar.visibility = View.VISIBLE
+                tv_progress.visibility = View.VISIBLE
+                tv_info.visibility = View.VISIBLE
+                tv_progress.text = "$progress%"
                 onProgressUpdateBar.setProgress(progress, true)
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onFail(e: Exception) {
                 Log.i("TAG", "InstallUtils---onFail:" + e.message)
-                tv_info.setText("下载失败:$e")
-                btnDownload.setClickable(true)
+                tv_info.text = "下载失败:$e"
+                btnDownload.isClickable = true
                 btnDownload.setBackgroundResource(R.color.colorPrimary)
             }
 
             override fun cancle() {
                 Log.i("TAG", "InstallUtils---cancle")
-                tv_info.setText("下载取消")
-                btnDownload.setClickable(true)
+                tv_info.text = "下载取消"
+                btnDownload.isClickable = true
                 btnDownload.setBackgroundResource(R.color.colorPrimary)
             }
         }
@@ -145,13 +143,24 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                 toast("正在安装程序")
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onFail(e: Exception) {
-                tv_info.setText("安装失败:$e")
+                tv_info.text = "安装失败:$e"
             }
         })
     }
 
     private fun initView() {
+        btnDownload.onClick {
+            dialog()
+        }
+        btnCancle.onClick {
+            //取消下载
+            cancleDownload()
+            btnDownload.isClickable = true
+            btnDownload.setBackgroundResource(R.color.colorPrimary)
+            toast("已取消下载")
+        }
 
         object : Thread() {
             override fun run() {
@@ -173,9 +182,9 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                         print(string)
                         if (string != null) {
                             try {
-                                val getJsonArray = JSONArray(string);
+                                val getJsonArray = JSONArray(string)
                                 val jsonObject : JSONObject = getJsonArray.getJSONObject(0)
-                                val obj = jsonObject.getJSONObject("apkData");
+                                val obj = jsonObject.getJSONObject("apkData")
                                 Looper.prepare()
                                         upload_fath = obj.getString("outputFile")
                                         val version = obj.getString("versionName")
@@ -201,14 +210,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         }.start()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String?>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private fun dialog() {
         val normalDialog = AlertDialog.Builder(this)
@@ -219,7 +220,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
             "确定"
         ) { dialog, which ->
             with(this@DownActivity)
-                .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/" + "${upload_fath}")
+                .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/" + upload_fath)
                 .setCallBack(downloadCallBack) //开始下载
                 .startDownload()
         }
