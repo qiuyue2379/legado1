@@ -9,6 +9,8 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat
 import io.legado.app.ui.update.getVersion.getLocalVersionName
 import com.maning.updatelibrary.InstallUtils.*
 import okhttp3.*
@@ -49,7 +51,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
     private fun initCallBack() {
         downloadCallBack = object : DownloadCallBack {
             override fun onStart() {
-                Log.i("TAG", "InstallUtils---onStart")
                 tv_progress.text = "0%"
                 tv_info.text = "正在下载..."
                 btnDownload.isClickable = false
@@ -58,7 +59,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
 
             @SuppressLint("SetTextI18n")
             override fun onComplete(path: String) {
-                Log.i("TAG", "InstallUtils---onComplete:$path")
                 apkDownloadPath = path
                 tv_progress.text = "100%"
                 tv_info.text = "下载成功"
@@ -108,9 +108,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                 total: Long,
                 current: Long
             ) { //内部做了处理，onLoading 进度转回progress必须是+1，防止频率过快
-                Log.i(
-                    "TAG", "InstallUtils----onLoading:-----total:$total,current:$current"
-                )
                 val progress = (current * 100 / total).toInt()
                 onProgressUpdateBar.visibility = View.VISIBLE
                 tv_progress.visibility = View.VISIBLE
@@ -121,14 +118,12 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
 
             @SuppressLint("SetTextI18n")
             override fun onFail(e: Exception) {
-                Log.i("TAG", "InstallUtils---onFail:" + e.message)
                 tv_info.text = "下载失败:$e"
                 btnDownload.isClickable = true
                 btnDownload.setBackgroundResource(R.color.colorPrimary)
             }
 
             override fun cancle() {
-                Log.i("TAG", "InstallUtils---cancle")
                 tv_info.text = "下载取消"
                 btnDownload.isClickable = true
                 btnDownload.setBackgroundResource(R.color.colorPrimary)

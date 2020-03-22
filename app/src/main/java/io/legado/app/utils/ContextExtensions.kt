@@ -85,19 +85,19 @@ val Context.sysScreenOffTime: Int
             e.printStackTrace()
         }
         return screenOffTime
-}
+    }
 
 val Context.statusBarHeight: Int
     get() {
         val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
         return resources.getDimensionPixelSize(resourceId)
-}
+    }
 
 val Context.navigationBarHeight: Int
     get() {
         val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         return resources.getDimensionPixelSize(resourceId)
-}
+    }
 
 @SuppressLint("SetWorldReadable")
 fun Context.shareWithQr(title: String, text: String) {
@@ -156,7 +156,7 @@ val Context.sysBattery: Int
         val iFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         val batteryStatus = registerReceiver(null, iFilter)
         return batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-}
+    }
 
 fun Context.openUrl(url: String) {
     openUrl(Uri.parse(url))
