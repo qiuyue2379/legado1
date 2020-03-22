@@ -9,7 +9,9 @@ import io.legado.app.base.adapter.SimpleRecyclerAdapter
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.help.ItemTouchCallback
+import io.legado.app.lib.theme.backgroundColor
 import kotlinx.android.synthetic.main.item_arrange_book.view.*
+import org.jetbrains.anko.backgroundColor
 import org.jetbrains.anko.sdk27.listeners.onClick
 import java.util.*
 
@@ -56,6 +58,7 @@ class ArrangeBookAdapter(context: Context, val callBack: CallBack) :
 
     override fun convert(holder: ItemViewHolder, item: Book, payloads: MutableList<Any>) {
         with(holder.itemView) {
+            backgroundColor = context.backgroundColor
             tv_name.text = item.name
             tv_author.text = item.author
             tv_author.visibility = if (item.author.isEmpty()) View.GONE else View.VISIBLE
@@ -125,11 +128,19 @@ class ArrangeBookAdapter(context: Context, val callBack: CallBack) :
     private var isMoved = false
 
     override fun onMove(srcPosition: Int, targetPosition: Int): Boolean {
+        val srcItem = getItem(srcPosition)
+        val targetItem = getItem(targetPosition)
         Collections.swap(getItems(), srcPosition, targetPosition)
         notifyItemMoved(srcPosition, targetPosition)
-        if (getItem(srcPosition)?.order == getItem(targetPosition)?.order) {
-            for ((index, item) in getItems().withIndex()) {
-                item.order = index + 1
+        if (srcItem != null && targetItem != null) {
+            if (srcItem.order == targetItem.order) {
+                for ((index, item) in getItems().withIndex()) {
+                    item.order = index + 1
+                }
+            } else {
+                val pos = srcItem.order
+                srcItem.order = targetItem.order
+                targetItem.order = pos
             }
         }
         isMoved = true
