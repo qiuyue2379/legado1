@@ -195,8 +195,10 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                                         val localVersion: Matcher = p.matcher(getLocalVersionName(this@DownActivity))
                                         if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
                                             dialog()
+                                            tv_markdown.text = "有版本更新，请下载!"
                                         } else {
                                             toast("已是最新版本")
+                                            tv_markdown.text = "已是最新版本!"
                                         }
                                 Looper.loop()
                             } catch (e: JSONException) {
@@ -215,7 +217,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         val normalDialog = AlertDialog.Builder(this)
         normalDialog.setIcon(R.mipmap.ic_launcher)
         normalDialog.setTitle("下载")
-        normalDialog.setMessage("更新说明")
+        normalDialog.setMessage("有版本更新，请下载!")
         normalDialog.setPositiveButton(
             "确定"
         ) { dialog, which ->

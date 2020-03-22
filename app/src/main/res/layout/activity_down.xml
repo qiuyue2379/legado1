@@ -81,6 +81,12 @@
                 android:text="0%"
                 tools:ignore="HardcodedText" />
 
+            <TextView
+                android:id="@+id/tv_markdown"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp" />
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
