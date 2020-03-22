@@ -145,16 +145,20 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         })
     }
 
+    fun dcancle() {
+        //取消下载
+        cancleDownload()
+        btnDownload.isClickable = true
+        btnDownload.setBackgroundResource(R.color.colorPrimary)
+        toast("已取消下载")
+    }
+
     private fun initView() {
         btnDownload.onClick {
             dialog()
         }
         btnCancle.onClick {
-            //取消下载
-            cancleDownload()
-            btnDownload.isClickable = true
-            btnDownload.setBackgroundResource(R.color.colorPrimary)
-            toast("已取消下载")
+            dcancle()
         }
 
         object : Thread() {
