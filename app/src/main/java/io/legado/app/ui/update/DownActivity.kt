@@ -2,15 +2,13 @@ package io.legado.app.ui.update
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Notification
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat
 import io.legado.app.ui.update.getVersion.getLocalVersionName
 import com.maning.updatelibrary.InstallUtils.*
 import okhttp3.*
