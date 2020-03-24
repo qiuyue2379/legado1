@@ -170,7 +170,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                 val call = okHttpClient.newCall(request)
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
-                        tv_markdown.text = e.message
+
                     }
 
                     @Throws(IOException::class)
