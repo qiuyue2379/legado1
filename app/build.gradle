@@ -164,9 +164,9 @@ dependencies {
     //JS rhino
     implementation 'com.github.gedoor:rhino-android:1.4'
 
-    //Retrofit
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
-    implementation 'com.squareup.retrofit2:retrofit:2.8.0'
+    //网络
+    //noinspection GradleDependency
+    implementation 'com.squareup.retrofit2:retrofit:2.7.2'
 
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'

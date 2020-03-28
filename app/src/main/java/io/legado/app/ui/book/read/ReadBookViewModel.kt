@@ -102,11 +102,12 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
     ) {
         execute {
             if (book.isLocalBook()) {
-                AnalyzeTxtFile.analyze(context, book).let {
+                AnalyzeTxtFile().analyze(context, book).let {
                     App.db.bookChapterDao().delByBook(book.bookUrl)
                     App.db.bookChapterDao().insert(*it.toTypedArray())
                     App.db.bookDao().update(book)
                     ReadBook.chapterSize = it.size
+                    ReadBook.upMsg(null)
                     ReadBook.loadContent(resetPageOffset = true)
                 }
             } else {
@@ -129,6 +130,8 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
                         ReadBook.upMsg(context.getString(R.string.error_load_toc))
                     }
             }
+        }.onError {
+            ReadBook.upMsg("LoadTocError:${it.localizedMessage}")
         }
     }
 
