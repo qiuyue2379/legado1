@@ -51,7 +51,7 @@
             android:title="@string/media_button_on_exit_title"
             android:summary="@string/media_button_on_exit_summary"
             app:iconSpaceReserved="false" />
-        
+
         <io.legado.app.ui.widget.prefs.Preference
             android:key="webPort"
             android:title="@string/web_port_title"
