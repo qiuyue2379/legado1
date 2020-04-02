@@ -257,7 +257,7 @@
             android:launchMode="singleTop" />
         <!--订阅条目-->
         <activity
-            android:name=".ui.rss.article.RssArticlesActivity"
+            android:name=".ui.rss.article.RssArticlesFragment"
             android:launchMode="singleTop" />
         <!--Rss收藏-->
         <activity
