@@ -122,7 +122,7 @@ class ChangeSourceViewModel(application: Application) : BaseViewModel(applicatio
         execute {
             App.db.bookSourceDao().getBookSource(book.origin)?.let { bookSource ->
                 WebBook(bookSource).getChapterList(book, this)
-                        .onSuccess(IO) { chapters ->
+                    .onSuccess(IO) { chapters ->
                         if (chapters.isNotEmpty()) {
                             book.latestChapterTitle = chapters.last().title
                             val searchBook: SearchBook = book.toSearchBook()

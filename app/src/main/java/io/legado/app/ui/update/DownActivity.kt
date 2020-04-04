@@ -29,7 +29,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
 
     private var downloadCallBack: DownloadCallBack? = null
     private var apkDownloadPath: String? = null
-    lateinit var upload_fath: String
+    lateinit var uploadfath: String
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         initView()
@@ -142,7 +142,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         })
     }
 
-    fun dcancle() {
+    private fun dance() {
         //取消下载
         cancleDownload()
         btnDownload.isClickable = true
@@ -155,7 +155,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
             dialog()
         }
         btnCancle.onClick {
-            dcancle()
+            dance()
         }
 
         object : Thread() {
@@ -183,20 +183,20 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                                 val jsonObject : JSONObject = getJsonArray.getJSONObject(0)
                                 val obj = jsonObject.getJSONObject("apkData")
                                 Looper.prepare()
-                                        upload_fath = obj.getString("outputFile")
-                                        val version = obj.getString("versionName")
+                                uploadfath = obj.getString("outputFile")
+                                val version = obj.getString("versionName")
 
-                                        val regEx = "[^0-9]"
-                                        val p: Pattern = Pattern.compile(regEx)
-                                        val remoteVersion: Matcher = p.matcher(version)
-                                        val localVersion: Matcher = p.matcher(getLocalVersionName(this@DownActivity))
-                                        if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
-                                            dialog()
-                                            tv_markdown.text = "有版本更新，请下载!"
-                                        } else {
-                                            toast("已是最新版本")
-                                            tv_markdown.text = "已是最新版本!"
-                                        }
+                                val regEx = "[^0-9]"
+                                val p: Pattern = Pattern.compile(regEx)
+                                val remoteVersion: Matcher = p.matcher(version)
+                                val localVersion: Matcher = p.matcher(getLocalVersionName(this@DownActivity))
+                                if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
+                                    dialog()
+                                    tv_markdown.text = "有版本更新，请下载!"
+                                } else {
+                                    toast("已是最新版本")
+                                    tv_markdown.text = "已是最新版本!"
+                                }
                                 Looper.loop()
                             } catch (e: JSONException) {
                                 e.printStackTrace()
@@ -219,7 +219,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
             "确定"
         ) { dialog, which ->
             with(this@DownActivity)
-                .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/" + upload_fath)
+                .setApkUrl("http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
                 .setCallBack(downloadCallBack) //开始下载
                 .startDownload()
         }

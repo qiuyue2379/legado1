@@ -134,7 +134,7 @@
         <!--书籍详情页-->
         <activity
             android:name=".ui.book.info.BookInfoActivity"
-            android:launchMode="singleTask" />
+            android:launchMode="singleTop" />
         <!--书籍信息编辑-->
         <activity
             android:name="io.legado.app.ui.book.info.edit.BookInfoEditActivity"
@@ -179,10 +179,14 @@
         <activity
             android:name=".ui.about.DonateActivity"
             android:launchMode="singleTask" />
+        <!--更新界面-->
+        <activity android:name=".ui.update.DownActivity"
+            android:launchMode="singleTop" />
+
         <!--书源管理-->
         <activity
             android:name=".ui.book.source.manage.BookSourceActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -257,7 +261,7 @@
             android:launchMode="singleTop" />
         <!--订阅条目-->
         <activity
-            android:name=".ui.rss.article.RssArticlesFragment"
+            android:name=".ui.rss.article.RssSortActivity"
             android:launchMode="singleTop" />
         <!--Rss收藏-->
         <activity
@@ -266,9 +270,6 @@
         <!--下载界面-->
         <activity
             android:name="io.legado.app.ui.book.download.DownloadActivity"
-            android:launchMode="singleTop" />
-        <!--更新界面-->
-        <activity android:name="io.legado.app.ui.update.DownActivity"
             android:launchMode="singleTop" />
         <!--书源登录-->
         <activity
@@ -303,6 +304,7 @@
                 <data android:mimeType="application/json" />
             </intent-filter>
         </activity>
+
         <service android:name=".service.CheckSourceService" />
         <service android:name=".service.DownloadService" />
         <service android:name=".service.WebService" />

@@ -54,8 +54,6 @@
             android:summary="白天，主色调"
             android:title="主色调"
             app:cpv_dialogType="preset"
-            app:allowDividerAbove="false"
-            app:allowDividerBelow="false"
             app:iconSpaceReserved="false" />
 
         <io.legado.app.ui.widget.prefs.ColorPreference
@@ -80,6 +78,8 @@
             android:summary="白天，底栏色"
             android:title="底部操作栏颜色"
             app:cpv_dialogType="preset"
+            app:allowDividerAbove="false"
+            app:allowDividerBelow="false"
             app:iconSpaceReserved="false" />
 
     </io.legado.app.ui.widget.prefs.PreferenceCategory>

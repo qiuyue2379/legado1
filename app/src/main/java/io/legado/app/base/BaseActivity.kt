@@ -116,5 +116,4 @@ abstract class BaseActivity(
         currentFocus?.hideSoftInput()
         super.finish()
     }
-
 }
