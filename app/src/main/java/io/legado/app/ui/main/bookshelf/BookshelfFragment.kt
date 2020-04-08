@@ -110,7 +110,9 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
                 }
                 var noGroupSize = 0
                 withContext(IO) {
-                    noGroupSize = App.db.bookDao().noGroupSize
+                    if (AppConfig.bookGroupNoneShow) {
+                        noGroupSize = App.db.bookDao().noGroupSize
+                    }
                 }
                 synchronized(this@BookshelfFragment) {
                     bookGroups.clear()
@@ -139,7 +141,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
         noGroupLiveData?.removeObservers(viewLifecycleOwner)
         noGroupLiveData = App.db.bookDao().observeNoGroupSize()
         noGroupLiveData?.observe(viewLifecycleOwner, Observer {
-            if (it > 0 && !showGroupNone) {
+            if (it > 0 && !showGroupNone && AppConfig.bookGroupNoneShow) {
                 showGroupNone = true
                 upGroup()
             } else if (it == 0 && showGroupNone) {
@@ -162,7 +164,9 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
         launch {
             var noGroupSize = 0
             withContext(IO) {
-                noGroupSize = App.db.bookDao().noGroupSize
+                if (AppConfig.bookGroupNoneShow) {
+                    noGroupSize = App.db.bookDao().noGroupSize
+                }
             }
             synchronized(this@BookshelfFragment) {
                 bookGroups.remove(AppConst.bookGroupAll)
