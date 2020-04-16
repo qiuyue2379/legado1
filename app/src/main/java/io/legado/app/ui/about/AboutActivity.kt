@@ -15,7 +15,8 @@ import org.jetbrains.anko.share
 
 
 class AboutActivity : BaseActivity(R.layout.activity_about) {
-
+    lateinit var uploadfath: String
+    
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         val fTag = "aboutFragment"
         var aboutFragment = supportFragmentManager.findFragmentByTag(fTag)
@@ -50,5 +51,6 @@ class AboutActivity : BaseActivity(R.layout.activity_about) {
         }
         return super.onCompatOptionsItemSelected(item)
     }
+
 
 }

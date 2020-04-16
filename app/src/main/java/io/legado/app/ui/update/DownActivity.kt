@@ -2,28 +2,34 @@ package io.legado.app.ui.update
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import io.legado.app.ui.update.getVersion.getLocalVersionName
-import com.maning.updatelibrary.InstallUtils.*
-import okhttp3.*
+import com.daimajia.numberprogressbar.NumberProgressBar
 
+import com.maning.updatelibrary.InstallUtils.*
+import com.zenglb.downloadinstaller.DownloadInstaller
+import com.zenglb.downloadinstaller.DownloadProgressCallBack
 import io.legado.app.R
 import io.legado.app.base.BaseActivity
+import io.legado.app.ui.update.getVersion.getLocalVersionName
 import kotlinx.android.synthetic.main.activity_down.*
+import okhttp3.*
 import org.jetbrains.anko.sdk27.listeners.onClick
-
 import org.jetbrains.anko.toast
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.json.JSONArray
 import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+
 
 class DownActivity : BaseActivity(R.layout.activity_down) {
 
@@ -157,6 +163,9 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         btnCancle.onClick {
             dance()
         }
+        btnDown.onClick {
+            showUpdateDialog("有版本更新,请下载!", false, "http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
+        }
 
         object : Thread() {
             override fun run() {
@@ -180,7 +189,7 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                         if (string != null) {
                             try {
                                 val getJsonArray = JSONArray(string)
-                                val jsonObject : JSONObject = getJsonArray.getJSONObject(0)
+                                val jsonObject: JSONObject = getJsonArray.getJSONObject(0)
                                 val obj = jsonObject.getJSONObject("apkData")
                                 Looper.prepare()
                                 uploadfath = obj.getString("outputFile")
@@ -189,9 +198,13 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                                 val regEx = "[^0-9]"
                                 val p: Pattern = Pattern.compile(regEx)
                                 val remoteVersion: Matcher = p.matcher(version)
-                                val localVersion: Matcher = p.matcher(getLocalVersionName(this@DownActivity))
-                                if (remoteVersion.replaceAll("").trim().toInt() > localVersion.replaceAll("").trim().toInt()) {
-                                    dialog()
+                                val localVersion: Matcher =
+                                    p.matcher(getLocalVersionName(this@DownActivity))
+                                if (remoteVersion.replaceAll("").trim()
+                                        .toInt() > localVersion.replaceAll("").trim().toInt()
+                                ) {
+                                    //dialog()
+                                    showUpdateDialog("有版本更新,请下载!", true, "http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
                                     tv_markdown.text = "有版本更新，请下载!"
                                 } else {
                                     toast("已是最新版本")
@@ -229,4 +242,72 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         normalDialog.show()
     }
 
+    /**
+     * 显示下载的对话框,是否要强制的升级还是正常的升级
+     *
+     * @param UpdateMsg     升级信息
+     * @param isForceUpdate 是否是强制升级
+     * @param downloadUrl   APK 下载URL
+     */
+    @SuppressLint("InflateParams")
+    private fun showUpdateDialog(
+        UpdateMsg: String,
+        isForceUpdate: Boolean,
+        downloadUrl: String
+    ) {
+        val builder = AlertDialog.Builder(this)
+        val inflater = LayoutInflater.from(this)
+        val updateView: View = inflater.inflate(R.layout.update_layout, null)
+        val progressBar: NumberProgressBar = updateView.findViewById(R.id.tips_progress)
+        val updateMsg = updateView.findViewById<TextView>(R.id.update_mess_txt)
+        updateMsg.text = UpdateMsg
+        builder.setTitle("发现新版本")
+        var negativeBtnStr = "以后再说"
+        if (isForceUpdate) {
+            builder.setTitle("版本升级")
+            negativeBtnStr = "退出应用"
+        }
+        builder.setView(updateView)
+        builder.setNegativeButton(negativeBtnStr, null)
+        builder.setPositiveButton(R.string.apk_update_yes, null)
+        val downloadDialog = builder.create()
+        downloadDialog.setCanceledOnTouchOutside(false)
+        downloadDialog.setCancelable(false)
+        downloadDialog.show()
+        downloadDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            .setOnClickListener {
+                if (isForceUpdate) {
+                    progressBar.visibility = View.VISIBLE
+
+                    DownloadInstaller(this, downloadUrl, true, object : DownloadProgressCallBack {
+                        override fun downloadProgress(progress: Int) {
+                            runOnUiThread { progressBar.progress = progress }
+                            if (progress == 100) {
+                                downloadDialog.dismiss()
+                            }
+                        }
+
+                        override fun downloadException(e: java.lang.Exception?) {}
+                        override fun onInstallStart() {
+                            downloadDialog.dismiss()
+                        }
+                    }).start()
+
+                    //升级按钮变灰色
+                    downloadDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        .setTextColor(Color.GRAY)
+                } else {
+                    DownloadInstaller(this, downloadUrl).start()
+                    downloadDialog.dismiss()
+                }
+            }
+        downloadDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+            .setOnClickListener {
+                if (isForceUpdate) {
+                    this@DownActivity.finish()
+                } else {
+                    downloadDialog.dismiss()
+                }
+            }
+    }
 }

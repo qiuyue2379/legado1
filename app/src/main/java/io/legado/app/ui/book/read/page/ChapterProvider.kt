@@ -31,8 +31,8 @@ object ChapterProvider {
     private var titleTopSpacing = 0
     private var titleBottomSpacing = 0
     var typeface: Typeface = Typeface.SANS_SERIF
-    var titlePaint = TextPaint()
-    var contentPaint = TextPaint()
+    lateinit var titlePaint: TextPaint
+    lateinit var contentPaint: TextPaint
 
     init {
         upStyle()
@@ -262,30 +262,32 @@ object ChapterProvider {
             Typeface.SANS_SERIF
         }
         //标题
-        titlePaint.isAntiAlias = true
+        titlePaint = TextPaint()
         titlePaint.color = ReadBookConfig.durConfig.textColor()
         titlePaint.letterSpacing = ReadBookConfig.letterSpacing
         titlePaint.typeface = Typeface.create(typeface, Typeface.BOLD)
         titlePaint.textSize = with(ReadBookConfig) { textSize + titleSize }.sp.toFloat()
+        titlePaint.isAntiAlias = true
         //正文
-        contentPaint.isAntiAlias = true
+        contentPaint = TextPaint()
         contentPaint.color = ReadBookConfig.durConfig.textColor()
         contentPaint.letterSpacing = ReadBookConfig.letterSpacing
         val style = if (ReadBookConfig.textBold) Typeface.BOLD else Typeface.NORMAL
         contentPaint.typeface = Typeface.create(typeface, style)
         contentPaint.textSize = ReadBookConfig.textSize.sp.toFloat()
+        contentPaint.isAntiAlias = true
         //间距
         lineSpacingExtra = ReadBookConfig.lineSpacingExtra
         paragraphSpacing = ReadBookConfig.paragraphSpacing
         titleTopSpacing = ReadBookConfig.titleTopSpacing.dp
         titleBottomSpacing = ReadBookConfig.titleBottomSpacing.dp
-        upSize()
+        upViewSize()
     }
 
     /**
      * 更新View尺寸
      */
-    fun upSize() {
+    fun upViewSize() {
         paddingLeft = ReadBookConfig.paddingLeft.dp
         paddingTop = ReadBookConfig.paddingTop.dp
         visibleWidth = viewWidth - paddingLeft - ReadBookConfig.paddingRight.dp

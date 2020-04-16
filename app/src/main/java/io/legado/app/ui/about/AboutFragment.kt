@@ -18,7 +18,7 @@ import io.legado.app.utils.toast
 import org.jetbrains.anko.startActivity
 
 class AboutFragment : PreferenceFragmentCompat() {
-
+    lateinit var uploadfath: String
     private val licenseUrl = "https://github.com/gedoor/legado/blob/master/LICENSE"
     private val disclaimerUrl = "https://gedoor.github.io/MyBookshelf/disclaimer.html"
     private val qqGroups = linkedMapOf(
@@ -107,5 +107,4 @@ class AboutFragment : PreferenceFragmentCompat() {
             false
         }
     }
-
 }
