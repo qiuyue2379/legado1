@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: "de.timfreiheit.resourceplaceholders"
+apply plugin: 'de.timfreiheit.resourceplaceholders'
 apply plugin: 'io.fabric'
 
 androidExtensions {
@@ -191,7 +191,7 @@ dependencies {
     implementation 'ru.noties.markwon:core:3.1.0'
 
     //转换繁体
-    implementation 'com.github.houbb:opencc4j:1.4.0'
+    implementation 'com.hankcs:hanlp:portable-1.7.7'
 
     implementation 'com.github.maning0303:MNUpdateAPK:V2.0.3'
 
