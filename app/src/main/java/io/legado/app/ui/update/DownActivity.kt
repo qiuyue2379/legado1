@@ -12,7 +12,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.daimajia.numberprogressbar.NumberProgressBar
-
 import com.maning.updatelibrary.InstallUtils.*
 import com.zenglb.downloadinstaller.DownloadInstaller
 import com.zenglb.downloadinstaller.DownloadProgressCallBack
@@ -29,7 +28,6 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-
 
 class DownActivity : BaseActivity(R.layout.activity_down) {
 
@@ -242,13 +240,6 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
         normalDialog.show()
     }
 
-    /**
-     * 显示下载的对话框,是否要强制的升级还是正常的升级
-     *
-     * @param UpdateMsg     升级信息
-     * @param isForceUpdate 是否是强制升级
-     * @param downloadUrl   APK 下载URL
-     */
     @SuppressLint("InflateParams")
     private fun showUpdateDialog(
         UpdateMsg: String,
@@ -310,4 +301,5 @@ class DownActivity : BaseActivity(R.layout.activity_down) {
                 }
             }
     }
+
 }
