@@ -1,24 +1,34 @@
 package io.legado.app.ui.about
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import constant.UiType
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.lib.dialogs.alert
-import io.legado.app.ui.update.DownActivity
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.openUrl
 import io.legado.app.utils.sendToClip
 import io.legado.app.utils.toast
-import org.jetbrains.anko.startActivity
+import listener.OnInitUiListener
+import model.UiConfig
+import model.UpdateConfig
+import okhttp3.*
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import update.UpdateAppUtils
+import java.io.IOException
 
 class AboutFragment : PreferenceFragmentCompat() {
-    lateinit var uploadfath: String
     private val licenseUrl = "https://github.com/gedoor/legado/blob/master/LICENSE"
     private val disclaimerUrl = "https://gedoor.github.io/MyBookshelf/disclaimer.html"
     private val qqGroups = linkedMapOf(
@@ -46,7 +56,7 @@ class AboutFragment : PreferenceFragmentCompat() {
         when (preference?.key) {
             "contributors" -> openUrl(R.string.contributors_url)
             "update_log" -> showUpdateLog()
-            "check_update" -> context?.startActivity<DownActivity>()//openUrl(R.string.latest_release_url)
+            "check_update" -> shopUpdate()
             "mail" -> sendMail()
             "git" -> openUrl(R.string.this_github_url)
             "home_page" -> openUrl(R.string.home_page_url)
@@ -107,4 +117,62 @@ class AboutFragment : PreferenceFragmentCompat() {
             false
         }
     }
+
+    private fun shopUpdate() {
+        object : Thread() {
+            override fun run() {
+                val okHttpClient = OkHttpClient()
+                val request = Request.Builder()
+                    .url("http://qiuyue.vicp.net:86/apk/app/release/output.json")//请求的url
+                    .get()
+                    .build()
+
+                //创建/Call
+                val call = okHttpClient.newCall(request)
+                call.enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+
+                    }
+
+                    @Throws(IOException::class)
+                    override fun onResponse(call: Call, response: Response) {
+                        val string = response.body()?.string()
+                        print(string)
+                        if (string != null) {
+                            try {
+                                val getJsonArray = JSONArray(string)
+                                val jsonObject: JSONObject = getJsonArray.getJSONObject(0)
+                                val obj = jsonObject.getJSONObject("apkData")
+                                Looper.prepare()
+                                val uploadfath = obj.getString("outputFile")
+                                val version = obj.getString("versionName")
+                                val dirName = obj.getString("dirName")
+                                UpdateAppUtils
+                                    .getInstance()
+                                    .apkUrl("http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
+                                    .updateTitle("发现新版本")
+                                    .updateContent(dirName)
+                                    .updateConfig(UpdateConfig(alwaysShowDownLoadDialog = true))
+                                    .uiConfig(UiConfig(uiType = UiType.CUSTOM, customLayoutId = R.layout.view_update_dialog_custom))
+                                    .setOnInitUiListener(object : OnInitUiListener {
+                                        @SuppressLint("SetTextI18n")
+                                        override fun onInitUpdateUi(view: View?, updateConfig: UpdateConfig, uiConfig: UiConfig) {
+                                            view?.findViewById<TextView>(R.id.tv_update_title)?.text = "版本更新啦"
+                                            view?.findViewById<TextView>(R.id.tv_version_name)?.text = version
+                                        }
+                                    })
+                                    .update()
+
+                                Looper.loop()
+                            } catch (e: JSONException) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                })
+
+            }
+        }.start()
+    }
+
 }
