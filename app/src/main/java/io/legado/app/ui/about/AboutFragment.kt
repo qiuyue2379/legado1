@@ -146,7 +146,7 @@ class AboutFragment : PreferenceFragmentCompat() {
                                 Looper.prepare()
                                 val uploadfath = obj.getString("outputFile")
                                 val version = obj.getString("versionName")
-                                val dirName = obj.getString("dirName")
+                                val dirName = "有版本更新\n请下载!"
                                 UpdateAppUtils
                                     .getInstance()
                                     .apkUrl("http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
