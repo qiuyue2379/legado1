@@ -32,7 +32,7 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
             ttsInitFinish = false
         }
     }
-    
+
     override fun onCreate() {
         super.onCreate()
         textToSpeech = TextToSpeech(this, this)
