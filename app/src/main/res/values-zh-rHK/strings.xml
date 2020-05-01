@@ -687,4 +687,7 @@
     <string name="night_accent">夜間，強調色</string>
     <string name="night_background_color">夜間，背景色</string>
     <string name="night_navbar_color">夜間，導航欄顏色</string>
+    <string name="auto_change_source">自动换源</string>
+
+
 </resources>
