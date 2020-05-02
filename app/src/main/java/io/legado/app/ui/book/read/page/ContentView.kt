@@ -15,10 +15,7 @@ import io.legado.app.help.ReadBookConfig
 import io.legado.app.help.ReadTipConfig
 import io.legado.app.ui.book.read.page.entities.TextPage
 import io.legado.app.ui.widget.BatteryView
-import io.legado.app.utils.dp
-import io.legado.app.utils.getCompatColor
-import io.legado.app.utils.statusBarHeight
-import io.legado.app.utils.visible
+import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.view_book_page.view.*
 import java.util.*
 
@@ -102,10 +99,24 @@ class ContentView(context: Context) : FrameLayout(context) {
             ll_footer.isGone = hideFooter
         }
         tvTitle = when (ReadTipConfig.chapterTitle) {
-            ReadTipConfig.tipHeaderLeft -> tv_header_left
+            ReadTipConfig.tipHeaderLeft -> {
+                ConstraintUtil(ll_header).begin()
+                    .rightToLeftOf(R.id.tv_header_left, R.id.tv_header_right)
+                    .setWidth(R.id.tv_header_left, 0)
+                    .setHorizontalWeight(R.id.tv_header_left, 1f)
+                    .commit()
+                tv_header_left
+            }
             ReadTipConfig.tipHeaderMiddle -> tv_header_middle
             ReadTipConfig.tipHeaderRight -> tv_header_right
-            ReadTipConfig.tipFooterLeft -> tv_footer_left
+            ReadTipConfig.tipFooterLeft -> {
+                ConstraintUtil(ll_footer).begin()
+                    .rightToLeftOf(R.id.tv_footer_left, R.id.tv_footer_right)
+                    .setWidth(R.id.tv_footer_left, 0)
+                    .setHorizontalWeight(R.id.tv_footer_left, 1f)
+                    .commit()
+                tv_footer_left
+            }
             ReadTipConfig.tipFooterMiddle -> tv_footer_middle
             ReadTipConfig.tipFooterRight -> tv_footer_right
             else -> null
@@ -128,10 +139,24 @@ class ContentView(context: Context) : FrameLayout(context) {
             textSize = 12f
         }
         tvBattery = when (ReadTipConfig.battery) {
-            ReadTipConfig.tipHeaderLeft -> tv_header_left
+            ReadTipConfig.tipHeaderLeft -> {
+                ConstraintUtil(ll_header).begin()
+                    .clear(R.id.tv_header_left, 2)
+                    .setHorizontalWeight(R.id.tv_footer_left, 0.0F)
+                    .setWidth(R.id.tv_header_left, LayoutParams.WRAP_CONTENT)
+                    .commit()
+                tv_header_left
+            }
             ReadTipConfig.tipHeaderMiddle -> tv_header_middle
             ReadTipConfig.tipHeaderRight -> tv_header_right
-            ReadTipConfig.tipFooterLeft -> tv_footer_left
+            ReadTipConfig.tipFooterLeft -> {
+                ConstraintUtil(ll_header).begin()
+                    .clear(R.id.tv_footer_left, 2)
+                    .setHorizontalWeight(R.id.tv_footer_left, 0.0F)
+                    .setWidth(R.id.tv_footer_left, LayoutParams.WRAP_CONTENT)
+                    .commit()
+                tv_footer_left
+            }
             ReadTipConfig.tipFooterMiddle -> tv_footer_middle
             ReadTipConfig.tipFooterRight -> tv_footer_right
             else -> null
