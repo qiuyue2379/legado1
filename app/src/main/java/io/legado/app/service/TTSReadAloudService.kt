@@ -52,7 +52,6 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
         clearTTS()
     }
 
-    @Synchronized
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             textToSpeech?.let {
@@ -69,10 +68,7 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
 
     @Synchronized
     override fun play() {
-        if (contentList.isEmpty() || !ttsInitFinish) {
-            return
-        }
-        if (requestFocus()) {
+        if (contentList.isNotEmpty() && ttsInitFinish && requestFocus()) {
             MediaHelp.playSilentSound(this)
             super.play()
             textToSpeech?.stop()
