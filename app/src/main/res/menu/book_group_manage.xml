@@ -12,19 +12,19 @@
 
     <group android:id="@+id/menu_groups">
 
-    <item
-        android:id="@+id/menu_group_all"
-        android:title="@string/all"
-        android:checkable="true"
-        android:checked="true"
-        app:showAsAction="never" />
+        <item
+            android:id="@+id/menu_group_all"
+            android:title="@string/all"
+            android:checkable="true"
+            android:checked="true"
+            app:showAsAction="never" />
 
-    <item
-        android:id="@+id/menu_group_local"
-        android:title="@string/local"
-        android:checkable="true"
-        android:checked="false"
-        app:showAsAction="never" />
+        <item
+            android:id="@+id/menu_group_local"
+            android:title="@string/local"
+            android:checkable="true"
+            android:checked="false"
+            app:showAsAction="never" />
 
         <item
             android:id="@+id/menu_group_audio"
@@ -41,4 +41,5 @@
             app:showAsAction="never" />
 
     </group>
+
 </menu>
