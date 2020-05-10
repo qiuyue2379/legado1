@@ -17,10 +17,23 @@ import java.io.File
 
 class RssSourceViewModel(application: Application) : BaseViewModel(application) {
 
-    fun topSource(rssSource: RssSource) {
+    fun topSource(vararg sources: RssSource) {
         execute {
-            rssSource.customOrder = App.db.rssSourceDao().minOrder - 1
-            App.db.rssSourceDao().insert(rssSource)
+            val minOrder = App.db.rssSourceDao().minOrder - 1
+            sources.forEachIndexed { index, rssSource ->
+                rssSource.customOrder = minOrder - index
+            }
+            App.db.rssSourceDao().update(*sources)
+        }
+    }
+
+    fun bottomSource(vararg sources: RssSource) {
+        execute {
+            val maxOrder = App.db.rssSourceDao().maxOrder + 1
+            sources.forEachIndexed { index, rssSource ->
+                rssSource.customOrder = maxOrder + index
+            }
+            App.db.rssSourceDao().update(*sources)
         }
     }
 
@@ -42,7 +55,7 @@ class RssSourceViewModel(application: Application) : BaseViewModel(application) 
         }
     }
 
-    fun enableSelection(sources: LinkedHashSet<RssSource>) {
+    fun enableSelection(sources: List<RssSource>) {
         execute {
             val list = arrayListOf<RssSource>()
             sources.forEach {
@@ -52,7 +65,7 @@ class RssSourceViewModel(application: Application) : BaseViewModel(application) 
         }
     }
 
-    fun disableSelection(sources: LinkedHashSet<RssSource>) {
+    fun disableSelection(sources: List<RssSource>) {
         execute {
             val list = arrayListOf<RssSource>()
             sources.forEach {
@@ -62,13 +75,13 @@ class RssSourceViewModel(application: Application) : BaseViewModel(application) 
         }
     }
 
-    fun delSelection(sources: LinkedHashSet<RssSource>) {
+    fun delSelection(sources: List<RssSource>) {
         execute {
             App.db.rssSourceDao().delete(*sources.toTypedArray())
         }
     }
 
-    fun exportSelection(sources: LinkedHashSet<RssSource>, file: File) {
+    fun exportSelection(sources: List<RssSource>, file: File) {
         execute {
             val json = GSON.toJson(sources)
             FileUtils.createFileIfNotExist(file, "exportRssSource.json")
@@ -80,7 +93,7 @@ class RssSourceViewModel(application: Application) : BaseViewModel(application) 
         }
     }
 
-    fun exportSelection(sources: LinkedHashSet<RssSource>, doc: DocumentFile) {
+    fun exportSelection(sources: List<RssSource>, doc: DocumentFile) {
         execute {
             val json = GSON.toJson(sources)
             doc.findFile("exportRssSource.json")?.delete()
