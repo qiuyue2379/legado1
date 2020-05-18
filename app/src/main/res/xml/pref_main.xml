@@ -78,6 +78,7 @@
     </io.legado.app.ui.widget.prefs.PreferenceCategory>
 
     <io.legado.app.ui.widget.prefs.PreferenceCategory
+        android:title="@string/other"
         android:key="aboutCategory"
         app:allowDividerAbove="true"
         app:allowDividerBelow="false"
