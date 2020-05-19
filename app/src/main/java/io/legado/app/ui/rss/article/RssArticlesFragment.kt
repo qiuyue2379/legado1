@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.App
@@ -53,8 +54,14 @@ class RssArticlesFragment : VMBaseFragment<RssArticlesViewModel>(R.layout.fragme
 
     private fun initView() {
         ATH.applyEdgeEffectColor(recycler_view)
-        recycler_view.layoutManager = LinearLayoutManager(requireContext())
-        recycler_view.addItemDecoration(VerticalDivider(requireContext()))
+        recycler_view.layoutManager = if (activityViewModel.isGridLayout) {
+            recycler_view.setPadding(8, 0, 8, 0)
+            GridLayoutManager(requireContext(), 2)
+        } else {
+            recycler_view.addItemDecoration(VerticalDivider(requireContext()))
+            LinearLayoutManager(requireContext())
+
+        }
         adapter = RssArticlesAdapter(requireContext(), activityViewModel.layoutId, this)
         recycler_view.adapter = adapter
         loadMoreView = LoadMoreView(requireContext())
