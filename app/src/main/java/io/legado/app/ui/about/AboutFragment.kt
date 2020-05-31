@@ -10,6 +10,9 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import constant.UiType
 import io.legado.app.App
 import io.legado.app.R
@@ -22,11 +25,10 @@ import listener.OnInitUiListener
 import model.UiConfig
 import model.UpdateConfig
 import okhttp3.*
-import org.json.JSONArray
 import org.json.JSONException
-import org.json.JSONObject
 import update.UpdateAppUtils
 import java.io.IOException
+
 
 class AboutFragment : PreferenceFragmentCompat() {
     private val licenseUrl = "https://github.com/gedoor/legado/blob/master/LICENSE"
@@ -140,13 +142,12 @@ class AboutFragment : PreferenceFragmentCompat() {
                         print(string)
                         if (string != null) {
                             try {
-                                val getJsonArray = JSONArray(string)
-                                val jsonObject: JSONObject = getJsonArray.getJSONObject(0)
-                                val obj = jsonObject.getJSONObject("apkData")
+                                val bject: JsonObject = JsonParser().parse(string).asJsonObject
+                                val assets: JsonArray = bject.get("elements").asJsonArray
                                 Looper.prepare()
-                                val uploadfath = obj.getString("outputFile")
-                                val version = obj.getString("versionName")
-                                val dirName = "有版本更新,请下载!"
+                                val version = assets[0].asJsonObject["versionName"].asString
+                                val uploadfath = assets[0].asJsonObject["outputFile"].asString
+                                val dirName = "有版本更新，请下载!"
                                 UpdateAppUtils
                                     .getInstance()
                                     .apkUrl("http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
