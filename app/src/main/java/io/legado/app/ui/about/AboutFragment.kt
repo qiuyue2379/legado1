@@ -60,6 +60,7 @@ class AboutFragment : PreferenceFragmentCompat() {
             "update_log" -> showUpdateLog()
             "check_update" -> shopUpdate()
             "mail" -> sendMail()
+            "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
             "home_page" -> openUrl(R.string.home_page_url)
             "license" -> requireContext().openUrl(licenseUrl)
