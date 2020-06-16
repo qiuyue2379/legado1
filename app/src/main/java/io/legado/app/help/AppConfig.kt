@@ -81,7 +81,7 @@ object AppConfig {
         get() = App.INSTANCE.getPrefString(PreferKey.ttsSpeechPer) ?: "0"
 
     val isEInkMode: Boolean
-        get() = App.INSTANCE.getPrefBoolean("isEInkMode")
+        get() = App.INSTANCE.getPrefBoolean(PreferKey.einkMode)
 
     val clickAllNext: Boolean get() = App.INSTANCE.getPrefBoolean(PreferKey.clickAllNext, false)
 
@@ -137,3 +137,4 @@ object AppConfig {
 
     val isGooglePlay: Boolean get() = App.INSTANCE.channel == "google"
 }
+

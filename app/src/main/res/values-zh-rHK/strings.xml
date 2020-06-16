@@ -88,7 +88,7 @@
     <string name="download_offline_s">下載已選擇的章節到本地</string>
     <string name="change_origin">換源</string>
     <string name="about_description">
-       \u3000\u3000這是一款使用 Kotlin 全新開發的開源的閲讀應用程式，歡迎你的加入。關注公眾號[开源阅读]！
+        \u3000\u3000這是一款使用 Kotlin 全新開發的開源的閲讀應用程式，歡迎你的加入。關注公眾號[开源阅读]！
     </string>
     <string name="app_share_description">
         閲讀3.0下載地址：\nhttps://play.google.com/store/apps/details?id=io.legado.app
@@ -701,4 +701,6 @@
     <string name="backup_summary">本地和WebDav壹起備份</string>
     <string name="restore_summary">優先從WebDav恢復,失敗時從本地恢復</string>
     <string name="import_old_summary">選擇舊版備份文件夾</string>
+    <string name="enabled">已啓用</string>
+    <string name="disabled">已禁用</string>
 </resources>

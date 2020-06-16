@@ -30,13 +30,13 @@
         android:icon="@drawable/ic_cfg_theme"
         app:iconSpaceReserved="false" />
 
-    <!--    <io.legado.app.ui.widget.prefs.SwitchPreference
-            android:defaultValue="false"
-            android:key="isEInkMode"
-            android:title="@string/eink_theme"
-            android:summary="@string/eink_theme_desc"
-            android:icon="@drawable/ic_cfg_e_lnk"
-            app:iconSpaceReserved="false" />-->
+    <io.legado.app.ui.widget.prefs.SwitchPreference
+        android:defaultValue="false"
+        android:icon="@drawable/ic_cfg_e_lnk"
+        android:key="isEInkMode"
+        android:summary="@string/eink_theme_desc"
+        android:title="@string/eink_theme"
+        app:iconSpaceReserved="false" />
 
     <io.legado.app.ui.widget.prefs.SwitchPreference
         android:defaultValue="false"
@@ -87,14 +87,14 @@
 
         <io.legado.app.ui.widget.prefs.Preference
             android:key="donate"
-            android:summary="@string/thanks"
+            android:summary="您的支持是我更新的动力"
             android:title="@string/donate"
             android:icon="@drawable/ic_cfg_jz"
             app:iconSpaceReserved="false" />
 
         <io.legado.app.ui.widget.prefs.Preference
             android:key="about"
-            android:summary="@string/about_official_account"
+            android:summary="公众号[开源阅读软件]"
             android:title="@string/about"
             android:icon="@drawable/ic_cfg_about"
             app:iconSpaceReserved="false" />

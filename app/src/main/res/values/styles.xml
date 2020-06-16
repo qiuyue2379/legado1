@@ -126,9 +126,4 @@
     <style name="Style.Text.Second.Normal.Wrap">
         <item name="android:layout_width">wrap_content</item>
     </style>
-
-    <style name="UpdateDialogStyle" parent="@android:style/Theme.DeviceDefault.Light.Dialog.NoActionBar.MinWidth">
-        <!--该行代码就是设置AlertDialog的背景-->
-        <item name="android:background">@android:color/white</item>
-    </style>
 </resources>

@@ -192,6 +192,9 @@ dependencies {
     //转换繁体
     implementation 'com.hankcs:hanlp:portable-1.7.7'
 
+    //E-Ink
+    implementation 'fadeapp.widgets:scrollless-recyclerView:1.0.2'
+
     implementation 'com.teprinciple:updateapputils:2.3.0'
 }
 

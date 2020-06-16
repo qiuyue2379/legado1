@@ -20,6 +20,7 @@ import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.entities.BookSource
+import io.legado.app.help.AppConfig
 import io.legado.app.help.ItemTouchCallback
 import io.legado.app.lib.dialogs.*
 import io.legado.app.lib.theme.ATH
@@ -115,6 +116,12 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
                 sort = 4
                 initLiveDataBookSource(search_view.query?.toString())
             }
+            R.id.menu_enabled_group -> {
+                search_view.setQuery(getString(R.string.enabled), true)
+            }
+            R.id.menu_disabled_group -> {
+                search_view.setQuery(getString(R.string.disabled), true)
+            }
         }
         if (item.groupId == R.id.source_group) {
             search_view.setQuery(item.title, true)
@@ -146,6 +153,7 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
 
     private fun initRecyclerView() {
         ATH.applyEdgeEffectColor(recycler_view)
+        recycler_view.isEnableScroll = !AppConfig.isEInkMode
         recycler_view.layoutManager = LinearLayoutManager(this)
         recycler_view.addItemDecoration(VerticalDivider(this))
         adapter = BookSourceAdapter(this, this)
@@ -166,10 +174,19 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
 
     private fun initLiveDataBookSource(searchKey: String? = null) {
         bookSourceLiveDate?.removeObservers(this)
-        bookSourceLiveDate = if (searchKey.isNullOrEmpty()) {
-            App.db.bookSourceDao().liveDataAll()
-        } else {
-            App.db.bookSourceDao().liveDataSearch("%$searchKey%")
+        bookSourceLiveDate = when {
+            searchKey.isNullOrEmpty() -> {
+                App.db.bookSourceDao().liveDataAll()
+            }
+            searchKey == getString(R.string.enabled) -> {
+                App.db.bookSourceDao().liveDataEnabled()
+            }
+            searchKey == getString(R.string.disabled) -> {
+                App.db.bookSourceDao().liveDataDisabled()
+            }
+            else -> {
+                App.db.bookSourceDao().liveDataSearch("%$searchKey%")
+            }
         }
         bookSourceLiveDate?.observe(this, Observer { data ->
             val sourceList = when (sort) {

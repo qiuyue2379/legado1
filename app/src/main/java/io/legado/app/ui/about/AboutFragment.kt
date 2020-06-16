@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -18,6 +17,7 @@ import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.ui.widget.dialog.TextDialog
+import io.legado.app.utils.PreferenceFragmentSupport
 import io.legado.app.utils.openUrl
 import io.legado.app.utils.sendToClip
 import io.legado.app.utils.toast
@@ -30,7 +30,7 @@ import update.UpdateAppUtils
 import java.io.IOException
 
 
-class AboutFragment : PreferenceFragmentCompat() {
+class AboutFragment : PreferenceFragmentSupport() {
     private val licenseUrl = "https://github.com/gedoor/legado/blob/master/LICENSE"
     private val disclaimerUrl = "https://gedoor.github.io/MyBookshelf/disclaimer.html"
     private val qqGroups = linkedMapOf(

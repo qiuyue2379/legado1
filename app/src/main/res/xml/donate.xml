@@ -4,15 +4,15 @@
 
     <io.legado.app.ui.widget.prefs.PreferenceCategory
         android:title="@string/wechat"
-        app:layout="@layout/view_preference_category"
+            app:layout="@layout/view_preference_category"
         app:allowDividerAbove="false"
         app:allowDividerBelow="false"
         app:iconSpaceReserved="false">
 
         <io.legado.app.ui.widget.prefs.Preference
-            android:key="gzGzh"
-            android:title="@string/follow_official_account"
-            android:summary="关注[开源阅读软件]点击广告支持我"
+                android:key="gzGzh"
+                android:title="@string/follow_official_account"
+                android:summary="关注[开源阅读软件]点击广告支持我"
             app:iconSpaceReserved="false" />
 
         <io.legado.app.ui.widget.prefs.Preference

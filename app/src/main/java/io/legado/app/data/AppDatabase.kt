@@ -57,7 +57,7 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
                     """
-                 ALTER TABLE rssSources ADD style TEXT
+                    ALTER TABLE rssSources ADD style TEXT
                     """
                 )
             }

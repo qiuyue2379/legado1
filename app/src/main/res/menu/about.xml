@@ -15,5 +15,4 @@
         android:title="@string/scoring"
         android:icon="@drawable/ic_scoring"
         app:showAsAction="always" />
-
 </menu>

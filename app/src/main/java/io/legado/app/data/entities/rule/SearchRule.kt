@@ -16,43 +16,44 @@ data class SearchRule(
         override var wordCount: String? = null
 ) : BookListRule, Parcelable {
 
-    constructor(parcel: Parcel) : this(
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString()
-    )
+        constructor(parcel: Parcel) : this(
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readString()
+        )
 
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeString(bookList)
-        dest.writeString(name)
-        dest.writeString(author)
-        dest.writeString(intro)
-        dest.writeString(kind)
-        dest.writeString(lastChapter)
-        dest.writeString(updateTime)
-        dest.writeString(bookUrl)
-        dest.writeString(coverUrl)
-        dest.writeString(wordCount)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<SearchRule> {
-        override fun createFromParcel(parcel: Parcel): SearchRule {
-            return SearchRule(parcel)
+        override fun writeToParcel(dest: Parcel, flags: Int) {
+                dest.writeString(bookList)
+                dest.writeString(name)
+                dest.writeString(author)
+                dest.writeString(intro)
+                dest.writeString(kind)
+                dest.writeString(lastChapter)
+                dest.writeString(updateTime)
+                dest.writeString(bookUrl)
+                dest.writeString(coverUrl)
+                dest.writeString(wordCount)
         }
 
-        override fun newArray(size: Int): Array<SearchRule?> {
-            return arrayOfNulls(size)
+        override fun describeContents(): Int {
+                return 0
         }
-    }
+
+        companion object CREATOR : Parcelable.Creator<SearchRule> {
+                override fun createFromParcel(parcel: Parcel): SearchRule {
+                        return SearchRule(parcel)
+                }
+
+                override fun newArray(size: Int): Array<SearchRule?> {
+                        return arrayOfNulls(size)
+                }
+        }
 }
+

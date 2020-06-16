@@ -55,11 +55,13 @@ class Preference(context: Context, attrs: AttributeSet) :
                     iconView.setImageDrawable(icon)
                     iconView.setColorFilter(context.accentColor)
                 }
+
             }
 
             if (weightLayoutRes != null && weightLayoutRes != 0 && viewId != null && viewId != 0) {
                 val lay = it.findViewById(R.id.preference_widget)
                 if (lay is FrameLayout) {
+                    var needRequestLayout = false
                     var v = it.itemView.findViewById<T>(viewId)
                     if (v == null) {
                         val inflater: LayoutInflater = context.layoutInflater
@@ -68,7 +70,8 @@ class Preference(context: Context, attrs: AttributeSet) :
                         lay.addView(childView)
                         lay.isVisible = true
                         v = lay.findViewById(viewId)
-                    }
+                    } else
+                        needRequestLayout = true
 
                     if (weightWidth > 0 || weightHeight > 0) {
                         val lp = lay.layoutParams
@@ -79,7 +82,8 @@ class Preference(context: Context, attrs: AttributeSet) :
                             lp.width =
                                 (context.resources.displayMetrics.density * weightWidth).roundToInt()
                         lay.layoutParams = lp
-                    }
+                    } else if (needRequestLayout)
+                        v.requestLayout()
 
                     return v
                 }
