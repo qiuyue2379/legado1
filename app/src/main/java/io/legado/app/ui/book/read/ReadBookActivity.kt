@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -30,6 +32,7 @@ import io.legado.app.help.storage.SyncBookProgress
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.noButton
 import io.legado.app.lib.dialogs.okButton
+import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.receiver.TimeBatteryReceiver
 import io.legado.app.service.BaseReadAloudService
@@ -144,6 +147,21 @@ class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_boo
         }
     }
 
+    override fun upNavigationBarColor() {
+        when {
+            read_menu == null -> return
+            read_menu.isVisible -> {
+                ATH.setNavigationBarColorAuto(this)
+            }
+            ReadBookConfig.bg is ColorDrawable -> {
+                ATH.setNavigationBarColorAuto(this, ReadBookConfig.bgMeanColor)
+            }
+            else -> {
+                ATH.setNavigationBarColorAuto(this, Color.BLACK)
+            }
+        }
+    }
+
     /**
      * 初始化View
      */
@@ -198,7 +216,7 @@ class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_boo
                     when (item.groupId) {
                         R.id.menu_group_on_line -> item.isVisible = onLine
                         R.id.menu_group_local -> item.isVisible = !onLine
-                        R.id.menu_group_text -> item.isVisible = book.isTxt()
+                        R.id.menu_group_text -> item.isVisible = book.isLocalTxt()
                         R.id.menu_group_login ->
                             item.isVisible = !ReadBook.webBook?.bookSource?.loginUrl.isNullOrEmpty()
                         else -> if (item.itemId == R.id.menu_enable_replace) {
@@ -656,6 +674,7 @@ class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_boo
      */
     override fun upSystemUiVisibility() {
         Help.upSystemUiVisibility(this, !read_menu.isVisible)
+        upNavigationBarColor()
     }
 
     /**

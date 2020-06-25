@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
@@ -12,6 +13,8 @@ import com.jeremyliao.liveeventbus.LiveEventBus
 import io.legado.app.constant.AppConst.channelIdDownload
 import io.legado.app.constant.AppConst.channelIdReadAloud
 import io.legado.app.constant.AppConst.channelIdWeb
+import io.legado.app.constant.EventBus
+import io.legado.app.constant.PreferKey
 import io.legado.app.data.AppDatabase
 import io.legado.app.help.ActivityHelp
 import io.legado.app.help.AppConfig
@@ -20,6 +23,7 @@ import io.legado.app.help.ReadBookConfig
 import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.utils.getCompatColor
 import io.legado.app.utils.getPrefInt
+import io.legado.app.utils.postEvent
 
 @Suppress("DEPRECATION")
 class App : Application() {
@@ -68,28 +72,42 @@ class App : Application() {
      * 更新主题
      */
     fun applyTheme() {
-        if (AppConfig.isNightTheme) {
-            ThemeStore.editTheme(this)
-                .primaryColor(
-                    getPrefInt("colorPrimaryNight", getCompatColor(R.color.md_blue_grey_600))
-                ).accentColor(
-                    getPrefInt("colorAccentNight", getCompatColor(R.color.md_deep_orange_800))
-                ).backgroundColor(
-                    getPrefInt("colorBackgroundNight", getCompatColor(R.color.shine_color))
-                ).bottomBackground(
-                    getPrefInt("colorBottomBackgroundNight", getCompatColor(R.color.md_grey_850))
-                ).apply()
-        } else {
-            ThemeStore.editTheme(this)
-                .primaryColor(
-                    getPrefInt("colorPrimary", getCompatColor(R.color.md_indigo_800))
-                ).accentColor(
-                    getPrefInt("colorAccent", getCompatColor(R.color.md_red_600))
-                ).backgroundColor(
-                    getPrefInt("colorBackground", getCompatColor(R.color.md_grey_100))
-                ).bottomBackground(
-                    getPrefInt("colorBottomBackground", getCompatColor(R.color.md_grey_200))
-                ).apply()
+        when {
+            AppConfig.isEInkMode -> {
+                ThemeStore.editTheme(this)
+                    .coloredNavigationBar(true)
+                    .primaryColor(Color.WHITE)
+                    .accentColor(Color.BLACK)
+                    .backgroundColor(Color.WHITE)
+                    .bottomBackground(Color.WHITE)
+                    .apply()
+            }
+            AppConfig.isNightTheme -> {
+                ThemeStore.editTheme(this)
+                    .coloredNavigationBar(true)
+                    .primaryColor(
+                        getPrefInt(PreferKey.cNPrimary, getCompatColor(R.color.md_blue_grey_600))
+                    ).accentColor(
+                        getPrefInt(PreferKey.cNAccent, getCompatColor(R.color.md_deep_orange_800))
+                    ).backgroundColor(
+                        getPrefInt(PreferKey.cNBackground, getCompatColor(R.color.shine_color))
+                    ).bottomBackground(
+                        getPrefInt(PreferKey.cNBBackground, getCompatColor(R.color.md_grey_850))
+                    ).apply()
+            }
+            else -> {
+                ThemeStore.editTheme(this)
+                    .coloredNavigationBar(true)
+                    .primaryColor(
+                        getPrefInt(PreferKey.cPrimary, getCompatColor(R.color.md_indigo_800))
+                    ).accentColor(
+                        getPrefInt(PreferKey.cAccent, getCompatColor(R.color.md_red_600))
+                    ).backgroundColor(
+                        getPrefInt(PreferKey.cBackground, getCompatColor(R.color.md_grey_100))
+                    ).bottomBackground(
+                        getPrefInt(PreferKey.cBBackground, getCompatColor(R.color.md_grey_200))
+                    ).apply()
+            }
         }
     }
 
@@ -97,6 +115,7 @@ class App : Application() {
         ReadBookConfig.upBg()
         applyTheme()
         initNightMode()
+        postEvent(EventBus.RECREATE, "")
     }
 
     private fun initNightMode() {

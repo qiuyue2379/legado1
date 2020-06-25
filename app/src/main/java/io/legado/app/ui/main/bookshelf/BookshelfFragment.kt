@@ -91,7 +91,10 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
                 Pair("groupId", selectedGroup.groupId),
                 Pair("groupName", selectedGroup.groupName)
             )
-            R.id.menu_download -> startActivity<DownloadActivity>()
+            R.id.menu_download -> startActivity<DownloadActivity>(
+                Pair("groupId", selectedGroup.groupId),
+                Pair("groupName", selectedGroup.groupName)
+            )
         }
     }
 
@@ -261,6 +264,10 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
         tab?.position?.let {
             putPrefInt(PreferKey.saveTabPosition, it)
         }
+    }
+
+    fun gotoTop() {
+        fragmentMap[selectedGroup.groupId]?.gotoTop()
     }
 
     private inner class TabFragmentPageAdapter internal constructor(fm: FragmentManager) :
