@@ -20,10 +20,12 @@ import io.legado.app.help.ActivityHelp
 import io.legado.app.help.AppConfig
 import io.legado.app.help.CrashHandler
 import io.legado.app.help.ReadBookConfig
+import io.legado.app.lib.theme.ColorUtils
 import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.utils.getCompatColor
 import io.legado.app.utils.getPrefInt
 import io.legado.app.utils.postEvent
+import io.legado.app.utils.putPrefInt
 
 @Suppress("DEPRECATION")
 class App : Application() {
@@ -83,30 +85,54 @@ class App : Application() {
                     .apply()
             }
             AppConfig.isNightTheme -> {
+                val primary =
+                    getPrefInt(PreferKey.cNPrimary, getCompatColor(R.color.md_blue_grey_600))
+                val accent =
+                    getPrefInt(PreferKey.cNAccent, getCompatColor(R.color.md_deep_orange_800))
+                var background =
+                    getPrefInt(PreferKey.cNBackground, getCompatColor(R.color.md_grey_900))
+                if (ColorUtils.isColorLight(background)) {
+                    background = getCompatColor(R.color.md_grey_900)
+                    putPrefInt(PreferKey.cNBackground, background)
+                }
+                var bBackground =
+                    getPrefInt(PreferKey.cNBBackground, getCompatColor(R.color.md_grey_850))
+                if (!ColorUtils.isColorLight(bBackground)) {
+                    bBackground = getCompatColor(R.color.md_grey_850)
+                    putPrefInt(PreferKey.cNBBackground, bBackground)
+                }
                 ThemeStore.editTheme(this)
                     .coloredNavigationBar(true)
-                    .primaryColor(
-                        getPrefInt(PreferKey.cNPrimary, getCompatColor(R.color.md_blue_grey_600))
-                    ).accentColor(
-                        getPrefInt(PreferKey.cNAccent, getCompatColor(R.color.md_deep_orange_800))
-                    ).backgroundColor(
-                        getPrefInt(PreferKey.cNBackground, getCompatColor(R.color.shine_color))
-                    ).bottomBackground(
-                        getPrefInt(PreferKey.cNBBackground, getCompatColor(R.color.md_grey_850))
-                    ).apply()
+                    .primaryColor(ColorUtils.withAlpha(primary, 1f))
+                    .accentColor(ColorUtils.withAlpha(accent, 1f))
+                    .backgroundColor(ColorUtils.withAlpha(background, 1f))
+                    .bottomBackground(ColorUtils.withAlpha(bBackground, 1f))
+                    .apply()
             }
             else -> {
+                val primary =
+                    getPrefInt(PreferKey.cPrimary, getCompatColor(R.color.md_indigo_800))
+                val accent =
+                    getPrefInt(PreferKey.cAccent, getCompatColor(R.color.md_red_600))
+                var background =
+                    getPrefInt(PreferKey.cBackground, getCompatColor(R.color.md_grey_100))
+                if (!ColorUtils.isColorLight(background)) {
+                    background = getCompatColor(R.color.md_grey_100)
+                    putPrefInt(PreferKey.cBackground, background)
+                }
+                var bBackground =
+                    getPrefInt(PreferKey.cBBackground, getCompatColor(R.color.md_grey_200))
+                if (!ColorUtils.isColorLight(bBackground)) {
+                    bBackground = getCompatColor(R.color.md_grey_200)
+                    putPrefInt(PreferKey.cBBackground, bBackground)
+                }
                 ThemeStore.editTheme(this)
                     .coloredNavigationBar(true)
-                    .primaryColor(
-                        getPrefInt(PreferKey.cPrimary, getCompatColor(R.color.md_indigo_800))
-                    ).accentColor(
-                        getPrefInt(PreferKey.cAccent, getCompatColor(R.color.md_red_600))
-                    ).backgroundColor(
-                        getPrefInt(PreferKey.cBackground, getCompatColor(R.color.md_grey_100))
-                    ).bottomBackground(
-                        getPrefInt(PreferKey.cBBackground, getCompatColor(R.color.md_grey_200))
-                    ).apply()
+                    .primaryColor(ColorUtils.withAlpha(primary, 1f))
+                    .accentColor(ColorUtils.withAlpha(accent, 1f))
+                    .backgroundColor(ColorUtils.withAlpha(background, 1f))
+                    .bottomBackground(ColorUtils.withAlpha(bBackground, 1f))
+                    .apply()
             }
         }
     }
