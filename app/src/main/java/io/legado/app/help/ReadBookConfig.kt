@@ -90,6 +90,7 @@ object ReadBookConfig {
                 }
             }
         }
+        isScroll = pageAnim == 3
     }
 
     fun save() {
@@ -140,10 +141,12 @@ object ReadBookConfig {
         get() = if (AppConfig.isEInkMode) -1 else App.INSTANCE.getPrefInt(PreferKey.pageAnim)
         set(value) {
             App.INSTANCE.putPrefInt(PreferKey.pageAnim, value)
+            isScroll = pageAnim == 3
         }
     var isScroll = pageAnim == 3
     val clickTurnPage get() = App.INSTANCE.getPrefBoolean(PreferKey.clickTurnPage, true)
     val textFullJustify get() = App.INSTANCE.getPrefBoolean(PreferKey.textFullJustify, true)
+    val textBottomJustify get() = App.INSTANCE.getPrefBoolean(PreferKey.textBottomJustify, true)
     var bodyIndentCount = App.INSTANCE.getPrefInt(PreferKey.bodyIndent, 2)
         set(value) {
             field = value
