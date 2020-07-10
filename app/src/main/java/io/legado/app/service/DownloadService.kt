@@ -184,12 +184,14 @@ class DownloadService : BaseService() {
                         scope = this,
                         context = searchPool
                     ).onError {
+                        synchronized(this) {
+                            downloadingList.remove(bookChapter.url)
+                        }
                         Download.addLog(it.localizedMessage)
                     }.onSuccess(IO) { content ->
-                        downloadCount[book.bookUrl]?.increaseSuccess()
                         BookHelp.saveContent(book, bookChapter, content)
-                    }.onFinally(IO) {
                         synchronized(this@DownloadService) {
+                            downloadCount[book.bookUrl]?.increaseSuccess()
                             downloadCount[book.bookUrl]?.increaseFinished()
                             downloadCount[book.bookUrl]?.let {
                                 updateNotification(
@@ -210,8 +212,9 @@ class DownloadService : BaseService() {
                                 downloadCount.remove(book.bookUrl)
                             }
                         }
+                    }.onFinally(IO) {
+                        postDownloading(true)
                     }
-                    postDownloading(true)
                 } else {
                     //无需下载的，设置为增加成功
                     downloadCount[book.bookUrl]?.increaseSuccess()
