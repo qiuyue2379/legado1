@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import io.legado.app.App
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.BookType
 import io.legado.app.utils.GSON
@@ -134,10 +135,14 @@ data class Book(
         }
     }
 
-    fun changeSource(newBook: Book) {
+    fun changeTo(newBook: Book) {
         newBook.group = group
         newBook.order = order
         newBook.customCoverUrl = customCoverUrl
+        newBook.customIntro = customIntro
+        newBook.customTag = customTag
         newBook.canUpdate = canUpdate
+        App.db.bookDao().delete(this)
+        App.db.bookDao().insert(newBook)
     }
 }
