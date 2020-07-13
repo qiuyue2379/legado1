@@ -216,7 +216,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     fun delBook(deleteOriginal: Boolean = false, success: (() -> Unit)? = null) {
         execute {
             bookData.value?.let {
-                App.db.bookDao().delete(it)
+                it.delete()
                 inBookshelf = false
                 if (it.isLocalBook()) {
                     LocalBook.deleteBook(it, deleteOriginal)
@@ -224,6 +224,14 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             }
         }.onSuccess {
             success?.invoke()
+        }
+    }
+
+    fun upEditBook() {
+        bookData.value?.let {
+            App.db.bookDao().getBook(it.bookUrl)?.let { book ->
+                bookData.postValue(book)
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 package io.legado.app.help.http
 
+import com.franmontiel.persistentcookiejar.PersistentCookieJar
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache
 import io.legado.app.constant.AppConst
 import io.legado.app.help.http.api.HttpGetApi
 import io.legado.app.utils.NetworkUtils
@@ -16,6 +18,8 @@ import kotlin.coroutines.resume
 object HttpHelper {
 
     val client: OkHttpClient by lazy {
+
+        val cookieJar = PersistentCookieJar(SetCookieCache(), CookieStore)
 
         val specs = arrayListOf(
             ConnectionSpec.MODERN_TLS,
@@ -35,6 +39,7 @@ object HttpHelper {
             .followSslRedirects(true)
             .protocols(listOf(Protocol.HTTP_1_1))
             .addInterceptor(getHeaderInterceptor())
+            .cookieJar(cookieJar)
 
         builder.build()
     }
@@ -49,11 +54,12 @@ object HttpHelper {
         return null
     }
 
-    fun getBytes(url: String): ByteArray? {
+    fun getBytes(url: String, refer: String): ByteArray? {
         NetworkUtils.getBaseUrl(url)?.let { baseUrl ->
+            val headers = mapOf(Pair(AppConst.UA_NAME, AppConst.userAgent), Pair("refer", refer))
             return getByteRetrofit(baseUrl)
                 .create(HttpGetApi::class.java)
-                .getMapByte(url, mapOf(), mapOf(Pair(AppConst.UA_NAME, AppConst.userAgent)))
+                .getMapByte(url, mapOf(), headers)
                 .execute()
                 .body()
         }
