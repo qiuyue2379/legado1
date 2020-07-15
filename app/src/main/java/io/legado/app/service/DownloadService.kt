@@ -23,6 +23,8 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.isActive
 import org.jetbrains.anko.toast
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
 
 class DownloadService : BaseService() {
@@ -32,16 +34,16 @@ class DownloadService : BaseService() {
     private var tasks = CompositeCoroutine()
     private val handler = Handler()
     private var runnable: Runnable = Runnable { upDownload() }
-    private val bookMap = hashMapOf<String, Book>()
-    private val webBookMap = hashMapOf<String, WebBook>()
-    private val downloadMap = hashMapOf<String, LinkedHashSet<BookChapter>>()
-    private val downloadCount = hashMapOf<String, DownloadCount>()
-    private val finalMap = hashMapOf<String, LinkedHashSet<BookChapter>>()
-    private val downloadingList = arrayListOf<String>()
+    private val bookMap = ConcurrentHashMap<String, Book>()
+    private val webBookMap = ConcurrentHashMap<String, WebBook>()
+    private val downloadMap = ConcurrentHashMap<String, CopyOnWriteArraySet<BookChapter>>()
+    private val downloadCount = ConcurrentHashMap<String, DownloadCount>()
+    private val finalMap = ConcurrentHashMap<String, CopyOnWriteArraySet<BookChapter>>()
+    private val downloadingList = CopyOnWriteArraySet<String>()
 
     @Volatile
     private var downloadingCount = 0
-    private var notificationContent = "正在启动下载"
+    private var notificationContent = getString(R.string.starting_download)
 
     private val notificationBuilder by lazy {
         val builder = NotificationCompat.Builder(this, AppConst.channelIdDownload)
@@ -124,14 +126,14 @@ class DownloadService : BaseService() {
     private fun addDownloadData(bookUrl: String?, start: Int, end: Int) {
         bookUrl ?: return
         if (downloadMap.containsKey(bookUrl)) {
-            toast("该书已在下载列表")
+            toast(R.string.already_in_download)
             return
         }
         downloadCount[bookUrl] = DownloadCount()
         execute {
             App.db.bookChapterDao().getChapterList(bookUrl, start, end).let {
                 if (it.isNotEmpty()) {
-                    val chapters = linkedSetOf<BookChapter>()
+                    val chapters = CopyOnWriteArraySet<BookChapter>()
                     chapters.addAll(it)
                     downloadMap[bookUrl] = chapters
                 }
@@ -202,7 +204,7 @@ class DownloadService : BaseService() {
                             }
                             val chapterMap =
                                 finalMap[book.bookUrl]
-                                    ?: linkedSetOf<BookChapter>().apply {
+                                    ?: CopyOnWriteArraySet<BookChapter>().apply {
                                         finalMap[book.bookUrl] = this
                                     }
                             chapterMap.add(bookChapter)
@@ -254,7 +256,7 @@ class DownloadService : BaseService() {
         content: String
     ) {
         notificationContent =
-            "进度:${downloadCount.downloadFinishedCount}/$totalCount,成功:${downloadCount.successCount},$content"
+            "进度:" + downloadCount.downloadFinishedCount + "/" + totalCount + ",成功:" + downloadCount.successCount + "," + content
     }
 
     /**

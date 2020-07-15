@@ -621,7 +621,7 @@
     <string name="log">日誌</string>
     <string name="record_log">記錄日誌</string>
     <string name="chinese_converter">中文簡繁體轉換</string>
-    <string name="chage_icon_error">圖示為向量圖示,Android8.0以前不支援</string>
+    <string name="change_icon_error">圖示為向量圖示,Android8.0以前不支援</string>
     <string name="aloud_config">朗讀設定</string>
     <string name="main_activity">主介面</string>
     <string name="selectText">長按選擇文字</string>
@@ -707,5 +707,6 @@
     <string name="enabled">已啓用</string>
     <string name="disabled">已禁用</string>
     <string name="text_bottom_justify">文字底部對齊</string>
-
+    <string name="starting_download">正在启动下载</string>
+    <string name="already_in_download">该书已在下载列表</string>
 </resources>
