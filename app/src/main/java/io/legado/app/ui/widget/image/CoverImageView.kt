@@ -92,7 +92,7 @@ class CoverImageView : androidx.appcompat.widget.AppCompatImageView {
             canvas.clipPath(path)
         }
         super.onDraw(canvas)
-        if (!loadFailed) return
+        if (!loadFailed || !showBookName) return
         name?.let {
             namePaint.color = Color.WHITE
             namePaint.style = Paint.Style.STROKE
@@ -164,6 +164,7 @@ class CoverImageView : androidx.appcompat.widget.AppCompatImageView {
     }
 
     companion object {
+        private var showBookName = false
         lateinit var defaultDrawable: Drawable
 
         init {
@@ -172,8 +173,14 @@ class CoverImageView : androidx.appcompat.widget.AppCompatImageView {
 
         fun upDefaultCover() {
             val path = App.INSTANCE.getPrefString(PreferKey.defaultCover)
-            defaultDrawable = Drawable.createFromPath(path)
-                ?: App.INSTANCE.resources.getDrawable(R.drawable.image_cover_default, null)
+            var dw = Drawable.createFromPath(path)
+            if (dw == null) {
+                showBookName = true
+                dw = App.INSTANCE.resources.getDrawable(R.drawable.image_cover_default, null)
+            } else {
+                showBookName = false
+            }
+            defaultDrawable = dw!!
         }
 
     }
