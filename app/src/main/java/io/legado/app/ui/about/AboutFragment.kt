@@ -126,7 +126,7 @@ class AboutFragment : PreferenceFragmentCompat() {
             override fun run() {
                 val okHttpClient = OkHttpClient()
                 val request = Request.Builder()
-                    .url("http://qiuyue.vicp.net:86/apk/app/release/output.json")//请求的url
+                    .url("http://qiuyue.vicp.net:86/apk/app/release/")//请求的url
                     .get()
                     .build()
 

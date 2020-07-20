@@ -24,6 +24,26 @@ import org.jetbrains.anko.defaultSharedPreferences
 import java.io.File
 
 object Restore {
+    private val ignoreConfigPath =
+        App.INSTANCE.filesDir.absolutePath + File.separator + "restoreIgnore.json"
+    val ignoreConfig: HashMap<String, Boolean> by lazy {
+        val file = FileUtils.createFileIfNotExist(ignoreConfigPath)
+        val json = file.readText()
+        GSON.fromJsonObject<HashMap<String, Boolean>>(json) ?: hashMapOf()
+    }
+    val ignoreKeys = arrayOf("readConfig")
+    val ignoreTitle = arrayOf("阅读界面设置")
+    private val ignorePrefKeys = arrayOf(PreferKey.versionCode, PreferKey.defaultCover)
+    private val readPrefKeys = arrayOf(
+        PreferKey.readStyleSelect,
+        PreferKey.shareLayout,
+        PreferKey.pageAnim,
+        PreferKey.hideStatusBar,
+        PreferKey.hideNavigationBar,
+        PreferKey.bodyIndent,
+        PreferKey.autoReadSpeed
+    )
+
     val jsonPath: ParseContext by lazy {
         JsonPath.using(
             Configuration.builder()
@@ -92,24 +112,27 @@ object Restore {
 
     suspend fun restoreConfig(path: String = Backup.backupPath) {
         withContext(IO) {
-            try {
-                val file =
-                    FileUtils.createFileIfNotExist(path + File.separator + ReadBookConfig.readConfigFileName)
-                val configFile =
-                    FileUtils.getFile(App.INSTANCE.filesDir, ReadBookConfig.readConfigFileName)
-                if (file.exists()) {
-                    file.copyTo(configFile, true)
-                    ReadBookConfig.upConfig()
+            if (!ignoreReadConfig) {
+                try {
+                    val file =
+                        FileUtils.createFileIfNotExist(path + File.separator + ReadBookConfig.readConfigFileName)
+                    val configFile =
+                        FileUtils.getFile(App.INSTANCE.filesDir, ReadBookConfig.readConfigFileName)
+                    if (file.exists()) {
+                        file.copyTo(configFile, true)
+                        ReadBookConfig.upConfig()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
             Preferences.getSharedPreferences(App.INSTANCE, path, "config")?.all
                 ?.let { map ->
-                    val ignoreKeys = arrayOf(PreferKey.versionCode, PreferKey.defaultCover)
                     val edit = App.INSTANCE.defaultSharedPreferences.edit()
                     map.forEach {
-                        if (!ignoreKeys.contains(it.key)) {
+                        if (!ignorePrefKeys.contains(it.key)
+                            && !(readPrefKeys.contains(it.key) && ignoreReadConfig)
+                        ) {
                             when (val value = it.value) {
                                 is Int -> edit.putInt(it.key, value)
                                 is Boolean -> edit.putBoolean(it.key, value)
@@ -141,6 +164,13 @@ object Restore {
                 LauncherIconHelp.changeIcon(App.INSTANCE.getPrefString(PreferKey.launcherIcon))
             }
         }
+    }
+
+    val ignoreReadConfig: Boolean get() = ignoreConfig["readConfig"] == true
+
+    fun saveIgnoreConfig() {
+        val json = GSON.toJson(ignoreConfig)
+        FileUtils.createFileIfNotExist(ignoreConfigPath).writeText(json)
     }
 
     private inline fun <reified T> fileToListT(path: String, fileName: String): List<T>? {
