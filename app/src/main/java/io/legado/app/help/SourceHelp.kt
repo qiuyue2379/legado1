@@ -51,6 +51,7 @@ object SourceHelp {
         if (!AppConfig.isCoolApk) return false
         val baseUrl = NetworkUtils.getBaseUrl(url)
         baseUrl ?: return false
+        if (AppConfig.isGooglePlay) return false
         try {
             val host = baseUrl.split("//", ".")
             val base64Url = EncoderUtils.base64Encode("${host[host.lastIndex - 1]}.${host.last()}")
