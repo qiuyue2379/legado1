@@ -13,6 +13,7 @@ import io.legado.app.R
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.entities.*
+import io.legado.app.help.AppConfig
 import io.legado.app.help.LauncherIconHelp
 import io.legado.app.help.ReadBookConfig
 import io.legado.app.service.help.ReadBook
@@ -37,14 +38,16 @@ object Restore {
     val ignoreKeys = arrayOf(
         "readConfig",
         PreferKey.themeMode,
-        PreferKey.bookshelfLayout
+        PreferKey.bookshelfLayout,
+        PreferKey.showRss
     )
 
     //忽略标题
     val ignoreTitle = arrayOf(
         App.INSTANCE.getString(R.string.read_config),
         App.INSTANCE.getString(R.string.theme_mode),
-        App.INSTANCE.getString(R.string.bookshelf_layout)
+        App.INSTANCE.getString(R.string.bookshelf_layout),
+        App.INSTANCE.getString(R.string.show_rss)
     )
 
     //默认忽略keys
@@ -144,23 +147,24 @@ object Restore {
                     e.printStackTrace()
                 }
             }
-            Preferences.getSharedPreferences(App.INSTANCE, path, "config")?.all
-                ?.let { map ->
-                    val edit = App.INSTANCE.defaultSharedPreferences.edit()
-                    map.forEach {
-                        if (keyIsNotIgnore(it.key)) {
-                            when (val value = it.value) {
-                                is Int -> edit.putInt(it.key, value)
-                                is Boolean -> edit.putBoolean(it.key, value)
-                                is Long -> edit.putLong(it.key, value)
-                                is Float -> edit.putFloat(it.key, value)
-                                is String -> edit.putString(it.key, value)
-                                else -> Unit
-                            }
+            Preferences.getSharedPreferences(App.INSTANCE, path, "config")?.all?.let { map ->
+                val edit = App.INSTANCE.defaultSharedPreferences.edit()
+                map.forEach {
+                    if (keyIsNotIgnore(it.key)) {
+                        when (val value = it.value) {
+                            is Int -> edit.putInt(it.key, value)
+                            is Boolean -> edit.putBoolean(it.key, value)
+                            is Long -> edit.putLong(it.key, value)
+                            is Float -> edit.putFloat(it.key, value)
+                            is String -> edit.putString(it.key, value)
+                            else -> Unit
                         }
                     }
-                    edit.apply()
                 }
+                edit.apply()
+                AppConfig.replaceEnableDefault =
+                    App.INSTANCE.getPrefBoolean(PreferKey.replaceEnableDefault, true)
+            }
             ReadBookConfig.apply {
                 styleSelect = App.INSTANCE.getPrefInt(PreferKey.readStyleSelect)
                 shareLayout = App.INSTANCE.getPrefBoolean(PreferKey.shareLayout)
@@ -179,7 +183,8 @@ object Restore {
                 LauncherIconHelp.changeIcon(App.INSTANCE.getPrefString(PreferKey.launcherIcon))
             }
             App.INSTANCE.applyDayNight()
-            postEvent(EventBus.RECREATE, "true")
+            postEvent(EventBus.SHOW_RSS, "")
+            postEvent(EventBus.RECREATE, "")
         }
     }
 
@@ -189,6 +194,7 @@ object Restore {
             readPrefKeys.contains(key) && ignoreReadConfig -> false
             PreferKey.themeMode == key && ignoreThemeMode -> false
             PreferKey.bookshelfLayout == key && ignoreBookshelfLayout -> false
+            PreferKey.showRss == key && ignoreShowRss -> false
             else -> true
         }
     }
@@ -199,6 +205,8 @@ object Restore {
         get() = ignoreConfig[PreferKey.themeMode] == true
     private val ignoreBookshelfLayout: Boolean
         get() = ignoreConfig[PreferKey.bookshelfLayout] == true
+    private val ignoreShowRss: Boolean
+        get() = ignoreConfig[PreferKey.showRss] == true
 
     fun saveIgnoreConfig() {
         val json = GSON.toJson(ignoreConfig)
