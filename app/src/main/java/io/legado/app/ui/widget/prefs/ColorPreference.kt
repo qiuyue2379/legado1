@@ -14,10 +14,12 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import com.jaredrummler.android.colorpicker.*
 import io.legado.app.lib.theme.ATH
-import io.legado.app.lib.theme.ColorUtils
+import io.legado.app.utils.ColorUtils
 
 class ColorPreference(context: Context, attrs: AttributeSet) : Preference(context, attrs),
     ColorPickerDialogListener {
+
+    var onSaveColor: ((color: Int) -> Boolean)? = null
 
     private val sizeNormal = 0
     private val sizeLarge = 1
@@ -140,6 +142,10 @@ class ColorPreference(context: Context, attrs: AttributeSet) : Preference(contex
     }
 
     override fun onColorSelected(dialogId: Int, @ColorInt color: Int) {
+        //返回值为true时说明已经处理过,不再处理
+        if (onSaveColor?.invoke(color) == true) {
+            return
+        }
         saveValue(color)
     }
 
