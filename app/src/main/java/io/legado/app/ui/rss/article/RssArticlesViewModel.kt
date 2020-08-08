@@ -30,7 +30,7 @@ class RssArticlesViewModel(application: Application) : BaseViewModel(application
     fun loadContent(rssSource: RssSource) {
         isLoading = true
         page = 1
-        Rss.getArticles(sortName, sortUrl, rssSource, null, page)
+        Rss.getArticles(sortName, sortUrl, rssSource, page)
             .onSuccess(Dispatchers.IO) {
                 nextPageUrl = it.nextPageUrl
                 it.articles.let { list ->
@@ -49,6 +49,7 @@ class RssArticlesViewModel(application: Application) : BaseViewModel(application
                     isLoading = false
                 }
             }.onError {
+                it.printStackTrace()
                 toast(it.localizedMessage)
             }
     }
@@ -58,12 +59,13 @@ class RssArticlesViewModel(application: Application) : BaseViewModel(application
         page++
         val pageUrl = nextPageUrl
         if (!pageUrl.isNullOrEmpty()) {
-            Rss.getArticles(sortName, pageUrl, rssSource, pageUrl, page)
+            Rss.getArticles(sortName, pageUrl, rssSource, page)
                 .onSuccess(Dispatchers.IO) {
                     nextPageUrl = it.nextPageUrl
                     loadMoreSuccess(it.articles)
                 }
                 .onError {
+                    it.printStackTrace()
                     loadFinally.postValue(false)
                 }
         } else {
