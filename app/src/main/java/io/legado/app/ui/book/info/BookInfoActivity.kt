@@ -55,6 +55,7 @@ class BookInfoActivity :
 
     private val requestCodeChapterList = 568
     private val requestCodeSourceEdit = 562
+    private val requestCodeRead = 432
 
     override val viewModel: BookInfoViewModel
         get() = getViewModel(BookInfoViewModel::class.java)
@@ -305,11 +306,13 @@ class BookInfoActivity :
 
     private fun startReadActivity(book: Book) {
         when (book.type) {
-            BookType.audio -> startActivity<AudioPlayActivity>(
+            BookType.audio -> startActivityForResult<AudioPlayActivity>(
+                requestCodeRead,
                 Pair("bookUrl", book.bookUrl),
                 Pair("inBookshelf", viewModel.inBookshelf)
             )
-            else -> startActivity<ReadBookActivity>(
+            else -> startActivityForResult<ReadBookActivity>(
+                requestCodeRead,
                 Pair("bookUrl", book.bookUrl),
                 Pair("inBookshelf", viewModel.inBookshelf),
                 Pair("key", IntentDataHelp.putData(book))
@@ -358,23 +361,29 @@ class BookInfoActivity :
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            requestCodeSourceEdit -> if (resultCode == Activity.RESULT_OK) {
-                viewModel.upEditBook()
-            }
-            requestCodeChapterList -> if (resultCode == Activity.RESULT_OK) {
-                viewModel.bookData.value?.let {
-                    data?.getIntExtra("index", it.durChapterIndex)?.let { index ->
-                        if (it.durChapterIndex != index) {
-                            it.durChapterIndex = index
-                            it.durChapterPos = 0
+            requestCodeSourceEdit ->
+                if (resultCode == Activity.RESULT_OK) {
+                    viewModel.upEditBook()
+                }
+            requestCodeChapterList ->
+                if (resultCode == Activity.RESULT_OK) {
+                    viewModel.bookData.value?.let {
+                        data?.getIntExtra("index", it.durChapterIndex)?.let { index ->
+                            if (it.durChapterIndex != index) {
+                                it.durChapterIndex = index
+                                it.durChapterPos = 0
+                            }
+                            startReadActivity(it)
                         }
-                        startReadActivity(it)
+                    }
+                } else {
+                    if (!viewModel.inBookshelf) {
+                        viewModel.delBook()
                     }
                 }
-            } else {
-                if (!viewModel.inBookshelf) {
-                    viewModel.delBook()
-                }
+            requestCodeRead -> if (resultCode == Activity.RESULT_OK) {
+                viewModel.inBookshelf = true
+                upTvBookshelf()
             }
         }
     }
