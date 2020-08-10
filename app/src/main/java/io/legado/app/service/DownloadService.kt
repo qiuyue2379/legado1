@@ -126,6 +126,7 @@ class DownloadService : BaseService() {
     private fun addDownloadData(bookUrl: String?, start: Int, end: Int) {
         bookUrl ?: return
         if (downloadMap.containsKey(bookUrl)) {
+            updateNotification(getString(R.string.already_in_download))
             toast(R.string.already_in_download)
             return
         }
@@ -136,6 +137,8 @@ class DownloadService : BaseService() {
                     val chapters = CopyOnWriteArraySet<BookChapter>()
                     chapters.addAll(it)
                     downloadMap[bookUrl] = chapters
+                } else {
+                    Download.addLog("${getBook(bookUrl)?.name} is empty")
                 }
             }
             for (i in 0 until threadCount) {
@@ -153,7 +156,7 @@ class DownloadService : BaseService() {
 
     private fun download() {
         downloadingCount += 1
-        tasks.add(Coroutine.async(this, context = searchPool) {
+        val task = Coroutine.async(this, context = searchPool) {
             if (!isActive) return@async
             val bookChapter: BookChapter? = synchronized(this@DownloadService) {
                 downloadMap.forEach {
@@ -185,38 +188,40 @@ class DownloadService : BaseService() {
                         bookChapter,
                         scope = this,
                         context = searchPool
-                    ).onError {
-                        synchronized(this) {
-                            downloadingList.remove(bookChapter.url)
-                        }
-                        Download.addLog(it.localizedMessage)
-                    }.onSuccess(IO) { content ->
-                        BookHelp.saveContent(book, bookChapter, content)
-                        synchronized(this@DownloadService) {
-                            downloadCount[book.bookUrl]?.increaseSuccess()
-                            downloadCount[book.bookUrl]?.increaseFinished()
-                            downloadCount[book.bookUrl]?.let {
-                                updateNotification(
-                                    it,
-                                    downloadMap[book.bookUrl]?.size,
-                                    bookChapter.title
-                                )
+                    ).timeout(3000L)
+                        .onError {
+                            synchronized(this) {
+                                downloadingList.remove(bookChapter.url)
                             }
-                            val chapterMap =
-                                finalMap[book.bookUrl]
-                                    ?: CopyOnWriteArraySet<BookChapter>().apply {
-                                        finalMap[book.bookUrl] = this
-                                    }
-                            chapterMap.add(bookChapter)
-                            if (chapterMap.size == downloadMap[book.bookUrl]?.size) {
-                                downloadMap.remove(book.bookUrl)
-                                finalMap.remove(book.bookUrl)
-                                downloadCount.remove(book.bookUrl)
-                            }
+                            Download.addLog(it.localizedMessage)
                         }
-                    }.onFinally(IO) {
-                        postDownloading(true)
-                    }
+                        .onSuccess(IO) { content ->
+                            BookHelp.saveContent(book, bookChapter, content)
+                            synchronized(this@DownloadService) {
+                                downloadCount[book.bookUrl]?.increaseSuccess()
+                                downloadCount[book.bookUrl]?.increaseFinished()
+                                downloadCount[book.bookUrl]?.let {
+                                    updateNotification(
+                                        it,
+                                        downloadMap[book.bookUrl]?.size,
+                                        bookChapter.title
+                                    )
+                                }
+                                val chapterMap =
+                                    finalMap[book.bookUrl]
+                                        ?: CopyOnWriteArraySet<BookChapter>().apply {
+                                            finalMap[book.bookUrl] = this
+                                        }
+                                chapterMap.add(bookChapter)
+                                if (chapterMap.size == downloadMap[book.bookUrl]?.size) {
+                                    downloadMap.remove(book.bookUrl)
+                                    finalMap.remove(book.bookUrl)
+                                    downloadCount.remove(book.bookUrl)
+                                }
+                            }
+                        }.onFinally(IO) {
+                            postDownloading(true)
+                        }
                 } else {
                     //无需下载的，设置为增加成功
                     downloadCount[book.bookUrl]?.increaseSuccess()
@@ -224,7 +229,10 @@ class DownloadService : BaseService() {
                     postDownloading(true)
                 }
             }
-        })
+        }.onError {
+            Download.addLog("ERROR:${it.localizedMessage}")
+        }
+        tasks.add(task)
     }
 
     private fun postDownloading(hasChapter: Boolean) {
@@ -268,7 +276,6 @@ class DownloadService : BaseService() {
         val notification = builder.build()
         startForeground(AppConst.notificationIdDownload, notification)
     }
-
 
     class DownloadCount {
         @Volatile

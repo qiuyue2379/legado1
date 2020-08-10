@@ -2,6 +2,7 @@ package io.legado.app.ui.book.read
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.WindowManager
 import android.view.animation.Animation
@@ -13,7 +14,10 @@ import io.legado.app.R
 import io.legado.app.constant.EventBus
 import io.legado.app.help.AppConfig
 import io.legado.app.help.ReadBookConfig
-import io.legado.app.lib.theme.*
+import io.legado.app.lib.theme.Selector
+import io.legado.app.lib.theme.accentColor
+import io.legado.app.lib.theme.bottomBackground
+import io.legado.app.lib.theme.buttonDisabledColor
 import io.legado.app.service.help.ReadBook
 import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.view_read_menu.view.*
@@ -53,7 +57,10 @@ class ReadMenu : FrameLayout {
             fabNightTheme.setImageResource(R.drawable.ic_brightness)
         }
         initAnimation()
-        ll_brightness.background = ATH.getDialogBackground()
+        val brightnessBackground = GradientDrawable()
+        brightnessBackground.cornerRadius = 5F.dp
+        brightnessBackground.setColor(ColorUtils.adjustAlpha(App.INSTANCE.bottomBackground, 0.5f))
+        ll_brightness.background = brightnessBackground
         ll_bottom_bg.setBackgroundColor(context.bottomBackground)
         vw_bg.onClick { }
         vwNavigationBar.onClick { }
