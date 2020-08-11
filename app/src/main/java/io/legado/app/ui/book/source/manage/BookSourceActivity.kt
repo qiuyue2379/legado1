@@ -15,16 +15,17 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.entities.BookSource
+import io.legado.app.help.IntentDataHelp
 import io.legado.app.help.ItemTouchCallback
 import io.legado.app.lib.dialogs.*
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.service.help.CheckSource
+import io.legado.app.ui.association.ImportBookSourceActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.filechooser.FileChooserDialog
 import io.legado.app.ui.filechooser.FilePicker
@@ -60,7 +61,6 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
     private var sort = 0
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        initUriScheme()
         initRecyclerView()
         initSearchView()
         initLiveDataBookSource()
@@ -126,28 +126,6 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
             search_view.setQuery(item.title, true)
         }
         return super.onCompatOptionsItemSelected(item)
-    }
-
-    private fun initUriScheme() {
-        intent.data?.let {
-            when (it.path) {
-                "/importonline" -> it.getQueryParameter("src")?.let { url ->
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    if (url.startsWith("http", false)) {
-                        viewModel.importSource(url) { msg ->
-                            title_bar.snackbar(msg)
-                        }
-                    } else {
-                        viewModel.importSourceFromFilePath(url) { msg ->
-                            title_bar.snackbar(msg)
-                        }
-                    }
-                }
-                else -> {
-                    toast("格式不对")
-                }
-            }
-        }
     }
 
     private fun initRecyclerView() {
@@ -309,10 +287,7 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
                         cacheUrls.add(0, it)
                         aCache.put(importRecordKey, cacheUrls.joinToString(","))
                     }
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    viewModel.importSource(it) { msg ->
-                        title_bar.snackbar(msg)
-                    }
+                    startActivity<ImportBookSourceActivity>(Pair("source", it))
                 }
             }
             cancelButton()
@@ -365,10 +340,7 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
                 File(currentPath)
             )
             importRequestCode -> {
-                Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                viewModel.importSourceFromFilePath(currentPath) { msg ->
-                    title_bar.snackbar(msg)
-                }
+                startActivity<ImportBookSourceActivity>(Pair("filePath", currentPath))
             }
         }
     }
@@ -378,24 +350,18 @@ class BookSourceActivity : VMBaseActivity<BookSourceViewModel>(R.layout.activity
         when (requestCode) {
             qrRequestCode -> if (resultCode == RESULT_OK) {
                 data?.getStringExtra("result")?.let {
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    viewModel.importSource(it) { msg ->
-                        title_bar.snackbar(msg)
-                    }
+                    startActivity<ImportBookSourceActivity>("source" to it)
                 }
             }
             importRequestCode -> if (resultCode == Activity.RESULT_OK) {
                 data?.data?.let { uri ->
                     try {
                         uri.readText(this)?.let {
-                            Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE)
-                                .show()
-                            viewModel.importSource(it) { msg ->
-                                title_bar.snackbar(msg)
-                            }
+                            val dataKey = IntentDataHelp.putData(it)
+                            startActivity<ImportBookSourceActivity>("dataKey" to dataKey)
                         }
                     } catch (e: Exception) {
-                        toast(e.localizedMessage ?: "ERROR")
+                        toast("readTextError:${e.localizedMessage}")
                     }
                 }
             }

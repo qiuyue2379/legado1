@@ -15,15 +15,16 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.entities.RssSource
+import io.legado.app.help.IntentDataHelp
 import io.legado.app.help.ItemTouchCallback
 import io.legado.app.lib.dialogs.*
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.primaryTextColor
+import io.legado.app.ui.association.ImportRssSourceActivity
 import io.legado.app.ui.filechooser.FileChooserDialog
 import io.legado.app.ui.filechooser.FilePicker
 import io.legado.app.ui.qrcode.QrCodeActivity
@@ -60,7 +61,6 @@ class RssSourceActivity : VMBaseActivity<RssSourceViewModel>(R.layout.activity_r
     private var groupMenu: SubMenu? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        initUriScheme()
         initRecyclerView()
         initSearchView()
         initLiveDataGroup()
@@ -110,29 +110,6 @@ class RssSourceActivity : VMBaseActivity<RssSourceViewModel>(R.layout.activity_r
             R.id.menu_bottom_sel -> viewModel.bottomSource(*adapter.getSelection().toTypedArray())
         }
         return true
-    }
-
-    private fun initUriScheme() {
-        intent.data?.let {
-            when (it.path) {
-                "/importonline" -> it.getQueryParameter("src")?.let { url ->
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    if (url.startsWith("http", false)){
-                        viewModel.importSource(url) { msg ->
-                            title_bar.snackbar(msg)
-                        }
-                    }
-                    else{
-                        viewModel.importSourceFromFilePath(url) { msg ->
-                            title_bar.snackbar(msg)
-                        }
-                    }
-                }
-                else -> {
-                    toast("格式不对")
-                }
-            }
-        }
     }
 
     private fun initRecyclerView() {
@@ -256,10 +233,7 @@ class RssSourceActivity : VMBaseActivity<RssSourceViewModel>(R.layout.activity_r
                         cacheUrls.add(0, it)
                         aCache.put(importRecordKey, cacheUrls.joinToString(","))
                     }
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    viewModel.importSource(it) { msg ->
-                        title_bar.snackbar(msg)
-                    }
+                    startActivity<ImportRssSourceActivity>("source" to it)
                 }
             }
             cancelButton()
@@ -269,10 +243,7 @@ class RssSourceActivity : VMBaseActivity<RssSourceViewModel>(R.layout.activity_r
     override fun onFilePicked(requestCode: Int, currentPath: String) {
         when (requestCode) {
             importRequestCode -> {
-                Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                viewModel.importSourceFromFilePath(currentPath) { msg ->
-                    title_bar.snackbar(msg)
-                }
+                startActivity<ImportRssSourceActivity>("filePath" to currentPath)
             }
             exportRequestCode -> viewModel.exportSelection(
                 adapter.getSelection(),
@@ -288,23 +259,17 @@ class RssSourceActivity : VMBaseActivity<RssSourceViewModel>(R.layout.activity_r
                 data?.data?.let { uri ->
                     try {
                         uri.readText(this)?.let {
-                            Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE)
-                                .show()
-                            viewModel.importSource(it) { msg ->
-                                title_bar.snackbar(msg)
-                            }
+                            val dataKey = IntentDataHelp.putData(it)
+                            startActivity<ImportRssSourceActivity>("dataKey" to dataKey)
                         }
                     } catch (e: Exception) {
-                        toast(e.localizedMessage ?: "ERROR")
+                        toast("readTextError:${e.localizedMessage}")
                     }
                 }
             }
             qrRequestCode -> if (resultCode == RESULT_OK) {
                 data?.getStringExtra("result")?.let {
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE)
-                    viewModel.importSource(it) { msg ->
-                        title_bar.snackbar(msg)
-                    }
+                    startActivity<ImportRssSourceActivity>("source" to it)
                 }
             }
             exportRequestCode -> if (resultCode == RESULT_OK) {

@@ -15,17 +15,18 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.help.BookHelp
+import io.legado.app.help.IntentDataHelp
 import io.legado.app.help.ItemTouchCallback
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.dialogs.*
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.primaryTextColor
+import io.legado.app.ui.association.ImportReplaceRuleActivity
 import io.legado.app.ui.filechooser.FileChooserDialog
 import io.legado.app.ui.filechooser.FilePicker
 import io.legado.app.ui.replacerule.edit.ReplaceEditDialog
@@ -36,6 +37,7 @@ import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.activity_replace_rule.*
 import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 import kotlinx.android.synthetic.main.view_search.*
+import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
 import java.io.File
 
@@ -57,7 +59,6 @@ class ReplaceRuleActivity : VMBaseActivity<ReplaceRuleViewModel>(R.layout.activi
     private var dataInit = false
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        initUriScheme()
         initRecyclerView()
         initSearchView()
         initSelectActionView()
@@ -74,29 +75,6 @@ class ReplaceRuleActivity : VMBaseActivity<ReplaceRuleViewModel>(R.layout.activi
         groupMenu = menu?.findItem(R.id.menu_group)?.subMenu
         upGroupMenu()
         return super.onPrepareOptionsMenu(menu)
-    }
-
-    private fun initUriScheme() {
-        intent.data?.let {
-            when (it.path) {
-                "/importonline" -> it.getQueryParameter("src")?.let { url ->
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    if (url.startsWith("http", false)){
-                        viewModel.importSource(url) { msg ->
-                            title_bar.snackbar(msg)
-                        }
-                    }
-                    else{
-                        viewModel.importSourceFromFilePath(url) { msg ->
-                            title_bar.snackbar(msg)
-                        }
-                    }
-                }
-                else -> {
-                    toast("格式不对")
-                }
-            }
-        }
     }
 
     private fun initRecyclerView() {
@@ -242,10 +220,7 @@ class ReplaceRuleActivity : VMBaseActivity<ReplaceRuleViewModel>(R.layout.activi
                         cacheUrls.add(0, it)
                         aCache.put(importRecordKey, cacheUrls.joinToString(","))
                     }
-                    Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                    viewModel.importSource(it) { msg ->
-                        title_bar.snackbar(msg)
-                    }
+                    startActivity<ImportReplaceRuleActivity>("source" to it)
                 }
             }
             cancelButton()
@@ -264,10 +239,7 @@ class ReplaceRuleActivity : VMBaseActivity<ReplaceRuleViewModel>(R.layout.activi
     override fun onFilePicked(requestCode: Int, currentPath: String) {
         when (requestCode) {
             importRequestCode -> {
-                Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE).show()
-                viewModel.importSource(File(currentPath).readText()) { msg ->
-                    title_bar.snackbar(msg)
-                }
+                startActivity<ImportReplaceRuleActivity>("filePath" to currentPath)
             }
             exportRequestCode -> viewModel.exportSelection(
                 adapter.getSelection(),
@@ -283,14 +255,11 @@ class ReplaceRuleActivity : VMBaseActivity<ReplaceRuleViewModel>(R.layout.activi
                 data?.data?.let { uri ->
                     try {
                         uri.readText(this)?.let {
-                            Snackbar.make(title_bar, R.string.importing, Snackbar.LENGTH_INDEFINITE)
-                                .show()
-                            viewModel.importSource(it) { msg ->
-                                title_bar.snackbar(msg)
-                            }
+                            val dataKey = IntentDataHelp.putData(it)
+                            startActivity<ImportReplaceRuleActivity>("dataKey" to dataKey)
                         }
                     } catch (e: Exception) {
-                        toast(e.localizedMessage ?: "ERROR")
+                        toast("readTextError:${e.localizedMessage}")
                     }
                 }
             }
