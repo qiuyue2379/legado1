@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "开始进行release构建"
           chmod +x gradlew
-        ./gradlew assembleAppRelease
+        ./gradlew aR
       - name : upload apk
         uses: actions/upload-artifact@master
         if: always()
