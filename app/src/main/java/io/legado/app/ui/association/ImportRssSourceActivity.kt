@@ -47,7 +47,11 @@ class ImportRssSourceActivity : VMBaseActivity<ImportRssSourceViewModel>(
         })
         viewModel.successLiveData.observe(this, Observer {
             rotate_loading.hide()
-            successDialog()
+            if (it > 0) {
+                successDialog()
+            } else {
+                errorDialog(getString(R.string.wrong_format))
+            }
         })
         initData()
     }
@@ -129,7 +133,7 @@ class ImportRssSourceActivity : VMBaseActivity<ImportRssSourceViewModel>(
         }
 
         override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
-            tool_bar.title = "导入书源"
+            tool_bar.title = getString(R.string.import_rss_source)
             initMenu()
             arguments?.let {
                 adapter = SourcesAdapter(requireContext())
