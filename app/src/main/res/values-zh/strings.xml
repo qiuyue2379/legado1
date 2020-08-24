@@ -545,7 +545,7 @@
     <string name="timer_m">%d分钟</string>
     <string name="brightness_auto">自动亮度%s</string>
     <string name="read_aloud_by_page">按页朗读</string>
-    <string name="read_aloud_on_line">在线朗读</string>
+    <string name="speak_engine">朗读引擎</string>
     <string name="bg_image">背景图片</string>
     <string name="bg_color">背景颜色</string>
     <string name="text_color">文字颜色</string>
@@ -555,6 +555,7 @@
     <string name="group_edit">编辑分组</string>
     <string name="move_to_group">移入分组</string>
     <string name="add_group">添加分组</string>
+    <string name="remove_group">移除分组</string>
     <string name="add_replace_rule">新建替换</string>
     <string name="group">分组</string>
     <string name="group_s">分组: %s</string>
@@ -748,5 +749,6 @@
     <string name="about_summary">公众号[开源阅读软件]</string>
     <string name="read_record">阅读记录</string>
     <string name="read_record_summary">阅读时间记录</string>
+    <string name="local_tts">本地TTS</string>
 
 </resources>
