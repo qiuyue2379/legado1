@@ -50,7 +50,7 @@ class HttpServer(port: Int) : NanoHTTPD(port) {
                         "/getChapterList" ->
                             returnData = BookshelfController.getChapterList(parameters)
                         "/getBookContent" ->
-                        returnData = BookshelfController.getBookContent(parameters)
+                            returnData = BookshelfController.getBookContent(parameters)
                     }
                 }
             }

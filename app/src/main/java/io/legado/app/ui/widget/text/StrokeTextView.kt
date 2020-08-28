@@ -30,59 +30,59 @@ open class StrokeTextView(context: Context, attrs: AttributeSet?) :
     }
 
     private fun upBackground() {
-            when {
-                isInEditMode -> {
-                    background = Selector.shapeBuild()
-                        .setCornerRadius(radius)
-                        .setStrokeWidth(1.dp)
-                        .setDisabledStrokeColor(context.getCompatColor(R.color.md_grey_500))
-                        .setDefaultStrokeColor(context.getCompatColor(R.color.secondaryText))
-                        .setSelectedStrokeColor(context.getCompatColor(R.color.accent))
-                        .setPressedBgColor(context.getCompatColor(R.color.transparent30))
-                        .create()
-                    this.setTextColor(
-                        Selector.colorBuild()
-                            .setDefaultColor(context.getCompatColor(R.color.secondaryText))
-                            .setSelectedColor(context.getCompatColor(R.color.accent))
-                            .setDisabledColor(context.getCompatColor(R.color.md_grey_500))
-                            .create()
-                    )
-                }
-                isBottomBackground -> {
-                    val isLight = ColorUtils.isColorLight(context.bottomBackground)
-                    background = Selector.shapeBuild()
-                        .setCornerRadius(radius)
-                        .setStrokeWidth(1.dp)
-                        .setDisabledStrokeColor(context.getCompatColor(R.color.md_grey_500))
-                        .setDefaultStrokeColor(context.getPrimaryTextColor(isLight))
-                        .setSelectedStrokeColor(context.accentColor)
-                        .setPressedBgColor(context.getCompatColor(R.color.transparent30))
+        when {
+            isInEditMode -> {
+                background = Selector.shapeBuild()
+                    .setCornerRadius(radius)
+                    .setStrokeWidth(1.dp)
+                    .setDisabledStrokeColor(context.getCompatColor(R.color.md_grey_500))
+                    .setDefaultStrokeColor(context.getCompatColor(R.color.secondaryText))
+                    .setSelectedStrokeColor(context.getCompatColor(R.color.accent))
+                    .setPressedBgColor(context.getCompatColor(R.color.transparent30))
                     .create()
-                    this.setTextColor(
-                        Selector.colorBuild()
-                            .setDefaultColor(context.getPrimaryTextColor(isLight))
-                            .setSelectedColor(context.accentColor)
-                            .setDisabledColor(context.getCompatColor(R.color.md_grey_500))
-                            .create()
-                    )
-                }
-                else -> {
-                    background = Selector.shapeBuild()
-                        .setCornerRadius(radius)
-                        .setStrokeWidth(1.dp)
-                        .setDisabledStrokeColor(context.getCompatColor(R.color.md_grey_500))
-                        .setDefaultStrokeColor(ThemeStore.textColorSecondary(context))
-                        .setSelectedStrokeColor(ThemeStore.accentColor(context))
-                        .setPressedBgColor(context.getCompatColor(R.color.transparent30))
+                this.setTextColor(
+                    Selector.colorBuild()
+                        .setDefaultColor(context.getCompatColor(R.color.secondaryText))
+                        .setSelectedColor(context.getCompatColor(R.color.accent))
+                        .setDisabledColor(context.getCompatColor(R.color.md_grey_500))
                         .create()
-                    this.setTextColor(
-                        Selector.colorBuild()
-                            .setDefaultColor(ThemeStore.textColorSecondary(context))
-                            .setSelectedColor(ThemeStore.accentColor(context))
-                            .setDisabledColor(context.getCompatColor(R.color.md_grey_500))
-                            .create()
-                    )
-                }
+                )
+            }
+            isBottomBackground -> {
+                val isLight = ColorUtils.isColorLight(context.bottomBackground)
+                background = Selector.shapeBuild()
+                    .setCornerRadius(radius)
+                    .setStrokeWidth(1.dp)
+                    .setDisabledStrokeColor(context.getCompatColor(R.color.md_grey_500))
+                    .setDefaultStrokeColor(context.getPrimaryTextColor(isLight))
+                    .setSelectedStrokeColor(context.accentColor)
+                    .setPressedBgColor(context.getCompatColor(R.color.transparent30))
+                    .create()
+                this.setTextColor(
+                    Selector.colorBuild()
+                        .setDefaultColor(context.getPrimaryTextColor(isLight))
+                        .setSelectedColor(context.accentColor)
+                        .setDisabledColor(context.getCompatColor(R.color.md_grey_500))
+                        .create()
+                )
+            }
+            else -> {
+                background = Selector.shapeBuild()
+                    .setCornerRadius(radius)
+                    .setStrokeWidth(1.dp)
+                    .setDisabledStrokeColor(context.getCompatColor(R.color.md_grey_500))
+                    .setDefaultStrokeColor(ThemeStore.textColorSecondary(context))
+                    .setSelectedStrokeColor(ThemeStore.accentColor(context))
+                    .setPressedBgColor(context.getCompatColor(R.color.transparent30))
+                    .create()
+                this.setTextColor(
+                    Selector.colorBuild()
+                        .setDefaultColor(ThemeStore.textColorSecondary(context))
+                        .setSelectedColor(ThemeStore.accentColor(context))
+                        .setDisabledColor(context.getCompatColor(R.color.md_grey_500))
+                        .create()
+                )
+            }
         }
     }
 }

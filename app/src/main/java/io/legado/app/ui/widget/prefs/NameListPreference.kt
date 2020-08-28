@@ -42,4 +42,5 @@ class NameListPreference(context: Context, attrs: AttributeSet) : ListPreference
         }
         super.onBindViewHolder(holder)
     }
+
 }

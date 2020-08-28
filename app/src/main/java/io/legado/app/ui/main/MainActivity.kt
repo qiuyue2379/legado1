@@ -162,9 +162,9 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
             if (AppConfig.isShowRSS) {
                 view_pager_main.setCurrentItem(3, false)
             }
-            observeEvent<String>(PreferKey.threadCount) {
-                viewModel.upPool()
-            }
+        }
+        observeEvent<String>(PreferKey.threadCount) {
+            viewModel.upPool()
         }
     }
 

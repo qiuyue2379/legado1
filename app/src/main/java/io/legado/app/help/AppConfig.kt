@@ -140,3 +140,4 @@ object AppConfig {
 
     val isCoolApk: Boolean get() = App.INSTANCE.channel == "coolApk"
 }
+

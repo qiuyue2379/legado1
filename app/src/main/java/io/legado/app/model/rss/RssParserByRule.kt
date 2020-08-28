@@ -51,7 +51,6 @@ object RssParserByRule {
                     if (nextUrl.isNotEmpty()) {
                         nextUrl = NetworkUtils.getAbsoluteURL(sortUrl, nextUrl)
                     }
-                    nextUrl = NetworkUtils.getAbsoluteURL(sortUrl, nextUrl)
                 }
                 Debug.log(sourceUrl, "└$nextUrl")
             }

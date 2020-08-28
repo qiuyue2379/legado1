@@ -283,8 +283,8 @@ class PhotoView : ImageView {
             ScaleType.FIT_START -> initFitStart()
             ScaleType.FIT_END -> initFitEnd()
             ScaleType.FIT_XY -> initFitXY()
-        else -> {
-        }
+            else -> {
+            }
         }
         isInit = true
         mFromInfo?.let {

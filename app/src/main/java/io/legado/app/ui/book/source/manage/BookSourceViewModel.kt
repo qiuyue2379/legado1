@@ -5,6 +5,7 @@ import android.text.TextUtils
 import androidx.documentfile.provider.DocumentFile
 import io.legado.app.App
 import io.legado.app.base.BaseViewModel
+import io.legado.app.constant.AppPattern
 import io.legado.app.data.entities.BookSource
 import io.legado.app.utils.FileUtils
 import io.legado.app.utils.GSON
@@ -96,9 +97,9 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
     fun selectionAddToGroups(sources: List<BookSource>, groups: String) {
         execute {
             val list = arrayListOf<BookSource>()
-            sources.forEach {
+            sources.forEach { source ->
                 val newGroupList = arrayListOf<String>()
-                it.bookSourceGroup?.splitNotBlank(",", ";")?.forEach {
+                source.bookSourceGroup?.splitNotBlank(AppPattern.splitGroupRegex)?.forEach {
                     newGroupList.add(it)
                 }
                 groups.splitNotBlank(",", ";", "，").forEach {
@@ -106,7 +107,7 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
                 }
                 val lh = LinkedHashSet(newGroupList)
                 val newGroup = ArrayList(lh).joinToString(separator = ",")
-                list.add(it.copy(bookSourceGroup = newGroup))
+                list.add(source.copy(bookSourceGroup = newGroup))
             }
             App.db.bookSourceDao().update(*list.toTypedArray())
         }
@@ -115,9 +116,9 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
     fun selectionRemoveFromGroups(sources: List<BookSource>, groups: String) {
         execute {
             val list = arrayListOf<BookSource>()
-            sources.forEach {
+            sources.forEach { source ->
                 val newGroupList = arrayListOf<String>()
-                it.bookSourceGroup?.splitNotBlank(",", ";")?.forEach {
+                source.bookSourceGroup?.splitNotBlank(AppPattern.splitGroupRegex)?.forEach {
                     newGroupList.add(it)
                 }
                 groups.splitNotBlank(",", ";", "，").forEach {
@@ -125,7 +126,7 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
                 }
                 val lh = LinkedHashSet(newGroupList)
                 val newGroup = ArrayList(lh).joinToString(separator = ",")
-                list.add(it.copy(bookSourceGroup = newGroup))
+                list.add(source.copy(bookSourceGroup = newGroup))
             }
             App.db.bookSourceDao().update(*list.toTypedArray())
         }

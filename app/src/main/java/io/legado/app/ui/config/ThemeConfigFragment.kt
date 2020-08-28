@@ -87,7 +87,7 @@ class ThemeConfigFragment : BasePreferenceFragment(),
                         true
                     }
                     ColorUtils.getColorDifference(color, textColor) <= 60 -> {
-                        toast(R.string.accent_background_diff)
+                        toast(R.string.accent_text_diff)
                         true
                     }
                     else -> false
@@ -136,13 +136,13 @@ class ThemeConfigFragment : BasePreferenceFragment(),
             PreferKey.cAccent,
             PreferKey.cBackground,
             PreferKey.cBBackground -> {
-            upTheme(false)
+                upTheme(false)
             }
             PreferKey.cNPrimary,
             PreferKey.cNAccent,
             PreferKey.cNBackground,
             PreferKey.cNBBackground -> {
-            upTheme(true)
+                upTheme(true)
             }
         }
 

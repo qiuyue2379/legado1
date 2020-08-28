@@ -27,8 +27,8 @@ class ColorPreference(context: Context, attrs: AttributeSet) : Preference(contex
     private var onShowDialogListener: OnShowDialogListener? = null
     private var mColor = Color.BLACK
     private var showDialog: Boolean = false
-    @ColorPickerDialog.DialogType
 
+    @ColorPickerDialog.DialogType
     private var dialogType: Int = 0
     private var colorShape: Int = 0
     private var allowPresets: Boolean = false
