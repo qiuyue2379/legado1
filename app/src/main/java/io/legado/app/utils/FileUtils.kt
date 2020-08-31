@@ -8,17 +8,17 @@ import java.io.IOException
 @Suppress("unused")
 object FileUtils {
 
-    fun exists(root: File, fileName: String, vararg subDirs: String): Boolean {
-        return getFile(root, fileName, subDirs = subDirs).exists()
+    fun exists(root: File, vararg subDirFiles: String): Boolean {
+        return getFile(root, *subDirFiles).exists()
     }
 
-    fun createFileIfNotExist(root: File, fileName: String, vararg subDirs: String): File {
-        val filePath = getPath(root, fileName, *subDirs)
+    fun createFileIfNotExist(root: File, vararg subDirFiles: String): File {
+        val filePath = getPath(root, *subDirFiles)
         return createFileIfNotExist(filePath)
     }
 
     fun createFolderIfNotExist(root: File, vararg subDirs: String): File {
-        val filePath = getPath(root, subDirs = subDirs)
+        val filePath = getPath(root, *subDirs)
         return createFolderIfNotExist(filePath)
     }
 
@@ -49,23 +49,17 @@ object FileUtils {
         return file
     }
 
-    fun getFile(root: File, fileName: String, vararg subDirs: String): File {
-        val filePath = getPath(root, fileName, *subDirs)
+    fun getFile(root: File, vararg subDirFiles: String): File {
+        val filePath = getPath(root, *subDirFiles)
         return File(filePath)
     }
 
-    fun getDirFile(root: File, vararg subDirs: String): File {
-        val filePath = getPath(root, subDirs = subDirs)
-        return File(filePath)
-    }
-
-    fun getPath(root: File, fileName: String? = null, vararg subDirs: String): String {
+    fun getPath(root: File, vararg subDirFiles: String): String {
         val path = StringBuilder(root.absolutePath)
-        subDirs.forEach {
-            path.append(File.separator).append(it)
-        }
-        if (!fileName.isNullOrEmpty()) {
-            path.append(File.separator).append(fileName)
+        subDirFiles.forEach {
+            if (it.isNotEmpty()) {
+                path.append(File.separator).append(it)
+            }
         }
         return path.toString()
     }

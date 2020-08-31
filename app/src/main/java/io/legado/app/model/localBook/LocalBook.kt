@@ -61,9 +61,9 @@ object LocalBook {
             author = author,
             originName = fileName,
             coverUrl = FileUtils.getPath(
-                App.INSTANCE.externalFilesDir,
-                "${MD5Utils.md5Encode16(path)}.jpg",
-                "covers"
+                 App.INSTANCE.externalFilesDir,
+                "covers",
+                "${MD5Utils.md5Encode16(path)}.jpg"
             )
         )
         App.db.bookDao().insert(book)
