@@ -10,7 +10,6 @@ import io.legado.app.model.Debug
 import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.utils.NetworkUtils
-import io.legado.app.utils.htmlFormat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 
@@ -96,12 +95,10 @@ object BookContent {
             }
         }
         content.deleteCharAt(content.length - 1)
-        var contentStr = content.toString().htmlFormat()
-        val replaceRegex = bookSource.ruleContent?.replaceRegex
-        replaceRegex?.trim { it <= ' ' }?.split("##")?.let {
-            if (it.size > 1) {
-                contentStr = contentStr.replace(it[1].toRegex(), it.getOrNull(2) ?: "")
-            }
+        var contentStr = content.toString()
+        val replaceRegex = bookSource.ruleContent?.replaceRegex?.trim()
+        if (!replaceRegex.isNullOrEmpty()) {
+            contentStr = AnalyzeRule(book).setContent(contentStr).getString(replaceRegex)
         }
         Debug.log(bookSource.bookSourceUrl, "┌获取章节名称")
         Debug.log(bookSource.bookSourceUrl, "└${bookChapter.title}")
