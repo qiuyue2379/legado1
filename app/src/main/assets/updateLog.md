@@ -3,6 +3,21 @@
 * 关注合作公众号 **[小说拾遗]()** 获取好看的小说。
 - 旧版数据导入教程：先在旧版阅读(2.x)中进行备份，然后在新版阅读(3.x)【我的】->【备份与恢复】，选择【导入旧版本数据】。
 
+**2020/09/02**
+* 搜索url支持put,get,js里使用java.put,java.get
+* 对于搜索重定向的源，可以使用此方法获得重定向后的url
+```
+<js>
+var url='https://www.yooread.net/e/search/index.php,'+JSON.stringify({
+"method":"POST",
+"body":"show=title&tempid=1&keyboard="+key
+});
+String(java.connect(url).raw().request().url())
+</js>
+```
+* 正文合并后替换规则支持所有规则写法,包括js
+* htmlFormat只作用于@html规则,以免格式话错误,缺内容
+
 **2020/09/01**
 * 优化图片下载
 
