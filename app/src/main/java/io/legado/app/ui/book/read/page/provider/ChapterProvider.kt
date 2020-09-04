@@ -22,8 +22,8 @@ import java.util.*
 
 @Suppress("DEPRECATION")
 object ChapterProvider {
-    var viewWidth = 0
-    var viewHeight = 0
+    private var viewWidth = 0
+    private var viewHeight = 0
     var paddingLeft = 0
     var paddingTop = 0
     var visibleWidth = 0
@@ -45,7 +45,7 @@ object ChapterProvider {
     /**
      * 获取拆分完的章节数据
      */
-    suspend fun getTextChapter(
+    fun getTextChapter(
         book: Book,
         bookChapter: BookChapter,
         contents: List<String>,
@@ -110,7 +110,7 @@ object ChapterProvider {
         )
     }
 
-    private suspend fun setTypeImage(
+    private fun setTypeImage(
         book: Book,
         chapter: BookChapter,
         src: String,
@@ -184,14 +184,12 @@ object ChapterProvider {
         pageLines: ArrayList<Int>,
         pageLengths: ArrayList<Int>,
         stringBuilder: StringBuilder,
-        isTitle: Boolean
+        isTitle: Boolean,
     ): Float {
         var durY = if (isTitle) y + titleTopSpacing else y
         val textPaint = if (isTitle) titlePaint else contentPaint
         val layout = StaticLayout(
-            text, textPaint,
-            visibleWidth,
-            Layout.Alignment.ALIGN_NORMAL, 0f, 0f, true
+            text, textPaint, visibleWidth, Layout.Alignment.ALIGN_NORMAL, 0f, 0f, true
         )
         for (lineIndex in 0 until layout.lineCount) {
             val textLine = TextLine(isTitle = isTitle)
@@ -262,7 +260,7 @@ object ChapterProvider {
         textLine: TextLine,
         words: Array<String>,
         textPaint: TextPaint,
-        desiredWidth: Float
+        desiredWidth: Float,
     ) {
         var x = 0f
         if (!ReadBookConfig.textFullJustify) {
@@ -303,7 +301,7 @@ object ChapterProvider {
         words: Array<String>,
         textPaint: TextPaint,
         desiredWidth: Float,
-        startX: Float
+        startX: Float,
     ) {
         if (!ReadBookConfig.textFullJustify) {
             addCharsToLineLast(
@@ -340,7 +338,7 @@ object ChapterProvider {
         textLine: TextLine,
         words: Array<String>,
         textPaint: TextPaint,
-        startX: Float
+        startX: Float,
     ) {
         var x = startX
         words.forEach {
@@ -442,19 +440,32 @@ object ChapterProvider {
         paragraphSpacing = ReadBookConfig.paragraphSpacing
         titleTopSpacing = ReadBookConfig.titleTopSpacing.dp
         titleBottomSpacing = ReadBookConfig.titleBottomSpacing.dp
-        upViewSize()
+        upVisibleSize()
     }
 
     /**
      * 更新View尺寸
      */
-    fun upViewSize() {
-        paddingLeft = ReadBookConfig.paddingLeft.dp
-        paddingTop = ReadBookConfig.paddingTop.dp
-        visibleWidth = viewWidth - paddingLeft - ReadBookConfig.paddingRight.dp
-        visibleHeight = viewHeight - paddingTop - ReadBookConfig.paddingBottom.dp
-        visibleRight = paddingLeft + visibleWidth
-        visibleBottom = paddingTop + visibleHeight
+    fun upViewSize(width: Int, height: Int) {
+        if (width > 0 && height > 0) {
+            viewWidth = width
+            viewHeight = height
+            upVisibleSize()
+        }
+    }
+
+    /**
+     * 更新绘制尺寸
+     */
+    private fun upVisibleSize() {
+        if (viewWidth > 0 && viewHeight > 0) {
+            paddingLeft = ReadBookConfig.paddingLeft.dp
+            paddingTop = ReadBookConfig.paddingTop.dp
+            visibleWidth = viewWidth - paddingLeft - ReadBookConfig.paddingRight.dp
+            visibleHeight = viewHeight - paddingTop - ReadBookConfig.paddingBottom.dp
+            visibleRight = paddingLeft + visibleWidth
+            visibleBottom = paddingTop + visibleHeight
+        }
     }
 
     val TextPaint.textHeight: Float

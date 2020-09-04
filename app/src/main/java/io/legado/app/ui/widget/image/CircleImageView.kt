@@ -118,6 +118,7 @@ class CircleImageView(context: Context, attrs: AttributeSet) :
     private var text: String? = null
 
     private var textColor = context.getCompatColor(R.color.primaryText)
+    private var textBold = false
 
     init {
         super.setScaleType(SCALE_TYPE)
@@ -210,6 +211,7 @@ class CircleImageView(context: Context, attrs: AttributeSet) :
     private fun drawText(canvas: Canvas) {
         text?.let {
             textPaint.color = textColor
+            textPaint.isFakeBoldText = textBold
             textPaint.textSize = 15.sp.toFloat()
             val fm = textPaint.fontMetrics
             canvas.drawText(
@@ -226,6 +228,11 @@ class CircleImageView(context: Context, attrs: AttributeSet) :
         invalidate()
     }
 
+    fun setTextBold(bold: Boolean) {
+        this.textBold = bold
+        invalidate()
+    }
+    
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         setup()
