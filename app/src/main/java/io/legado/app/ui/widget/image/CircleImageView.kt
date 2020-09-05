@@ -232,7 +232,7 @@ class CircleImageView(context: Context, attrs: AttributeSet) :
         this.textBold = bold
         invalidate()
     }
-    
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         setup()

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+    android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
+    android:orientation="vertical"
     android:padding="10dp">
 
     <io.legado.app.lib.theme.view.ATESwitch
@@ -18,73 +20,108 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="6dp">
 
         <io.legado.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_text_color"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_margin="6dp"
-            android:layout_weight="1"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
             android:background="?attr/selectableItemBackground"
-            android:singleLine="true"
             android:gravity="center"
             android:padding="6dp"
+            android:singleLine="true"
             android:text="@string/text_color"
             android:textSize="14sp"
+            app:isBottomBackground="true"
             tools:ignore="HardcodedText" />
 
         <io.legado.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_bg_color"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_margin="6dp"
-            android:layout_weight="1"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
             android:background="?attr/selectableItemBackground"
-            android:singleLine="true"
             android:gravity="center"
             android:padding="6dp"
+            android:singleLine="true"
             android:text="@string/bg_color"
             android:textSize="14sp"
+            app:isBottomBackground="true"
             tools:ignore="HardcodedText" />
 
         <io.legado.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_default"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="6dp"
             android:layout_weight="1"
+            android:layout_gravity="center"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
             android:background="?attr/selectableItemBackground"
-            android:singleLine="true"
             android:gravity="center"
             android:padding="6dp"
-            android:text="恢复默认"
+            android:singleLine="true"
+            android:text="@string/btn_default_s"
             android:textSize="14sp"
+            app:isBottomBackground="true"
+            tools:ignore="HardcodedText" />
+
+        <io.legado.app.ui.widget.text.StrokeTextView
+            android:id="@+id/tv_import"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:padding="6dp"
+            android:singleLine="true"
+            android:text="导入"
+            android:textSize="14sp"
+            app:isBottomBackground="true"
+            tools:ignore="HardcodedText" />
+
+        <io.legado.app.ui.widget.text.StrokeTextView
+            android:id="@+id/tv_export"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:padding="6dp"
+            android:singleLine="true"
+            android:text="导出"
+            android:textSize="14sp"
+            app:isBottomBackground="true"
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tv_bg_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:clickable="true"
-        android:padding="6dp"
-        android:focusable="true">
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:text="@string/bg_image" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/bg_image" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="100dp" />
-
-    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:padding="6dp" />
 
 
 </LinearLayout>
