@@ -20,11 +20,11 @@ import java.io.File
  */
 @Keep
 object ReadBookConfig {
-    const val readConfigFileName = "readConfig.json"
-    private val configFilePath = FileUtils.getPath(App.INSTANCE.filesDir, readConfigFileName)
+    const val configFileName = "readConfig.json"
+    val configFilePath = FileUtils.getPath(App.INSTANCE.filesDir, configFileName)
     val configList: ArrayList<Config> = arrayListOf()
     private val defaultConfigs by lazy {
-        val json = String(App.INSTANCE.assets.open(readConfigFileName).readBytes())
+        val json = String(App.INSTANCE.assets.open(configFileName).readBytes())
         GSON.fromJsonArray<Config>(json)!!
     }
     var durConfig
@@ -95,6 +95,7 @@ object ReadBookConfig {
         Coroutine.async {
             synchronized(this) {
                 val json = GSON.toJson(configList)
+                FileUtils.deleteFile(configFilePath)
                 FileUtils.createFileIfNotExist(configFilePath).writeText(json)
             }
         }
@@ -159,7 +160,7 @@ object ReadBookConfig {
     var hideStatusBar = App.INSTANCE.getPrefBoolean(PreferKey.hideStatusBar)
     var hideNavigationBar = App.INSTANCE.getPrefBoolean(PreferKey.hideNavigationBar)
 
-    private val config get() = if (shareLayout) getConfig(5) else durConfig
+    val config get() = if (shareLayout) getConfig(5) else durConfig
 
     var textFont: String
         get() = config.textFont
@@ -332,6 +333,14 @@ object ReadBookConfig {
             exportConfig.footerPaddingTop = shearConfig.footerPaddingTop
             exportConfig.showHeaderLine = shearConfig.showHeaderLine
             exportConfig.showFooterLine = shearConfig.showFooterLine
+            exportConfig.tipHeaderLeft = shearConfig.tipHeaderLeft
+            exportConfig.tipHeaderMiddle = shearConfig.tipHeaderMiddle
+            exportConfig.tipHeaderRight = shearConfig.tipHeaderRight
+            exportConfig.tipFooterLeft = shearConfig.tipFooterLeft
+            exportConfig.tipFooterMiddle = shearConfig.tipFooterMiddle
+            exportConfig.tipFooterRight = shearConfig.tipFooterRight
+            exportConfig.hideHeader = shearConfig.hideHeader
+            exportConfig.hideFooter = shearConfig.hideFooter
         }
         return exportConfig
     }
@@ -375,6 +384,14 @@ object ReadBookConfig {
         var footerPaddingTop: Int = 6,
         var showHeaderLine: Boolean = false,
         var showFooterLine: Boolean = true,
+        var tipHeaderLeft: Int = ReadTipConfig.time,
+        var tipHeaderMiddle: Int = ReadTipConfig.none,
+        var tipHeaderRight: Int = ReadTipConfig.battery,
+        var tipFooterLeft: Int = ReadTipConfig.chapterTitle,
+        var tipFooterMiddle: Int = ReadTipConfig.none,
+        var tipFooterRight: Int = ReadTipConfig.pageAndTotal,
+        var hideHeader: Boolean = true,
+        var hideFooter: Boolean = false
     ) : Parcelable {
         fun setBg(bgType: Int, bg: String) {
             when {

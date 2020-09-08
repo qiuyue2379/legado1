@@ -16,19 +16,23 @@ import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
 import io.legado.app.help.AppConfig
 import io.legado.app.help.LauncherIconHelp
+import io.legado.app.help.ThemeConfig
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.lib.dialogs.customView
+import io.legado.app.lib.dialogs.noButton
+import io.legado.app.lib.dialogs.okButton
 import io.legado.app.lib.theme.ATH
 import io.legado.app.ui.widget.number.NumberPickerDialog
 import io.legado.app.ui.widget.prefs.ColorPreference
 import io.legado.app.ui.widget.prefs.IconListPreference
+import io.legado.app.ui.widget.text.AutoCompleteTextView
 import io.legado.app.utils.*
+import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 
 
 @Suppress("SameParameterValue")
 class ThemeConfigFragment : BasePreferenceFragment(),
     SharedPreferences.OnSharedPreferenceChangeListener {
-
-    val items = App.INSTANCE.resources.getStringArray(R.array.default_themes).toList()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.pref_config_theme)
@@ -150,8 +154,7 @@ class ThemeConfigFragment : BasePreferenceFragment(),
 
     @SuppressLint("PrivateResource")
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
-        when (preference?.key) {
-            "defaultTheme" -> changeTheme()
+        when (val key = preference?.key) {
             PreferKey.barElevation -> NumberPickerDialog(requireContext())
                 .setTitle(getString(R.string.bar_elevation))
                 .setMaxValue(32)
@@ -166,61 +169,38 @@ class ThemeConfigFragment : BasePreferenceFragment(),
                     AppConfig.elevation = it
                     recreateActivities()
                 }
-            "saveDayTheme" -> {
-            }
-            "saveNightTheme" -> {
-            }
+            "themeList" -> ThemeListDialog().show(childFragmentManager, "themeList")
+            "saveDayTheme", "saveNightTheme" -> saveThemeAlert(key)
         }
         return super.onPreferenceTreeClick(preference)
     }
 
-    private fun changeTheme() {
-        alert(title = getString(R.string.select_theme)) {
-            items(items) { _, which ->
-                when (which) {
-                    0 -> {
-                        putPrefInt(PreferKey.cPrimary, getCompatColor(R.color.md_grey_100))
-                        putPrefInt(PreferKey.cAccent, getCompatColor(R.color.md_deep_orange_600))
-                        putPrefInt(PreferKey.cBackground, getCompatColor(R.color.md_grey_100))
-                        putPrefInt(PreferKey.cBBackground, getCompatColor(R.color.md_grey_200))
-                        AppConfig.isNightTheme = false
-                    }
-                    1 -> {
-                        putPrefInt(PreferKey.cNPrimary, getCompatColor(R.color.md_grey_900))
-                        putPrefInt(PreferKey.cNAccent, getCompatColor(R.color.md_deep_orange_600))
-                        putPrefInt(PreferKey.cNBackground, getCompatColor(R.color.md_grey_900))
-                        putPrefInt(PreferKey.cNBBackground, getCompatColor(R.color.md_grey_900))
-                        AppConfig.isNightTheme = true
-                    }
-                    2 -> {
-                        putPrefInt(PreferKey.cPrimary, getCompatColor(R.color.md_light_blue_500))
-                        putPrefInt(PreferKey.cAccent, getCompatColor(R.color.md_pink_800))
-                        putPrefInt(PreferKey.cBackground, getCompatColor(R.color.md_grey_100))
-                        putPrefInt(PreferKey.cBBackground, getCompatColor(R.color.md_grey_200))
-                        AppConfig.isNightTheme = false
-                    }
-                    3 -> {
-                        putPrefInt(PreferKey.cPrimary, getCompatColor(R.color.white))
-                        putPrefInt(PreferKey.cAccent, getCompatColor(R.color.md_deep_orange_600))
-                        putPrefInt(PreferKey.cBackground, getCompatColor(R.color.white))
-                        putPrefInt(PreferKey.cBBackground, getCompatColor(R.color.white))
-                        AppConfig.isNightTheme = false
-                    }
-                    4 -> {
-                        putPrefInt(PreferKey.cNPrimary, getCompatColor(R.color.black))
-                        putPrefInt(PreferKey.cNAccent, getCompatColor(R.color.md_deep_orange_600))
-                        putPrefInt(PreferKey.cNBackground, getCompatColor(R.color.black))
-                        putPrefInt(PreferKey.cNBBackground, getCompatColor(R.color.black))
-                        AppConfig.isNightTheme = true
+    @SuppressLint("InflateParams")
+    private fun saveThemeAlert(key: String) {
+        alert("主题名称") {
+            var editText: AutoCompleteTextView? = null
+            customView {
+                layoutInflater.inflate(R.layout.dialog_edit_text, null).apply {
+                    editText = edit_view
+                }
+            }
+            okButton {
+                editText?.text?.toString()?.let { themeName ->
+                    when (key) {
+                        "saveDayTheme" -> {
+                            ThemeConfig.saveDayTheme(requireContext(), themeName)
+                        }
+                        "saveNightTheme" -> {
+                            ThemeConfig.saveNightTheme(requireContext(), themeName)
+                        }
                     }
                 }
-                App.INSTANCE.applyDayNight()
-                recreateActivities()
             }
+            noButton { }
         }.show().applyTint()
     }
 
-    private fun upTheme(isNightTheme: Boolean) {
+        private fun upTheme(isNightTheme: Boolean) {
         if (AppConfig.isNightTheme == isNightTheme) {
             listView.post {
                 App.INSTANCE.applyTheme()

@@ -21,7 +21,7 @@ import io.legado.app.constant.AppPattern
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.help.BookHelp
 import io.legado.app.help.IntentDataHelp
-import io.legado.app.help.ItemTouchCallback
+import io.legado.app.ui.widget.recycler.ItemTouchCallback
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.dialogs.*
 import io.legado.app.lib.theme.ATH

@@ -20,7 +20,7 @@ import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppPattern
 import io.legado.app.data.entities.RssSource
 import io.legado.app.help.IntentDataHelp
-import io.legado.app.help.ItemTouchCallback
+import io.legado.app.ui.widget.recycler.ItemTouchCallback
 import io.legado.app.lib.dialogs.*
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.primaryTextColor
