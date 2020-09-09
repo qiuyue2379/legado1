@@ -33,7 +33,7 @@ class ReadAloudConfigDialog : DialogFragment() {
         }
         dialog?.window?.let {
 
-            it.setBackgroundDrawableResource(R.color.transparent)
+        it.setBackgroundDrawableResource(R.color.transparent)
             it.setLayout((dm.widthPixels * 0.9).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }

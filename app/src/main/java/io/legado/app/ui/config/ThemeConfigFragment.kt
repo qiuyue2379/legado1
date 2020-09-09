@@ -200,7 +200,7 @@ class ThemeConfigFragment : BasePreferenceFragment(),
         }.show().applyTint()
     }
 
-        private fun upTheme(isNightTheme: Boolean) {
+    private fun upTheme(isNightTheme: Boolean) {
         if (AppConfig.isNightTheme == isNightTheme) {
             listView.post {
                 App.INSTANCE.applyTheme()

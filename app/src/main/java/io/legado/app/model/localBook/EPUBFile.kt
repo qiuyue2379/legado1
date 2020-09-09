@@ -66,7 +66,7 @@ class EPUBFile(val book: io.legado.app.data.entities.Book) {
             epubBook = epubReader.readEpub(inputStream)
             if (book.coverUrl.isNullOrEmpty()) {
                 book.coverUrl = FileUtils.getPath(
-                     App.INSTANCE.externalFilesDir,
+                    App.INSTANCE.externalFilesDir,
                     "covers",
                     "${MD5Utils.md5Encode16(book.bookUrl)}.jpg"
                 )

@@ -103,7 +103,7 @@ val Context.navigationBarHeight: Int
     get() {
         val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         return resources.getDimensionPixelSize(resourceId)
-}
+    }
 
 @SuppressLint("SetWorldReadable")
 fun Context.shareWithQr(title: String, text: String) {

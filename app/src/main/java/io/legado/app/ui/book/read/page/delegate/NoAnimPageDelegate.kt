@@ -20,4 +20,5 @@ class NoAnimPageDelegate(pageView: PageView) : HorizontalPageDelegate(pageView) 
         // nothing
     }
 
+
 }

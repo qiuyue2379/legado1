@@ -184,7 +184,7 @@ class FontSelectDialog : BaseDialogFragment(),
         }
     }
 
-     /**
+    /**
      * 字体文件夹
      */
     override fun onFilePicked(requestCode: Int, currentPath: String) {

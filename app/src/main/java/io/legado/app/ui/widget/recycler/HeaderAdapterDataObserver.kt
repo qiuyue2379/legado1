@@ -2,7 +2,7 @@ package io.legado.app.ui.widget.recycler
 
 import androidx.recyclerview.widget.RecyclerView
 
-internal class AdapterDataObserverHeader(
+internal class HeaderAdapterDataObserver(
     private var adapterDataObserver: RecyclerView.AdapterDataObserver,
     private var headerCount: Int
 ) : RecyclerView.AdapterDataObserver() {
