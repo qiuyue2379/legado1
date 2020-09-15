@@ -761,5 +761,6 @@
     <string name="select_theme">切换默认主题</string>
     <string name="share_selected_source">分享选中书源</string>
     <string name="sort_by_lastUppdateTime">时间排序</string>
+    <string name="search_content">搜索</string>
 
 </resources>
