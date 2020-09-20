@@ -120,7 +120,7 @@ class DownloadService : BaseService() {
                     DownloadManager.STATUS_FAILED -> "下载失败"
                     else -> "未知状态"
                 }
-        updateNotification(id, "${downloads[id]} $status", max, progress)
+            updateNotification(id, "${downloads[id]} $status", max, progress)
         }
     }
 

@@ -151,7 +151,7 @@ data class Book(
         delete()
         App.db.bookDao().insert(newBook)
     }
-    
+
     fun delete() {
         if (ReadBook.book?.bookUrl == bookUrl) {
             ReadBook.book = null

@@ -127,7 +127,7 @@ class AboutFragment : PreferenceFragmentCompat() {
             override fun run() {
                 val okHttpClient = OkHttpClient()
                 val request = Request.Builder()
-                    .url("http://qiuyue.vicp.net:86/apk/app/release/")//请求的url
+                    .url("http://qiuyue.vicp.net:86/apk/app/release/output-metadata.json")//请求的url
                     .get()
                     .build()
 
@@ -144,8 +144,8 @@ class AboutFragment : PreferenceFragmentCompat() {
                         print(string)
                         if (string != null) {
                             try {
-                                val bject: JsonObject = JsonParser().parse(string).asJsonObject
-                                val assets: JsonArray = bject.get("elements").asJsonArray
+                                val beat: JsonObject = JsonParser().parse(string).asJsonObject
+                                val assets: JsonArray = beat.get("elements").asJsonArray
                                 Looper.prepare()
                                 val version = assets[0].asJsonObject["versionName"].asString
                                 val uploadfath = assets[0].asJsonObject["outputFile"].asString

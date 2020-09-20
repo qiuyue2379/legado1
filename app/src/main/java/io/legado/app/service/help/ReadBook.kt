@@ -473,4 +473,5 @@ object ReadBook {
         fun pageChanged()
         fun contentLoadFinish()
     }
+
 }
