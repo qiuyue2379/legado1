@@ -10,8 +10,8 @@
     <string name="menu_import_old">导入阅读数据</string>
     <string name="mkdirs">创建子文件夹</string>
     <string name="mkdirs_description">创建legado文件夹作为备份文件夹</string>
-    <string name="export_webdav">离线导出WebDav</string>
-    <string name="export_webdav_s">默认导出到legado文件夹下exports目录</string>
+    <string name="webdav_cache_backup">离线缓存书籍备份</string>
+    <string name="webdav_cache_backup_s">导出本地同时备份到legado文件夹下exports目录</string>
     <string name="backup_path">备份路径</string>
     <string name="select_backup_path">请选择备份路径</string>
     <string name="menu_import_old_version">导入旧版数据</string>
@@ -295,7 +295,7 @@
     <string name="padding_right">右边距</string>
     <string name="check_book_source">校验书源</string>
     <string name="check_select_source">校验所选</string>
-    <string name="progress_show">进度 %1$d/%2$d</string>
+    <string name="progress_show">%1$s      进度 %2$d/%3$d</string>
     <string name="tts_fix">请安装并选择中文TTS!</string>
     <string name="tts_init_failed">TTS初始化失败!</string>
     <string name="jf_convert">简繁转换</string>
@@ -575,6 +575,7 @@
     <string name="export_selection">导出所选</string>
     <string name="export">导出</string>
     <string name="load_toc">加载目录</string>
+    <string name="load_info">加载详情页</string>
     <string name="tts">TTS</string>
     <string name="web_dav_pw">WebDav 密码</string>
     <string name="web_dav_pw_s">输入你的WebDav授权密码</string>
