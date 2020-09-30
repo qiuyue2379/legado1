@@ -127,7 +127,7 @@ class AboutFragment : PreferenceFragmentCompat() {
             override fun run() {
                 val okHttpClient = OkHttpClient()
                 val request = Request.Builder()
-                    .url("http://qiuyue.vicp.net:86/apk/app/release/output-metadata.json")//请求的url
+                    .url("http://qiu-yue.top:86/apk/app/release/output-metadata.json")//请求的url
                     .get()
                     .build()
 
@@ -144,7 +144,7 @@ class AboutFragment : PreferenceFragmentCompat() {
                         print(string)
                         if (string != null) {
                             try {
-                                val beat: JsonObject = JsonParser().parse(string).asJsonObject
+                                val beat: JsonObject = JsonParser.parseString(string).asJsonObject
                                 val assets: JsonArray = beat.get("elements").asJsonArray
                                 Looper.prepare()
                                 val version = assets[0].asJsonObject["versionName"].asString
@@ -152,16 +152,27 @@ class AboutFragment : PreferenceFragmentCompat() {
                                 val dirName = "有版本更新，请下载!"
                                 UpdateAppUtils
                                     .getInstance()
-                                    .apkUrl("http://qiuyue.vicp.net:86/apk/app/release/$uploadfath")
+                                    .apkUrl("http://qiu-yue.top:86/apk/app/release/$uploadfath")
                                     .updateTitle("发现新版本")
                                     .updateContent(dirName)
                                     .updateConfig(UpdateConfig(alwaysShowDownLoadDialog = true))
-                                    .uiConfig(UiConfig(uiType = UiType.CUSTOM, customLayoutId = R.layout.view_update_dialog_custom))
+                                    .uiConfig(
+                                        UiConfig(
+                                            uiType = UiType.CUSTOM,
+                                            customLayoutId = R.layout.view_update_dialog_custom
+                                        )
+                                    )
                                     .setOnInitUiListener(object : OnInitUiListener {
                                         @SuppressLint("SetTextI18n")
-                                        override fun onInitUpdateUi(view: View?, updateConfig: UpdateConfig, uiConfig: UiConfig) {
-                                            view?.findViewById<TextView>(R.id.tv_update_title)?.text = "版本更新啦"
-                                            view?.findViewById<TextView>(R.id.tv_version_name)?.text = version
+                                        override fun onInitUpdateUi(
+                                            view: View?,
+                                            updateConfig: UpdateConfig,
+                                            uiConfig: UiConfig
+                                        ) {
+                                            view?.findViewById<TextView>(R.id.tv_update_title)?.text =
+                                                "版本更新啦"
+                                            view?.findViewById<TextView>(R.id.tv_version_name)?.text =
+                                                version
                                         }
                                     })
                                     .update()
