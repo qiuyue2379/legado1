@@ -9,7 +9,6 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.*
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.get
@@ -48,7 +47,7 @@ import io.legado.app.ui.book.read.page.ContentTextView
 import io.legado.app.ui.book.read.page.PageView
 import io.legado.app.ui.book.read.page.TextPageFactory
 import io.legado.app.ui.book.read.page.delegate.PageDelegate
-import io.legado.app.ui.book.searchContent.SearchListActivity
+import io.legado.app.ui.book.searchContent.SearchContentActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.login.SourceLogin
 import io.legado.app.ui.replacerule.ReplaceRuleActivity
@@ -57,14 +56,16 @@ import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.activity_book_read.*
 import kotlinx.android.synthetic.main.view_read_menu.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.anko.sdk27.listeners.onClick
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.startActivityForResult
 import org.jetbrains.anko.toast
-import java.lang.Runnable
 
 class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_book_read),
     View.OnTouchListener,
@@ -494,6 +495,7 @@ class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_boo
                 return true
             }
             R.id.menu_search_content -> {
+                viewModel.searchContentQuery = selectedText
                 openSearchActivity(selectedText)
                 return true
             }
@@ -683,10 +685,10 @@ class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_boo
      */
     override fun openSearchActivity(searchWord: String?) {
         ReadBook.book?.let {
-            startActivityForResult<SearchListActivity>(
+            startActivityForResult<SearchContentActivity>(
                 requestCodeSearchResult,
                 Pair("bookUrl", it.bookUrl),
-                Pair("searchWord", searchWord)
+                Pair("searchWord", searchWord ?: viewModel.searchContentQuery)
             )
         }
     }
@@ -777,44 +779,49 @@ class ReadBookActivity : VMBaseActivity<ReadBookViewModel>(R.layout.activity_boo
                     }
                 requestCodeSearchResult ->
                     data?.getIntExtra("index", ReadBook.durChapterIndex)?.let { index ->
-                        launch(IO){
+                        launch(IO) {
                             val indexWithinChapter = data.getIntExtra("indexWithinChapter", 0)
-                            val query = data.getStringExtra("query")
+                            viewModel.searchContentQuery = data.getStringExtra("query") ?: ""
                             viewModel.openChapter(index)
-
                             // block until load correct chapter and pages
                             var pages = ReadBook.curTextChapter?.pages
-                            while (ReadBook.durChapterIndex != index || pages == null ){
+                            while (ReadBook.durChapterIndex != index || pages == null) {
                                 delay(100L)
                                 pages = ReadBook.curTextChapter?.pages
                             }
-                            Log.d("h11128", "Current chapter pages ${pages.size}")
-                            val positions = ReadBook.searchResultPositions(pages, indexWithinChapter, query!!)
-                            Log.d("h11128", positions[0].toString())
-                            Log.d("h11128", positions[1].toString())
-                            Log.d("h11128", positions[2].toString())
-                            Log.d("h11128", positions[3].toString())
-
-                            while (ReadBook.durPageIndex != positions[0]){
+                            val positions =
+                                ReadBook.searchResultPositions(
+                                    pages,
+                                    indexWithinChapter,
+                                    viewModel.searchContentQuery
+                                )
+                            while (ReadBook.durPageIndex != positions[0]) {
                                 delay(100L)
                                 ReadBook.skipToPage(positions[0])
                             }
-                            withContext(Main){
-                                Log.d("h11128", "currentpage ${ReadBook.durPageIndex}")
-                                Log.d("h11128", "currentpage ${page_view.pageFactory.currentPage.index}")
-                                Log.d("h11128", "${positions[0]} ${positions[1]} ${positions[2]}")
-
-                                page_view.curPage.selectStartMoveIndex(0, positions[1], positions[2])
+                            withContext(Main) {
+                                page_view.curPage.selectStartMoveIndex(
+                                    0,
+                                    positions[1],
+                                    positions[2]
+                                )
                                 delay(20L)
-                                when (positions[3]){
-                                    0 -> page_view.curPage.selectEndMoveIndex(0, positions[1], positions[2] + query.length - 1)
-                                    1 -> page_view.curPage.selectEndMoveIndex(0, positions[1] + 1, positions[4])
+                                when (positions[3]) {
+                                    0 -> page_view.curPage.selectEndMoveIndex(
+                                        0,
+                                        positions[1],
+                                        positions[2] + viewModel.searchContentQuery.length - 1
+                                    )
+                                    1 -> page_view.curPage.selectEndMoveIndex(
+                                        0,
+                                        positions[1] + 1,
+                                        positions[4]
+                                    )
                                     //todo: consider change page, jump to scroll position
                                     -1 -> page_view.curPage.selectEndMoveIndex(1, 0, positions[4])
                                 }
                                 page_view.isTextSelected = true
                                 delay(100L)
-                                Log.d("h11128", "asdasd $selectedText")
                             }
                         }
                     }
