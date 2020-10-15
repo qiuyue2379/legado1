@@ -126,7 +126,7 @@ class ReadStyleDialog : BaseDialogFragment(), FontSelectDialog.CallBack {
                 title = getString(R.string.text_indent),
                 items = resources.getStringArray(R.array.indent).toList()
             ) { _, index ->
-                ReadBookConfig.bodyIndentCount = index
+                ReadBookConfig.paragraphIndent = "　".repeat(index)
                 postEvent(EventBus.UP_CONFIG, true)
             }
         }
@@ -246,13 +246,13 @@ class ReadStyleDialog : BaseDialogFragment(), FontSelectDialog.CallBack {
             payloads: MutableList<Any>
         ) {
             holder.itemView.apply {
-                iv_style.setTextColor(item.textColor())
-                iv_style.setImageDrawable(item.bgDrawable(100, 150))
+                iv_style.setTextColor(item.curTextColor())
+                iv_style.setImageDrawable(item.curBgDrawable(100, 150))
                 if (ReadBookConfig.styleSelect == holder.layoutPosition) {
                     iv_style.borderColor = accentColor
                     iv_style.setTextBold(true)
                 } else {
-                    iv_style.borderColor = item.textColor()
+                    iv_style.borderColor = item.curTextColor()
                     iv_style.setTextBold(false)
                 }
             }
