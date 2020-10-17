@@ -12,10 +12,9 @@ import com.google.android.material.tabs.TabLayout
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.VMBaseFragment
-import io.legado.app.constant.AppConst
+import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.entities.BookGroup
-import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.customView
 import io.legado.app.lib.dialogs.noButton
@@ -36,15 +35,13 @@ import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 import kotlinx.android.synthetic.main.fragment_bookshelf.*
 import kotlinx.android.synthetic.main.view_tab_layout.*
 import kotlinx.android.synthetic.main.view_title_bar.*
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-
+/**
+ * 书架界面
+ */
 class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_bookshelf),
     TabLayout.OnTabSelectedListener,
-    SearchView.OnQueryTextListener,
-    GroupManageDialog.CallBack {
+    SearchView.OnQueryTextListener {
 
     override val viewModel: BookshelfViewModel
         get() = getViewModel(BookshelfViewModel::class.java)
@@ -52,10 +49,8 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
         get() = getViewModelOfActivity(MainViewModel::class.java)
     private lateinit var adapter: FragmentStatePagerAdapter
     private var bookGroupLiveData: LiveData<List<BookGroup>>? = null
-    private var noGroupLiveData: LiveData<Int>? = null
     private val bookGroups = mutableListOf<BookGroup>()
     private val fragmentMap = hashMapOf<Long, BooksFragment>()
-    private var showGroupNone = false
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
         setSupportToolbar(toolbar)
@@ -113,20 +108,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
         bookGroupLiveData = App.db.bookGroupDao().liveDataAll()
         bookGroupLiveData?.observe(viewLifecycleOwner, {
             viewModel.checkGroup(it)
-            bookGroups.clear()
-            bookGroups.addAll(it)
-            upGroup()
-        })
-        noGroupLiveData?.removeObservers(viewLifecycleOwner)
-        noGroupLiveData = App.db.bookDao().observeNoGroupSize()
-        noGroupLiveData?.observe(viewLifecycleOwner, {
-            if (it > 0 && !showGroupNone && AppConfig.bookGroupNoneShow) {
-                showGroupNone = true
-                upGroup()
-            } else if (it == 0 && showGroupNone) {
-                showGroupNone = false
-                upGroup()
-            }
+            upGroup(it)
         })
     }
 
@@ -139,39 +121,12 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
         return false
     }
 
-    override fun upGroup() {
-        launch {
-            var noGroupSize = 0
-            withContext(IO) {
-                if (AppConfig.bookGroupNoneShow) {
-                    noGroupSize = App.db.bookDao().noGroupSize
-                }
-            }
-            synchronized(this@BookshelfFragment) {
-                bookGroups.remove(AppConst.bookGroupAll)
-                bookGroups.remove(AppConst.bookGroupLocal)
-                bookGroups.remove(AppConst.bookGroupAudio)
-                bookGroups.remove(AppConst.bookGroupNone)
-                showGroupNone =
-                    if (noGroupSize > 0 && bookGroups.isNotEmpty()) {
-                        bookGroups.add(0, AppConst.bookGroupNone)
-                        true
-                    } else {
-                        false
-                    }
-                if (AppConfig.bookGroupAudioShow) {
-                    bookGroups.add(0, AppConst.bookGroupAudio)
-                }
-                if (AppConfig.bookGroupLocalShow) {
-                    bookGroups.add(0, AppConst.bookGroupLocal)
-                }
-                if (AppConfig.bookGroupAllShow) {
-                    bookGroups.add(0, AppConst.bookGroupAll)
-                }
-                adapter.notifyDataSetChanged()
-                selectLastTab()
-            }
-        }
+    @Synchronized
+    private fun upGroup(data: List<BookGroup>) {
+        bookGroups.clear()
+        bookGroups.addAll(data)
+        adapter.notifyDataSetChanged()
+        selectLastTab()
     }
 
     @Synchronized
@@ -241,6 +196,12 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
 
     fun gotoTop() {
         fragmentMap[selectedGroup?.groupId]?.gotoTop()
+    }
+
+    override fun observeLiveBus() {
+        observeEvent<List<BookGroup>>(EventBus.UP_BOOK_GROUP) {
+            upGroup(it)
+        }
     }
 
     private inner class TabFragmentPageAdapter(fm: FragmentManager) :

@@ -69,8 +69,7 @@ class ArrangeBookActivity : VMBaseActivity<ArrangeBookViewModel>(R.layout.activi
         recycler_view.addItemDecoration(VerticalDivider(this))
         adapter = ArrangeBookAdapter(this, this)
         recycler_view.adapter = adapter
-        val itemTouchCallback = ItemTouchCallback()
-        itemTouchCallback.onItemTouchCallbackListener = adapter
+        val itemTouchCallback = ItemTouchCallback(adapter)
         itemTouchCallback.isCanDrag = getPrefInt(PreferKey.bookshelfSort) == 3
         val dragSelectTouchHelper: DragSelectTouchHelper =
             DragSelectTouchHelper(adapter.initDragSelectTouchHelperCallback()).setSlideArea(16, 50)
@@ -112,10 +111,10 @@ class ArrangeBookActivity : VMBaseActivity<ArrangeBookViewModel>(R.layout.activi
         booksLiveData?.removeObservers(this)
         booksLiveData =
             when (groupId) {
-                AppConst.bookGroupAll.groupId -> App.db.bookDao().observeAll()
-                AppConst.bookGroupLocal.groupId -> App.db.bookDao().observeLocal()
-                AppConst.bookGroupAudio.groupId -> App.db.bookDao().observeAudio()
-                AppConst.bookGroupNone.groupId -> App.db.bookDao().observeNoGroup()
+                AppConst.bookGroupAllId -> App.db.bookDao().observeAll()
+                AppConst.bookGroupLocalId -> App.db.bookDao().observeLocal()
+                AppConst.bookGroupAudioId -> App.db.bookDao().observeAudio()
+                AppConst.bookGroupNoneId -> App.db.bookDao().observeNoGroup()
                 else -> App.db.bookDao().observeByGroup(groupId)
             }
         booksLiveData?.observe(this, { list ->
@@ -136,22 +135,22 @@ class ArrangeBookActivity : VMBaseActivity<ArrangeBookViewModel>(R.layout.activi
                 .show(supportFragmentManager, "groupManage")
             R.id.menu_no_group -> {
                 title_bar.subtitle = getString(R.string.no_group)
-                groupId = AppConst.bookGroupNone.groupId
+                groupId = AppConst.bookGroupNoneId
                 initBookData()
             }
             R.id.menu_all -> {
                 title_bar.subtitle = item.title
-                groupId = AppConst.bookGroupAll.groupId
+                groupId = AppConst.bookGroupAllId
                 initBookData()
             }
             R.id.menu_local -> {
                 title_bar.subtitle = item.title
-                groupId = AppConst.bookGroupLocal.groupId
+                groupId = AppConst.bookGroupLocalId
                 initBookData()
             }
             R.id.menu_audio -> {
                 title_bar.subtitle = item.title
-                groupId = AppConst.bookGroupAudio.groupId
+                groupId = AppConst.bookGroupAudioId
                 initBookData()
             }
             else -> if (item.groupId == R.id.menu_group) {

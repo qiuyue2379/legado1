@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import io.legado.app.App
+import io.legado.app.constant.AppConst
 import io.legado.app.data.dao.*
 import io.legado.app.data.entities.*
 
@@ -40,9 +41,39 @@ abstract class AppDatabase: RoomDatabase() {
                     migration_19_20
                 )
                 .allowMainThreadQueries()
+                .addCallback(dbCallback)
                 .build()
-        
-        private val migration_10_11 = object: Migration(10, 11) {
+
+        private val dbCallback = object : Callback() {
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    insert into book_groups(groupId, groupName, 'order') select ${AppConst.bookGroupAllId}, '全部', -10 
+                    where not exists (select * from book_groups where groupId = ${AppConst.bookGroupAllId})
+                """
+                )
+                db.execSQL(
+                    """
+                    insert into book_groups(groupId, groupName, 'order') select ${AppConst.bookGroupLocalId}, '本地', -9 
+                    where not exists (select * from book_groups where groupId = ${AppConst.bookGroupLocalId})
+                """
+                )
+                db.execSQL(
+                    """
+                    insert into book_groups(groupId, groupName, 'order') select ${AppConst.bookGroupAudioId}, '音频', -8
+                    where not exists (select * from book_groups where groupId = ${AppConst.bookGroupAudioId})
+                """
+                )
+                db.execSQL(
+                    """
+                    insert into book_groups(groupId, groupName, 'order') select ${AppConst.bookGroupNoneId}, '未分组', -7
+                    where not exists (select * from book_groups where groupId = ${AppConst.bookGroupNoneId})
+                """
+                )
+            }
+        }
+
+        private val migration_10_11 = object : Migration(10, 11) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("DROP TABLE txtTocRules")
                 database.execSQL(
