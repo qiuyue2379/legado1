@@ -552,7 +552,7 @@ class PhotoView : ImageView {
         }
         if (tx != 0 || ty != 0) {
             if (!mTranslate.mFlingScroller.isFinished) mTranslate.mFlingScroller.abortAnimation()
-            mTranslate.withTranslate(mTranslateX, mTranslateY, -tx, -ty)
+            mTranslate.withTranslate(-tx, -ty)
         }
     }
 
@@ -860,7 +860,7 @@ class PhotoView : ImageView {
             mRotateScroller = Scroller(ctx, mInterpolatorProxy)
         }
 
-        fun withTranslate(startX: Int, startY: Int, deltaX: Int, deltaY: Int) {
+        fun withTranslate(deltaX: Int, deltaY: Int) {
             mLastTranslateX = 0
             mLastTranslateY = 0
             mTranslateScroller.startScroll(0, 0, deltaX, deltaY, mAnimaDuring)
@@ -1179,7 +1179,7 @@ class PhotoView : ImageView {
             executeTranslate()
             mScaleCenter[ocx] = ocy
             mRotateCenter[ocx] = ocy
-            mTranslate.withTranslate(0, 0, (-(ocx - mcx)).toInt(), (-(ocy - mcy)).toInt())
+            mTranslate.withTranslate((-(ocx - mcx)).toInt(), (-(ocy - mcy)).toInt())
             mTranslate.withScale(scale, 1F)
             mTranslate.withRotate(info.mDegrees.toInt(), 0)
             if (info.mWidgetRect.width() < info.mImgRect.width() || info.mWidgetRect.height() < info.mImgRect.height()) {
@@ -1232,8 +1232,6 @@ class PhotoView : ImageView {
             mAnimMatrix.mapRect(mImgRect, mBaseRect)
             mDegrees = mDegrees % 360
             mTranslate.withTranslate(
-                0,
-                0,
                 (tcx - mScaleCenter.x).toInt(),
                 (tcy - mScaleCenter.y).toInt()
             )
