@@ -20,16 +20,12 @@ import java.io.File
  */
 @Keep
 object ReadBookConfig {
-    const val configFileName = "readConfig.json"
+    const val configFileName = "defaultData/readConfig.json"
     const val shareConfigFileName = "shareReadConfig.json"
     val configFilePath = FileUtils.getPath(App.INSTANCE.filesDir, configFileName)
     val shareConfigFilePath = FileUtils.getPath(App.INSTANCE.filesDir, shareConfigFileName)
     val configList: ArrayList<Config> = arrayListOf()
     lateinit var shareConfig: Config
-    private val defaultConfigs by lazy {
-        val json = String(App.INSTANCE.assets.open(configFileName).readBytes())
-        GSON.fromJsonArray<Config>(json)!!
-    }
     var durConfig
         get() = getConfig(styleSelect)
         set(value) {
@@ -68,7 +64,7 @@ object ReadBookConfig {
                 e.printStackTrace()
             }
         }
-        (configs ?: defaultConfigs).let {
+        (configs ?: DefaultData.defaultReadConfigs).let {
             configList.clear()
             configList.addAll(it)
         }
@@ -131,7 +127,7 @@ object ReadBookConfig {
     }
 
     private fun resetAll() {
-        defaultConfigs.let {
+        DefaultData.defaultReadConfigs.let {
             configList.clear()
             configList.addAll(it)
             save()

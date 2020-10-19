@@ -222,7 +222,7 @@ class BgTextConfigDialog : BaseDialogFragment(), FileChooserDialog.CallBack {
             val configDirPath = FileUtils.getPath(requireContext().eCacheDir, "readConfig")
             FileUtils.deleteFile(configDirPath)
             val configDir = FileUtils.createFolderIfNotExist(configDirPath)
-            val configExportPath = FileUtils.getPath(configDir, "readConfig.json")
+            val configExportPath = FileUtils.getPath(configDir, "defaultData/readConfig.json")
             FileUtils.deleteFile(configExportPath)
             val configExportFile = FileUtils.createFileIfNotExist(configExportPath)
             configExportFile.writeText(GSON.toJson(ReadBookConfig.getExportConfig()))
@@ -336,7 +336,7 @@ class BgTextConfigDialog : BaseDialogFragment(), FileChooserDialog.CallBack {
             FileUtils.deleteFile(configDirPath)
             ZipUtils.unzipFile(zipFile, FileUtils.createFolderIfNotExist(configDirPath))
             val configDir = FileUtils.createFolderIfNotExist(configDirPath)
-            val configFile = FileUtils.getFile(configDir, "readConfig.json")
+            val configFile = FileUtils.getFile(configDir, "defaultData/readConfig.json")
             val config: ReadBookConfig.Config = GSON.fromJsonObject(configFile.readText())!!
             if (config.textFont.isNotEmpty()) {
                 val fontName = FileUtils.getName(config.textFont)
