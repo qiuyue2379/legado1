@@ -54,6 +54,8 @@
 # Android开发中一些需要保留的公共部分
 #
 #############################################
+# 屏蔽错误Unresolved class name
+#noinspection ShrinkerUnresolvedReference
 
 # 保留我们使用的四大组件，自定义的Application等等这些类不被混淆
 # 因为这些子类都有可能被外部调用
