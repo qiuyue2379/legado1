@@ -89,7 +89,7 @@
 		<item>Pages</item>
 		<item>Progress</item>
 		<item>Pages and progress</item>
-        <item>Book name</item>
+		<item>Book name</item>
 	</string-array>
 
 	<string-array name="text_font_weight">
@@ -99,10 +99,10 @@
 	</string-array>
 
 	<string-array name="language">
-        <item>Auto</item>
-        <item>Simplified_Chinese</item>
-        <item>Traditional_Chinese</item>
-        <item>English</item>
+		<item>Auto</item>
+		<item>Simplified_Chinese</item>
+		<item>Traditional_Chinese</item>
+		<item>English</item>
 	</string-array>
 
 </resources>

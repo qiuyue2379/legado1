@@ -55,13 +55,13 @@ abstract class AppDatabase: RoomDatabase() {
             override fun onOpen(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     """
-                   insert into book_groups(groupId, groupName, 'order', show) select ${AppConst.bookGroupAllId}, '全部', -10, 1
+                    insert into book_groups(groupId, groupName, 'order', show) select ${AppConst.bookGroupAllId}, '全部', -10, 1
                     where not exists (select * from book_groups where groupId = ${AppConst.bookGroupAllId})
                 """
                 )
                 db.execSQL(
                     """
-                   insert into book_groups(groupId, groupName, 'order', show) select ${AppConst.bookGroupLocalId}, '本地', -9, 1
+                    insert into book_groups(groupId, groupName, 'order', show) select ${AppConst.bookGroupLocalId}, '本地', -9, 1
                     where not exists (select * from book_groups where groupId = ${AppConst.bookGroupLocalId})
                 """
                 )

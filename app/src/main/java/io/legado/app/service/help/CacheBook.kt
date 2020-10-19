@@ -105,4 +105,5 @@ object CacheBook {
                 ReadBook.removeLoading(chapter.index)
             }
     }
+
 }

@@ -190,11 +190,11 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
         }
 
         override fun getItem(position: Int): Fragment {
-                return when (getId(position)) {
-                    0 -> BookshelfFragment()
-                    1 -> ExploreFragment()
-                    2 -> RssFragment()
-                    else -> MyFragment()
+            return when (getId(position)) {
+                0 -> BookshelfFragment()
+                1 -> ExploreFragment()
+                2 -> RssFragment()
+                else -> MyFragment()
             }
         }
 

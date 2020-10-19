@@ -11,7 +11,7 @@ import io.legado.app.utils.*
 import java.io.File
 
 object ThemeConfig {
-    const val configFileName = "defaultData/themeConfig.json"
+    const val configFileName = "themeConfig.json"
     val configFilePath = FileUtils.getPath(App.INSTANCE.filesDir, configFileName)
 
     val configList = arrayListOf<Config>()

@@ -123,6 +123,8 @@ class ChangeSourceViewModel(application: Application) : BaseViewModel(applicatio
                             if (searchBook.latestChapterTitle.isNullOrEmpty()) {
                                 if (context.getPrefBoolean(PreferKey.changeSourceLoadInfo) || context.getPrefBoolean(PreferKey.changeSourceLoadToc)) {
                                     loadBookInfo(searchBook.toBook())
+                                } else {
+                                    searchFinish(searchBook)
                                 }
                             } else {
                                 searchFinish(searchBook)

@@ -410,3 +410,7 @@ abstract class CommonRecyclerAdapter<ITEM>(protected val context: Context) :
     }
 
 }
+
+
+
+

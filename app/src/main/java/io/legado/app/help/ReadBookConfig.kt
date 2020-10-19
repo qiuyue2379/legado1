@@ -20,7 +20,7 @@ import java.io.File
  */
 @Keep
 object ReadBookConfig {
-    const val configFileName = "defaultData/readConfig.json"
+    const val configFileName = "readConfig.json"
     const val shareConfigFileName = "shareReadConfig.json"
     val configFilePath = FileUtils.getPath(App.INSTANCE.filesDir, configFileName)
     val shareConfigFilePath = FileUtils.getPath(App.INSTANCE.filesDir, shareConfigFileName)
