@@ -20,8 +20,8 @@ import io.legado.app.lib.dialogs.alert
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.applyTint
 import io.legado.app.utils.openUrl
+import io.legado.app.utils.sendMail
 import io.legado.app.utils.sendToClip
-import io.legado.app.utils.toast
 import listener.OnInitUiListener
 import model.UiConfig
 import model.UpdateConfig
@@ -60,7 +60,7 @@ class AboutFragment : PreferenceFragmentCompat() {
             "contributors" -> openUrl(R.string.contributors_url)
             "update_log" -> showUpdateLog()
             "check_update" -> shopUpdate()
-            "mail" -> sendMail()
+            "mail" -> requireContext().sendMail("kunfei.ge@gmail.com")
             "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
             "home_page" -> openUrl(R.string.home_page_url)
@@ -76,16 +76,6 @@ class AboutFragment : PreferenceFragmentCompat() {
     @Suppress("SameParameterValue")
     private fun openUrl(@StringRes addressID: Int) {
         requireContext().openUrl(getString(addressID))
-    }
-
-    private fun sendMail() {
-        try {
-            val intent = Intent(Intent.ACTION_SENDTO)
-            intent.data = Uri.parse("mailto:kunfei.ge@gmail.com")
-            startActivity(intent)
-        } catch (e: Exception) {
-            toast(e.localizedMessage ?: "Error")
-        }
     }
 
     private fun showUpdateLog() {

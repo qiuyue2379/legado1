@@ -56,7 +56,7 @@ fun Context.getPrefString(key: String, defValue: String? = null) =
 fun Context.getPrefString(@StringRes keyId: Int, defValue: String? = null) =
     defaultSharedPreferences.getString(getString(keyId), defValue)
 
-fun Context.putPrefString(key: String, value: String) =
+fun Context.putPrefString(key: String, value: String?) =
     defaultSharedPreferences.edit { putString(key, value) }
 
 fun Context.getPrefStringSet(
@@ -154,6 +154,16 @@ fun Context.getClipText(): String? {
         }
     }
     return null
+}
+
+fun Context.sendMail(mail: String) {
+    try {
+        val intent = Intent(Intent.ACTION_SENDTO)
+        intent.data = Uri.parse("mailto:$mail")
+        startActivity(intent)
+    } catch (e: Exception) {
+        toast(e.localizedMessage ?: "Error")
+    }
 }
 
 /**
