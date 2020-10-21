@@ -17,15 +17,8 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 @Suppress("SameParameterValue")
-class VerticalSeekBar @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = androidx.appcompat.R.attr.seekBarStyle
-) : AppCompatSeekBar(
-    context,
-    attrs,
-    defStyleAttr
-) {
+class VerticalSeekBar @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+    AppCompatSeekBar(context, attrs) {
 
     private var mIsDragging: Boolean = false
     private var mThumb: Drawable? = null
@@ -67,8 +60,7 @@ class VerticalSeekBar @JvmOverloads constructor(
         ViewCompat.setLayoutDirection(this, ViewCompat.LAYOUT_DIRECTION_LTR)
 
         if (attrs != null) {
-            val a =
-                context.obtainStyledAttributes(attrs, R.styleable.VerticalSeekBar, defStyleAttr, 0)
+            val a = context.obtainStyledAttributes(attrs, R.styleable.VerticalSeekBar)
             val rotationAngle = a.getInteger(R.styleable.VerticalSeekBar_seekBarRotation, 0)
             if (isValidRotationAngle(rotationAngle)) {
                 mRotationAngle = rotationAngle
