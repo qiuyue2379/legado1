@@ -11,6 +11,7 @@ import io.legado.app.data.entities.ReadRecord
 import io.legado.app.help.AppConfig
 import io.legado.app.help.BookHelp
 import io.legado.app.help.IntentDataHelp
+import io.legado.app.help.ReadBookConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.BaseReadAloudService
@@ -57,6 +58,7 @@ object ReadBook {
         curTextChapter = null
         nextTextChapter = null
         titleDate.postValue(book.name)
+        callBack?.upPageAnim()
         upWebBook(book)
         ImageProvider.clearAllCache()
         synchronized(this) {
@@ -376,13 +378,7 @@ object ReadBook {
                     2 -> HanLP.convertToTraditionalChinese(chapter.title)
                     else -> chapter.title
                 }
-                val contents = BookHelp.disposeContent(
-                    chapter.title,
-                    book.name,
-                    webBook?.bookSource?.bookSourceUrl,
-                    content,
-                    book.getUseReplaceRule()
-                )
+                val contents = BookHelp.disposeContent(book, chapter.title, content)
                 when (chapter.index) {
                     durChapterIndex -> {
                         curTextChapter =
@@ -431,6 +427,16 @@ object ReadBook {
 
     private val imageStyle get() = webBook?.bookSource?.ruleContent?.imageStyle
 
+    fun pageAnim(): Int {
+        book?.let {
+            return if (it.getPageAnim() < 0)
+                ReadBookConfig.pageAnim
+            else
+                it.getPageAnim()
+        }
+        return ReadBookConfig.pageAnim
+    }
+
     fun setCharset(charset: String) {
         book?.let {
             it.charset = charset
@@ -460,6 +466,7 @@ object ReadBook {
         fun upView()
         fun pageChanged()
         fun contentLoadFinish()
+        fun upPageAnim()
     }
 
 }
