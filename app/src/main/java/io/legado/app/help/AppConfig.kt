@@ -7,7 +7,24 @@ import io.legado.app.R
 import io.legado.app.constant.PreferKey
 import io.legado.app.utils.*
 
+@Suppress("MemberVisibilityCanBePrivate")
 object AppConfig {
+    var isEInkMode: Boolean = false
+    val isGooglePlay: Boolean
+    val isCoolApk: Boolean
+    var replaceEnableDefault: Boolean = true
+    val sysElevation = App.INSTANCE.resources.getDimension(R.dimen.design_appbar_elevation).toInt()
+
+    init {
+        upConfig()
+        isGooglePlay = App.INSTANCE.channel == "google"
+        isCoolApk = App.INSTANCE.channel == "coolApk"
+    }
+
+    fun upConfig() {
+        upEInkMode()
+        upReplaceEnableDefault()
+    }
 
     fun isNightTheme(context: Context): Boolean {
         return when (context.getPrefString(PreferKey.themeMode, "0")) {
@@ -30,8 +47,9 @@ object AppConfig {
             }
         }
 
-    val isEInkMode: Boolean
-        get() = App.INSTANCE.getPrefString(PreferKey.themeMode) == "3"
+    fun upEInkMode() {
+        isEInkMode = App.INSTANCE.getPrefString(PreferKey.themeMode) == "3"
+    }
 
     var isTransparentStatusBar: Boolean
         get() = App.INSTANCE.getPrefBoolean(PreferKey.transparentStatusBar)
@@ -83,8 +101,6 @@ object AppConfig {
             App.INSTANCE.putPrefInt(PreferKey.ttsSpeechRate, value)
         }
 
-    val clickAllNext: Boolean get() = App.INSTANCE.getPrefBoolean(PreferKey.clickAllNext, false)
-
     var chineseConverterType: Int
         get() = App.INSTANCE.getPrefInt(PreferKey.chineseConverterType)
         set(value) {
@@ -99,23 +115,20 @@ object AppConfig {
 
     var elevation: Int
         @SuppressLint("PrivateResource")
-        get() = App.INSTANCE.getPrefInt(
-            PreferKey.barElevation,
-            App.INSTANCE.resources.getDimension(R.dimen.design_appbar_elevation).toInt()
-        )
+        get() = App.INSTANCE.getPrefInt(PreferKey.barElevation, sysElevation)
         set(value) {
             App.INSTANCE.putPrefInt(PreferKey.barElevation, value)
         }
 
-    var replaceEnableDefault: Boolean =
-        App.INSTANCE.getPrefBoolean(PreferKey.replaceEnableDefault, true)
+    val autoChangeSource: Boolean
+        get() = App.INSTANCE.getPrefBoolean(PreferKey.autoChangeSource, true)
 
-    val autoChangeSource: Boolean get() = App.INSTANCE.getPrefBoolean("autoChangeSource", true)
+    val readBodyToLh: Boolean
+        get() = App.INSTANCE.getPrefBoolean(PreferKey.readBodyToLh, true)
 
-    val readBodyToLh: Boolean get() = App.INSTANCE.getPrefBoolean(PreferKey.readBodyToLh, true)
+    fun upReplaceEnableDefault() {
+        replaceEnableDefault =
+            App.INSTANCE.getPrefBoolean(PreferKey.replaceEnableDefault, true)
+    }
 
-    val isGooglePlay: Boolean get() = App.INSTANCE.channel == "google"
-
-    val isCoolApk: Boolean get() = App.INSTANCE.channel == "coolApk"
 }
-

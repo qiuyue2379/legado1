@@ -7,6 +7,10 @@
 * 每本书可以单独设置翻页动画,在菜单里
 * 添加重新分段功能,针对每本书,在菜单里,分段代码来自[tumuyan](https://github.com/tumuyan)
 
+**2020/10/26**
+* 点击书籍分组可显示书籍数量
+* 升级到SDK30
+
 **2020/10/23**
 * js添加java.getCookie(sourceUrl)来获取登录后的cookie by [AndyBernie](https://github.com/AndyBernie)
 * 修复简繁转换没有处理标题

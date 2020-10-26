@@ -2,6 +2,7 @@ package io.legado.app.base
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.Menu
@@ -34,7 +35,7 @@ abstract class BaseActivity(
 
     val isInMultiWindow: Boolean
         get() {
-            return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 isInMultiWindowMode
             } else {
                 false
@@ -63,7 +64,7 @@ abstract class BaseActivity(
         setupSystemBar()
         super.onCreate(savedInstanceState)
         setContentView(layoutID)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             findViewById<TitleBar>(R.id.title_bar)
                 ?.onMultiWindowModeChanged(isInMultiWindowMode, fullScreen)
         }
@@ -100,24 +101,19 @@ abstract class BaseActivity(
         } ?: super.onCreateOptionsMenu(menu)
     }
 
-    override fun onMenuOpened(featureId: Int, menu: Menu?): Boolean {
-        menu?.let {
-            menu.applyOpenTint(this)
-            return super.onMenuOpened(featureId, menu)
-        }
-        return true
+    override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
+        menu.applyOpenTint(this)
+        return super.onMenuOpened(featureId, menu)
     }
 
     open fun onCompatCreateOptionsMenu(menu: Menu) = super.onCreateOptionsMenu(menu)
 
-    final override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        item?.let {
-            if (it.itemId == android.R.id.home) {
-                supportFinishAfterTransition()
-                return true
-            }
+    final override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            supportFinishAfterTransition()
+            return true
         }
-        return item != null && onCompatOptionsItemSelected(item)
+        return onCompatOptionsItemSelected(item)
     }
 
     open fun onCompatOptionsItemSelected(item: MenuItem) = super.onOptionsItemSelected(item)
