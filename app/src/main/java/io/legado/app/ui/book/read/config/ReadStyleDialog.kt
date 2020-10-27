@@ -3,7 +3,6 @@ package io.legado.app.ui.book.read.config
 import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.*
 import androidx.core.view.get
 import io.legado.app.R
@@ -36,10 +35,6 @@ class ReadStyleDialog : BaseDialogFragment(), FontSelectDialog.CallBack {
 
     override fun onStart() {
         super.onStart()
-        val dm = DisplayMetrics()
-        activity?.let {
-            it.windowManager?.defaultDisplay?.getMetrics(dm)
-        }
         dialog?.window?.let {
             it.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             it.setBackgroundDrawableResource(R.color.background)
@@ -170,7 +165,7 @@ class ReadStyleDialog : BaseDialogFragment(), FontSelectDialog.CallBack {
 
     @SuppressLint("InflateParams")
     private fun showTitleConfig() = ReadBookConfig.apply {
-        requireContext().alert(R.string.title) {
+        alert(R.string.title) {
             val rootView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_title_config, null).apply {
                     rg_title_mode.checkByIndex(titleMode)
@@ -250,6 +245,7 @@ class ReadStyleDialog : BaseDialogFragment(), FontSelectDialog.CallBack {
             payloads: MutableList<Any>
         ) {
             holder.itemView.apply {
+                iv_style.setText(item.name.ifBlank { "文字" })
                 iv_style.setTextColor(item.curTextColor())
                 iv_style.setImageDrawable(item.curBgDrawable(100, 150))
                 if (ReadBookConfig.styleSelect == holder.layoutPosition) {
