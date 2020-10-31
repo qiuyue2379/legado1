@@ -127,10 +127,14 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
             lastPath.isContentPath() -> {
                 val rootUri = Uri.parse(lastPath)
                 rootDoc = DocumentFile.fromTreeUri(this, rootUri)
-                subDocs.clear()
-                upPath()
+                if (rootDoc == null) {
+                    FilePicker.selectFolder(this, requestCodeSelectFolder)
+                } else {
+                    subDocs.clear()
+                    upPath()
+                }
             }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+            Build.VERSION.SDK_INT > Build.VERSION_CODES.Q -> {
                 FilePicker.selectFolder(this, requestCodeSelectFolder)
             }
             else -> PermissionsCompat.Builder(this)
