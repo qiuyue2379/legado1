@@ -1,5 +1,8 @@
 package io.legado.app.ui.filepicker
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -17,6 +20,7 @@ import io.legado.app.ui.filepicker.adapter.PathAdapter
 import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.*
 import kotlinx.android.synthetic.main.dialog_file_chooser.*
+import java.io.File
 
 
 class FilePickerDialog : DialogFragment(),
@@ -145,8 +149,7 @@ class FilePickerDialog : DialogFragment(),
     override fun onMenuItemClick(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.menu_ok -> fileAdapter.currentPath?.let {
-                (parentFragment as? CallBack)?.onFilePicked(requestCode, it)
-                (activity as? CallBack)?.onFilePicked(requestCode, it)
+                setData(it)
                 dismiss()
             }
             else -> item?.title?.let {
@@ -169,8 +172,7 @@ class FilePickerDialog : DialogFragment(),
                 } else if (allowExtensions == null ||
                     allowExtensions?.contains(FileUtils.getExtension(path)) == true
                 ) {
-                    (parentFragment as? CallBack)?.onFilePicked(requestCode, path)
-                    (activity as? CallBack)?.onFilePicked(requestCode, path)
+                    setData(path)
                     dismiss()
                 } else {
                     toast("不能打开此文件")
@@ -205,8 +207,16 @@ class FilePickerDialog : DialogFragment(),
         }
     }
 
+    private fun setData(path: String) {
+        val data = Intent().setData(Uri.fromFile(File(path)))
+        (parentFragment as? CallBack)
+            ?.onActivityResult(requestCode, Activity.RESULT_OK, data)
+        (activity as? CallBack)
+            ?.onActivityResult(requestCode, Activity.RESULT_OK, data)
+    }
+
     interface CallBack {
-        fun onFilePicked(requestCode: Int, currentPath: String)
+        fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
         fun onMenuClick(menu: String) {}
     }
 }

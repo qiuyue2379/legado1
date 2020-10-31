@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.anko.sdk27.listeners.onClick
+import org.jetbrains.anko.toast
 import java.io.File
 import java.util.*
 
@@ -62,6 +63,24 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
         return super.onCompatCreateOptionsMenu(menu)
     }
 
+    override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_select_folder -> FilePicker.selectFolder(this, requestCodeSelectFolder)
+            R.id.menu_scan_folder -> scanFolder()
+        }
+        return super.onCompatOptionsItemSelected(item)
+    }
+
+    override fun onMenuItemClick(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.menu_del_selection ->
+                viewModel.deleteDoc(adapter.selectedUris) {
+                    upPath()
+                }
+        }
+        return false
+    }
+
     private fun initView() {
         lay_top.setBackgroundColor(backgroundColor)
         recycler_view.layoutManager = LinearLayoutManager(this)
@@ -92,23 +111,6 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
         tv_go_back.onClick {
             goBackDir()
         }
-    }
-
-    override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.menu_select_folder -> FilePicker.selectFolder(this, requestCodeSelectFolder)
-        }
-        return super.onCompatOptionsItemSelected(item)
-    }
-
-    override fun onMenuItemClick(item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.menu_del_selection ->
-                viewModel.deleteDoc(adapter.selectedUris) {
-                    upPath()
-                }
-        }
-        return false
     }
 
     private fun initData() {
@@ -229,11 +231,26 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
         adapter.setData(docList)
     }
 
-    override fun onFilePicked(requestCode: Int, currentPath: String) {
-        when (requestCode) {
-            requestCodeSelectFolder -> {
-                AppConfig.importBookPath = currentPath
-                initRootDoc()
+    /**
+     * 扫描当前文件夹
+     */
+    private fun scanFolder() {
+        rootDoc?.let { doc ->
+            adapter.clearItems()
+            val lastDoc = subDocs.lastOrNull() ?: doc
+            viewModel.scanDoc(lastDoc) {
+                adapter.addItem(it)
+            }
+        } ?: let {
+            val lastPath = AppConfig.importBookPath
+            if (lastPath.isNullOrEmpty()) {
+                toast(R.string.empty_msg_import_book)
+            } else {
+                adapter.clearItems()
+                val file = File(path)
+                viewModel.scanFile(file) {
+                    adapter.addItem(it)
+                }
             }
         }
     }
@@ -243,12 +260,19 @@ class ImportBookActivity : VMBaseActivity<ImportBookViewModel>(R.layout.activity
         when (requestCode) {
             requestCodeSelectFolder -> if (resultCode == Activity.RESULT_OK) {
                 data?.data?.let { uri ->
-                    contentResolver.takePersistableUriPermission(
-                        uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    )
-                    AppConfig.importBookPath = uri.toString()
-                    initRootDoc()
+                    if (uri.isContentPath()) {
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                        AppConfig.importBookPath = uri.toString()
+                        initRootDoc()
+                    } else {
+                        uri.path?.let { path ->
+                            AppConfig.importBookPath = path
+                            initRootDoc()
+                        }
+                    }
                 }
             }
         }
