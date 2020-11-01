@@ -121,7 +121,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     //fireBase
-    implementation 'com.google.firebase:firebase-analytics-ktx:17.6.0'
+    implementation 'com.google.firebase:firebase-analytics-ktx:18.0.0'
     implementation 'com.google.firebase:firebase-crashlytics-ktx:17.2.2'
 
     //androidX
@@ -129,7 +129,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.media:media:1.2.0'
     implementation 'androidx.preference:preference-ktx:1.1.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'com.google.android.material:material:1.2.1'
@@ -165,14 +165,13 @@ dependencies {
 
     //规则相关
     implementation 'org.jsoup:jsoup:1.13.1'
-    implementation 'cn.wanghaomiao:JsoupXpath:2.3.2'
+    implementation 'cn.wanghaomiao:JsoupXpath:2.4.2'
     implementation 'com.jayway.jsonpath:json-path:2.4.0'
 
     //JS rhino
     implementation 'com.github.gedoor:rhino-android:1.4'
 
     //网络
-    //noinspection GradleDependency
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
 
