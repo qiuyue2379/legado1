@@ -51,7 +51,7 @@ class BookInfoActivity :
     ChangeCoverDialog.CallBack {
 
     private val requestCodeChapterList = 568
-    private val requestCodeSourceEdit = 562
+    private val requestCodeInfoEdit = 562
     private val requestCodeRead = 432
 
     override val viewModel: BookInfoViewModel
@@ -82,7 +82,7 @@ class BookInfoActivity :
                 if (viewModel.inBookshelf) {
                     viewModel.bookData.value?.let {
                         startActivityForResult<BookInfoEditActivity>(
-                            requestCodeSourceEdit,
+                            requestCodeInfoEdit,
                             Pair("bookUrl", it.bookUrl)
                         )
                     }
@@ -106,6 +106,9 @@ class BookInfoActivity :
                     viewModel.loadBookInfo(it, false)
                 }
             }
+            R.id.menu_copy_url -> viewModel.bookData.value?.bookUrl?.let {
+                sendToClip(it)
+            } ?: toast(R.string.no_book)
             R.id.menu_can_update -> {
                 if (viewModel.inBookshelf) {
                     viewModel.bookData.value?.let {
@@ -368,7 +371,7 @@ class BookInfoActivity :
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            requestCodeSourceEdit ->
+            requestCodeInfoEdit ->
                 if (resultCode == Activity.RESULT_OK) {
                     viewModel.upEditBook()
                 }

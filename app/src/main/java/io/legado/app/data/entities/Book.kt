@@ -14,6 +14,7 @@ import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.nio.charset.Charset
 import kotlin.math.max
+import kotlin.math.min
 
 @Parcelize
 @TypeConverters(Book.Converters::class)
@@ -53,7 +54,7 @@ data class Book(
     var originOrder: Int = 0,                   //书源排序
     var variable: String? = null,               // 自定义书籍变量信息(用于书源规则检索书籍信息)
     var readConfig: ReadConfig? = null
-): Parcelable, BaseBook {
+) : Parcelable, BaseBook {
     
     fun isLocalBook(): Boolean {
         return origin == BookType.local
@@ -146,7 +147,10 @@ data class Book(
     }
 
     fun getFolderName(): String {
-        return name.replace(AppPattern.fileNameRegex, "") + MD5Utils.md5Encode16(bookUrl)
+        //防止书名过长,只取9位
+        var folderName = name.replace(AppPattern.fileNameRegex, "")
+        folderName = folderName.substring(0, min(9, folderName.length))
+        return folderName + MD5Utils.md5Encode16(bookUrl)
     }
     
     fun toSearchBook() = SearchBook(
