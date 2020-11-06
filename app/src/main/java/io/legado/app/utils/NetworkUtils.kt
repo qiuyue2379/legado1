@@ -121,7 +121,7 @@ object NetworkUtils {
             baseUrl.substring(baseUrl.lastIndexOf("/") + 1)
         } else baseUrl.substring(baseUrl.indexOf(".") + 1)
     }
-    
+
     /**
      * Get local Ip address.
      */

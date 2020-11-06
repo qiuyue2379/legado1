@@ -55,62 +55,62 @@ data class Book(
     var variable: String? = null,               // 自定义书籍变量信息(用于书源规则检索书籍信息)
     var readConfig: ReadConfig? = null
 ) : Parcelable, BaseBook {
-    
+
     fun isLocalBook(): Boolean {
         return origin == BookType.local
     }
-    
+
     fun isLocalTxt(): Boolean {
         return isLocalBook() && originName.endsWith(".txt", true)
     }
-    
+
     fun isEpub(): Boolean {
         return originName.endsWith(".epub", true)
     }
-    
+
     fun isOnLineTxt(): Boolean {
         return !isLocalBook() && type == 0
     }
-    
+
     override fun equals(other: Any?): Boolean {
         if (other is Book) {
             return other.bookUrl == bookUrl
         }
         return false
     }
-    
+
     override fun hashCode(): Int {
         return bookUrl.hashCode()
     }
-    
+
     @delegate:Transient
     @delegate:Ignore
     @IgnoredOnParcel
     override val variableMap by lazy {
         GSON.fromJsonObject<HashMap<String, String>>(variable) ?: HashMap()
     }
-    
+
     override fun putVariable(key: String, value: String) {
         variableMap[key] = value
         variable = GSON.toJson(variableMap)
     }
-    
+
     @Ignore
     @IgnoredOnParcel
     override var infoHtml: String? = null
-    
+
     @Ignore
     @IgnoredOnParcel
     override var tocHtml: String? = null
-    
+
     fun getRealAuthor() = author.replace(AppPattern.authorRegex, "")
-    
+
     fun getUnreadChapterNum() = max(totalChapterNum - durChapterIndex - 1, 0)
-    
+
     fun getDisplayCover() = if (customCoverUrl.isNullOrEmpty()) coverUrl else customCoverUrl
-    
+
     fun getDisplayIntro() = if (customIntro.isNullOrEmpty()) intro else customIntro
-    
+
     fun fileCharset(): Charset {
         return charset(charset ?: "UTF-8")
     }
@@ -152,7 +152,7 @@ data class Book(
         folderName = folderName.substring(0, min(9, folderName.length))
         return folderName + MD5Utils.md5Encode16(bookUrl)
     }
-    
+
     fun toSearchBook() = SearchBook(
         name = name,
         author = author,
@@ -172,7 +172,7 @@ data class Book(
         this.infoHtml = this@Book.infoHtml
         this.tocHtml = this@Book.tocHtml
     }
-    
+
     fun changeTo(newBook: Book) {
         newBook.group = group
         newBook.order = order

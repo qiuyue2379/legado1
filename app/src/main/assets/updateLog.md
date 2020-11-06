@@ -4,14 +4,13 @@
 * 旧版数据导入教程：先在旧版阅读(2.x)中进行备份，然后在新版阅读(3.x)【我的】->【备份与恢复】，选择【导入旧版本数据】。
 
 **2020/11/06**
+* 详情页菜单添加拷贝URL
+* 解决一些书名太长缓存报错的bug
 * 添加备份搜索记录
 * 替换编辑界面添加正则学习教程
 * 去除解析目录时拼接相对url,提升解析速度
 * 自动分段优化 by [tumuyan](https://github.com/tumuyan)
-
-**2020/11/03**
-* 详情页菜单添加拷贝URL
-* 解决一些书名太长缓存报错的bug
+* web支持图片显示 by [六月](https://github.com/Celeter)
 
 **2020/11/01**
 * 导入本地添加智能扫描,菜单-智能扫描,扫描当前文件夹包括子文件夹下所有文件
@@ -29,17 +28,17 @@
 * 修复8.0不显示默认背景图片的bug
 * 添加排版命名
 
-**2020/10/25**
-* 每本书可以单独设置翻页动画,在菜单里
-* 添加重新分段功能,针对每本书,在菜单里,分段代码来自[tumuyan](https://github.com/tumuyan)
-
-**2020/10/23**
-* js添加java.getCookie(sourceUrl)来获取登录后的cookie by [AndyBernie](https://github.com/AndyBernie)
-* 修复简繁转换没有处理标题
-
-**2020/10/22**
+**2020/10/24**
 * 修复选择错误的bug
 * 修复长图最后一张不能滚动的bug
+* js添加java.getCookie(sourceUrl:String, key:String? = null)来获取登录后的cookie by [AndyBernie](https://github.com/AndyBernie)
+```
+java.getCookie("http://baidu.com", null) => userid=1234;pwd=adbcd
+java.getCookie("http://baidu.com", "userid") => 1234
+```
+* 修复简繁转换没有处理标题
+* 每本书可以单独设置翻页动画,在菜单里
+* 添加重新分段功能,针对每本书,在菜单里,分段代码来自[tumuyan](https://github.com/tumuyan)
 
 **2020/10/21**
 * 默认分组无书籍时自动隐藏

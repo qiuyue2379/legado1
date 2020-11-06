@@ -448,12 +448,15 @@ object ContentHelp {
             System.out.print(" [" + i + "]" + array_quote.get(i) + "/" + mod[i]);
         }
         System.out.print("\n");
+
         System.out.print("ins_q:");
         for (int i = 0; i < ins_quote.length; i++) {
             System.out.print(" " + ins_quote[i]);
         }
         System.out.print("\n");
+
         System.out.print("ins_n:");
+
         for (int i : ins_n) {
             System.out.print(" " + i);
         }

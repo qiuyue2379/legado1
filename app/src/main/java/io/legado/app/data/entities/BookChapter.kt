@@ -63,3 +63,4 @@ data class BookChapter(
         return NetworkUtils.getAbsoluteURL(baseUrl, url)!!
     }
 }
+
