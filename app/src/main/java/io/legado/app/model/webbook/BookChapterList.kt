@@ -65,16 +65,16 @@ object BookChapterList {
                                 headerMapF = bookSource.getHeaderMap()
                             ).getResponseAwait(bookSource.bookSourceUrl)
                                 .body?.let { nextBody ->
-                                chapterData = analyzeChapterList(
-                                    book, nextUrl, nextBody, tocRule, listRule, bookSource
-                                )
-                                nextUrl = if (chapterData.nextUrl.isNotEmpty()) {
-                                    chapterData.nextUrl[0]
-                                } else ""
-                                chapterData.chapterList?.let {
-                                    chapterList.addAll(it)
+                                    chapterData = analyzeChapterList(
+                                        book, nextUrl, nextBody, tocRule, listRule, bookSource
+                                    )
+                                    nextUrl = if (chapterData.nextUrl.isNotEmpty()) {
+                                        chapterData.nextUrl[0]
+                                    } else ""
+                                    chapterData.chapterList?.let {
+                                        chapterList.addAll(it)
+                                    }
                                 }
-                            }
                         }
                         Debug.log(bookSource.bookSourceUrl, "◇目录总页数:${nextUrlList.size}")
                         block.resume(finish(book, chapterList, reverse))
@@ -210,7 +210,7 @@ object BookChapterList {
         log: Boolean = false
     ): ChapterData<List<String>> {
         val analyzeRule = AnalyzeRule(book)
-        analyzeRule.setContent(body, baseUrl)
+        analyzeRule.setContent(body).setBaseUrl(baseUrl)
         val chapterList = arrayListOf<BookChapter>()
         val nextUrlList = arrayListOf<String>()
         val nextTocRule = tocRule.nextTocUrl
@@ -241,13 +241,15 @@ object BookChapterList {
             var isVip: String?
             for (item in elements) {
                 analyzeRule.setContent(item)
-                val bookChapter = BookChapter(bookUrl = book.bookUrl)
+                val bookChapter = BookChapter(bookUrl = book.bookUrl, baseUrl = baseUrl)
                 analyzeRule.chapter = bookChapter
                 bookChapter.title = analyzeRule.getString(nameRule)
-                bookChapter.url = analyzeRule.getString(urlRule, true)
+                bookChapter.url = analyzeRule.getString(urlRule)
                 bookChapter.tag = analyzeRule.getString(update)
                 isVip = analyzeRule.getString(vipRule)
-                if (bookChapter.url.isEmpty()) bookChapter.url = baseUrl
+                if (bookChapter.url.isEmpty()) {
+                    bookChapter.url = baseUrl
+                }
                 if (bookChapter.title.isNotEmpty()) {
                     if (isVip.isNotEmpty() && isVip != "null" && isVip != "false" && isVip != "0") {
                         bookChapter.title = "\uD83D\uDD12" + bookChapter.title
