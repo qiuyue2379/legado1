@@ -9,13 +9,14 @@ import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.data.entities.RssSource
+import io.legado.app.help.SourceHelp
 import io.legado.app.help.http.HttpHelper
 import io.legado.app.help.storage.Restore
 import io.legado.app.utils.*
 import java.io.File
 
 class ImportRssSourceViewModel(app: Application) : BaseViewModel(app) {
-
+    var groupName: String? = null
     val errorLiveData = MutableLiveData<String>()
     val successLiveData = MutableLiveData<Int>()
 
@@ -23,6 +24,24 @@ class ImportRssSourceViewModel(app: Application) : BaseViewModel(app) {
     val sourceCheckState = arrayListOf<Boolean>()
     val selectStatus = arrayListOf<Boolean>()
 
+
+    fun importSelect(finally: () -> Unit) {
+        execute {
+            val selectSource = arrayListOf<RssSource>()
+            selectStatus.forEachIndexed { index, b ->
+                if (b) {
+                    val source = allSources[index]
+                    if (groupName != null) {
+                        source.sourceGroup = groupName
+                    }
+                    selectSource.add(source)
+                }
+            }
+            SourceHelp.insertRssSource(*selectSource.toTypedArray())
+        }.onFinally {
+            finally.invoke()
+        }
+    }
 
     fun importSourceFromFilePath(path: String) {
         execute {
