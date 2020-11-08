@@ -134,4 +134,6 @@ object AppConfig {
     val changeSourceLoadInfo get() = App.INSTANCE.getPrefBoolean(PreferKey.changeSourceLoadToc)
 
     val changeSourceLoadToc get() = App.INSTANCE.getPrefBoolean(PreferKey.changeSourceLoadToc)
+
+    val importKeepName get() = App.INSTANCE.getPrefBoolean(PreferKey.importKeepName)
 }
