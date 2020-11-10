@@ -136,4 +136,6 @@ object AppConfig {
     val changeSourceLoadToc get() = App.INSTANCE.getPrefBoolean(PreferKey.changeSourceLoadToc)
 
     val importKeepName get() = App.INSTANCE.getPrefBoolean(PreferKey.importKeepName)
+
+    val clickTurnPage get() = App.INSTANCE.getPrefBoolean(PreferKey.clickTurnPage, true)
 }

@@ -34,11 +34,10 @@ import org.jetbrains.anko.sdk27.listeners.onClick
 /**
  * 导入rss源弹出窗口
  */
-class ImportRssSourcesDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class ImportRssSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
     val viewModel: ImportRssSourceViewModel
-        get() =
-            getViewModelOfActivity(ImportRssSourceViewModel::class.java)
+        get() = getViewModelOfActivity(ImportRssSourceViewModel::class.java)
     lateinit var adapter: SourcesAdapter
 
     override fun onStart() {
@@ -58,7 +57,7 @@ class ImportRssSourcesDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
-        tool_bar.title = getString(R.string.import_rss_source)
+        tool_bar.setTitle(R.string.import_rss_source)
         initMenu()
         adapter = SourcesAdapter(requireContext())
         recycler_view.layoutManager = LinearLayoutManager(requireContext())
@@ -156,6 +155,5 @@ class ImportRssSourcesDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
             }
         }
     }
-
 
 }
