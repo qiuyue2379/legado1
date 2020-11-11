@@ -229,6 +229,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
                 )
             }
             R.id.menu_set_charset -> showCharsetConfig()
+            R.id.menu_help -> showReadMenuHelp()
         }
         return super.onCompatOptionsItemSelected(item)
     }
@@ -557,7 +558,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         viewModel.changeTo(book)
     }
 
-    override fun clickCenter() {
+    override fun showActionMenu() {
         when {
             BaseReadAloudService.isRun -> {
                 showReadAloudDialog()
@@ -571,6 +572,11 @@ class ReadBookActivity : ReadBookBaseActivity(),
         }
     }
 
+    override fun showReadMenuHelp() {
+        val text = String(assets.open("help/readMenuHelp.md").readBytes())
+        TextDialog.show(supportFragmentManager, text, TextDialog.MD)
+    }
+
     /**
      * 显示朗读菜单
      */
@@ -582,6 +588,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
      * 自动翻页
      */
     override fun autoPage() {
+        ReadAloud.stop(this)
         if (isAutoPage) {
             autoPageStop()
         } else {
@@ -601,14 +608,18 @@ class ReadBookActivity : ReadBookBaseActivity(),
 
     private fun autoPagePlus() {
         mHandler.removeCallbacks(autoPageRunnable)
-        autoPageProgress++
-        if (autoPageProgress >= ReadBookConfig.autoReadSpeed * 10) {
-            autoPageProgress = 0
-            page_view.fillPage(PageDelegate.Direction.NEXT)
+        if (page_view.isScroll) {
+            page_view.curPage.scroll(-page_view.height / ReadBookConfig.autoReadSpeed / 50)
         } else {
-            page_view.invalidate()
+            autoPageProgress++
+            if (autoPageProgress >= ReadBookConfig.autoReadSpeed * 50) {
+                autoPageProgress = 0
+                page_view.fillPage(PageDelegate.Direction.NEXT)
+            } else {
+                page_view.invalidate()
+            }
         }
-        mHandler.postDelayed(autoPageRunnable, 100)
+        mHandler.postDelayed(autoPageRunnable, 20)
     }
 
     /**
@@ -669,6 +680,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
      * 朗读按钮
      */
     override fun onClickReadAloud() {
+        autoPageStop()
         when {
             !BaseReadAloudService.isRun -> ReadBook.readAloud()
             BaseReadAloudService.pause -> ReadAloud.resume(this)
