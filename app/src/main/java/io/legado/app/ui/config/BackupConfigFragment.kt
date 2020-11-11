@@ -153,11 +153,10 @@ class BackupConfigFragment : BasePreferenceFragment(),
             multiChoiceItems(Restore.ignoreTitle, checkedItems) { _, which, isChecked ->
                 Restore.ignoreConfig[Restore.ignoreKeys[which]] = isChecked
             }
-        }.show()
-            .applyTint()
-            .setOnDismissListener {
+            onDismiss {
                 Restore.saveIgnoreConfig()
             }
+        }.show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
