@@ -45,4 +45,13 @@ object LocalConfig {
             return value
         }
 
+    val isFirstOpenBookSources: Boolean
+        get() {
+            val value = localConfig.getBoolean("firstOpenBookSources", true)
+            if (value) {
+                localConfig.edit { putBoolean("firstOpenBookSources", false) }
+            }
+            return value
+        }
+
 }

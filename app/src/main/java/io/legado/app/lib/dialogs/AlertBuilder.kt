@@ -94,24 +94,25 @@ interface AlertBuilder<out D : DialogInterface> {
 
     fun build(): D
     fun show(): D
+
+
+    fun customTitle(view: () -> View) {
+        customTitle = view()
+    }
+
+    fun customView(view: () -> View) {
+        customView = view()
+    }
+
+    fun okButton(handler: ((dialog: DialogInterface) -> Unit)? = null) =
+        positiveButton(android.R.string.ok, handler)
+
+    fun cancelButton(handler: ((dialog: DialogInterface) -> Unit)? = null) =
+        negativeButton(android.R.string.cancel, handler)
+
+    fun yesButton(handler: ((dialog: DialogInterface) -> Unit)? = null) =
+        positiveButton(R.string.yes, handler)
+
+    fun noButton(handler: ((dialog: DialogInterface) -> Unit)? = null) =
+        negativeButton(R.string.no, handler)
 }
-
-fun AlertBuilder<*>.customTitle(view: () -> View) {
-    customTitle = view()
-}
-
-fun AlertBuilder<*>.customView(view: () -> View) {
-    customView = view()
-}
-
-inline fun AlertBuilder<*>.okButton(noinline handler: ((dialog: DialogInterface) -> Unit)? = null) =
-    positiveButton(android.R.string.ok, handler)
-
-inline fun AlertBuilder<*>.cancelButton(noinline handler: ((dialog: DialogInterface) -> Unit)? = null) =
-    negativeButton(android.R.string.cancel, handler)
-
-inline fun AlertBuilder<*>.yesButton(noinline handler: ((dialog: DialogInterface) -> Unit)? = null) =
-    positiveButton(R.string.yes, handler)
-
-inline fun AlertBuilder<*>.noButton(noinline handler: ((dialog: DialogInterface) -> Unit)? = null) =
-    negativeButton(R.string.no, handler)

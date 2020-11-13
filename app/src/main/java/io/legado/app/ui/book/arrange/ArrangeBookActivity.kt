@@ -15,8 +15,6 @@ import io.legado.app.constant.PreferKey
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.lib.dialogs.alert
-import io.legado.app.lib.dialogs.noButton
-import io.legado.app.lib.dialogs.okButton
 import io.legado.app.lib.theme.ATH
 import io.legado.app.ui.book.group.GroupManageDialog
 import io.legado.app.ui.book.group.GroupSelectDialog
@@ -148,7 +146,7 @@ class ArrangeBookActivity : VMBaseActivity<ArrangeBookViewModel>(R.layout.activi
             R.id.menu_del_selection ->
                 alert(titleResource = R.string.draw, messageResource = R.string.sure_del) {
                     okButton { viewModel.deleteBook(*adapter.selectedBooks()) }
-                    noButton { }
+                    noButton()
                 }.show()
             R.id.menu_update_enable ->
                 viewModel.upCanUpdate(adapter.selectedBooks(), true)

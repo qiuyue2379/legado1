@@ -16,9 +16,6 @@ import io.legado.app.constant.AppConst
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.lib.dialogs.alert
-import io.legado.app.lib.dialogs.customView
-import io.legado.app.lib.dialogs.noButton
-import io.legado.app.lib.dialogs.okButton
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.ui.book.arrange.ArrangeBookActivity
@@ -145,7 +142,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
 
     @SuppressLint("InflateParams")
     private fun configBookshelf() {
-        requireContext().alert(titleResource = R.string.bookshelf_layout) {
+        alert(titleResource = R.string.bookshelf_layout) {
             val bookshelfLayout = getPrefInt(PreferKey.bookshelfLayout)
             val bookshelfSort = getPrefInt(PreferKey.bookshelfSort)
             val root = LayoutInflater.from(requireContext())
@@ -188,7 +185,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
                     viewModel.addBookByUrl(it)
                 }
             }
-            noButton { }
+            noButton()
         }.show()
     }
 

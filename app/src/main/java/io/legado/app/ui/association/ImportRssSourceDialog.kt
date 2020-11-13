@@ -18,9 +18,6 @@ import io.legado.app.constant.PreferKey
 import io.legado.app.data.entities.RssSource
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
-import io.legado.app.lib.dialogs.customView
-import io.legado.app.lib.dialogs.noButton
-import io.legado.app.lib.dialogs.okButton
 import io.legado.app.ui.widget.text.AutoCompleteTextView
 import io.legado.app.utils.getViewModelOfActivity
 import io.legado.app.utils.putPrefBoolean
@@ -97,7 +94,7 @@ class ImportRssSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListe
                             item.title = getString(R.string.diy_edit_source_group_title, group)
                         }
                     }
-                    noButton { }
+                    noButton()
                 }.show()
             }
             R.id.menu_select_all -> {
