@@ -3,6 +3,15 @@
 * 关注合作公众号 **[小说拾遗]** 获取好看的小说。
 * 旧版数据导入教程：先在旧版阅读(2.x)中进行备份，然后在新版阅读(3.x)【我的】->【备份与恢复】，选择【导入旧版本数据】。
 
+**2020/11/22**
+* 正文字体处理规则修改,只能写js,不需要js标记
+```
+var b64=String(result).match(/ttf;base64,([^\)]+)/);
+var f1 = java.queryBase64TTF(b64[1])
+var f2 = java.queryTTF("/storage/emulated/0/Fonts/Source Han Sans CN Regular.ttf")
+java.replaceFont(content, f1, f2, 58000,59000)
+```
+
 **2020/11/18**
 * 优化导航栏
 * js添加java.log(msg: String)用于调试时输出消息
