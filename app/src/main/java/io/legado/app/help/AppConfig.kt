@@ -155,3 +155,4 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
         return ua
     }
 }
+

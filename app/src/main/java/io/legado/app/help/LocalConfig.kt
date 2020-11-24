@@ -62,5 +62,4 @@ object LocalConfig {
             }
             return value
         }
-
 }

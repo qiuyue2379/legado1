@@ -162,7 +162,7 @@ class SearchContentActivity :
     private suspend fun searchChapter(query: String, chapter: BookChapter?): List<SearchResult> {
         val searchResults: MutableList<SearchResult> = mutableListOf()
         var positions: List<Int>
-        var replaceContents: List<String>? = null
+        var replaceContents: List<String>?
         var totalContents: String
         if (chapter != null) {
             viewModel.book?.let { book ->

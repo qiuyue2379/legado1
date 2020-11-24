@@ -74,3 +74,4 @@ data class BookChapter(
 
     fun getFontName(): String = String.format("%05d-%s.ttf", index, MD5Utils.md5Encode16(title))
 }
+

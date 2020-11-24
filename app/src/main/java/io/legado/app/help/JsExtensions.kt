@@ -241,29 +241,25 @@ interface JsExtensions {
         return null
     }
 
-    fun queryTTF(path: String): QueryTTF? {
-        val key = md5Encode16(path)
+    fun queryTTF(str: String?): QueryTTF? {
+        str ?: return null
+        val key = md5Encode16(str)
         var qTTF = CacheManager.getQueryTTF(key)
-        if (qTTF != null) {
-            return qTTF
-        }
+        if (qTTF != null) return qTTF
         val font: ByteArray? = when {
-            path.isAbsUrl() -> runBlocking {
+            str.isAbsUrl() -> runBlocking {
                 var x = CacheManager.getByteArray(key)
                 if (x == null) {
-                    x = HttpHelper.simpleGetBytesAsync(path)
+                    x = HttpHelper.simpleGetBytesAsync(str)
                     x?.let {
                         CacheManager.put(key, it)
                     }
                 }
                 return@runBlocking x
             }
-            path.isContentScheme() -> {
-                Uri.parse(path).readBytes(App.INSTANCE)
-            }
-            else -> {
-                File(path).readBytes()
-            }
+            str.isContentScheme() -> Uri.parse(str).readBytes(App.INSTANCE)
+            str.startsWith("/storage") -> File(str).readBytes()
+            else -> base64DecodeToByteArray(str)
         }
         font ?: return null
         qTTF = QueryTTF(font)
@@ -274,18 +270,15 @@ interface JsExtensions {
     fun replaceFont(
         text: String,
         font1: QueryTTF?,
-        font2: QueryTTF?,
-        start: Int,
-        end: Int
+        font2: QueryTTF?
     ): String {
-        if (font1 == null || font2 == null) {
-            return text
-        }
+        if (font1 == null || font2 == null) return text
         val contentArray = text.toCharArray()
         contentArray.forEachIndexed { index, s ->
-            if (s > start.toChar() && s < end.toChar()) {
-                val code = font2.GetCodeByGlyf(font1.GetGlyfByCode(s.toInt()))
-                contentArray[index] = code.toChar()
+            val oldCode = s.toInt()
+            if (font1.InLimit(s)) {
+                val code = font2.GetCodeByGlyf(font1.GetGlyfByCode(oldCode))
+                if(code != 0) contentArray[index] = code.toChar()
             }
         }
         return contentArray.joinToString("")

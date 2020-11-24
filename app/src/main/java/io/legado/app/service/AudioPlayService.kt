@@ -91,8 +91,8 @@ class AudioPlayService : BaseService(),
                 }
                 IntentAction.pause -> pause(true)
                 IntentAction.resume -> resume()
-                IntentAction.prev -> moveToPrev()
-                IntentAction.next -> moveToNext()
+                IntentAction.prev -> AudioPlay.prev(this)
+                IntentAction.next -> AudioPlay.next(this)
                 IntentAction.adjustSpeed -> upSpeed(intent.getFloatExtra("adjust", 1f))
                 IntentAction.addTimer -> addTimer()
                 IntentAction.setTimer -> setTimer(intent.getIntExtra("minute", 0))
@@ -131,6 +131,7 @@ class AudioPlayService : BaseService(),
                 mediaPlayer.setDataSource(this, uri, analyzeUrl.headerMap)
                 mediaPlayer.prepareAsync()
             } catch (e: Exception) {
+                e.printStackTrace()
                 launch {
                     toast("$url ${e.localizedMessage}")
                     stopSelf()
@@ -147,7 +148,7 @@ class AudioPlayService : BaseService(),
                 AudioPlayService.pause = pause
                 handler.removeCallbacks(mpRunnable)
                 position = mediaPlayer.currentPosition
-                mediaPlayer.pause()
+                if (mediaPlayer.isPlaying) mediaPlayer.pause()
                 upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED)
                 AudioPlay.status = Status.PAUSE
                 postEvent(EventBus.AUDIO_STATE, Status.PAUSE)
@@ -160,8 +161,10 @@ class AudioPlayService : BaseService(),
 
     private fun resume() {
         pause = false
-        mediaPlayer.start()
-        mediaPlayer.seekTo(position)
+        if (!mediaPlayer.isPlaying) {
+            mediaPlayer.start()
+            mediaPlayer.seekTo(position)
+        }
         handler.removeCallbacks(mpRunnable)
         handler.postDelayed(mpRunnable, 1000)
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
@@ -227,7 +230,7 @@ class AudioPlayService : BaseService(),
      */
     override fun onCompletion(mp: MediaPlayer?) {
         handler.removeCallbacks(mpRunnable)
-        moveToNext()
+        AudioPlay.next(this)
     }
 
     private fun setTimer(minute: Int) {
@@ -271,7 +274,6 @@ class AudioPlayService : BaseService(),
                         if (index == AudioPlay.durChapterIndex) {
                             bookChapter = chapter
                             subtitle = chapter.title
-                            postEvent(EventBus.AUDIO_SUB_TITLE, subtitle)
                             postEvent(EventBus.AUDIO_SIZE, chapter.end?.toInt() ?: 0)
                             postEvent(EventBus.AUDIO_PROGRESS, position)
                         }
@@ -330,45 +332,6 @@ class AudioPlayService : BaseService(),
         }
     }
 
-    private fun moveToPrev() {
-        if (AudioPlay.durChapterIndex > 0) {
-            mediaPlayer.pause()
-            AudioPlay.durChapterIndex--
-            AudioPlay.durPageIndex = 0
-            AudioPlay.book?.durChapterIndex = AudioPlay.durChapterIndex
-            saveRead()
-            position = 0
-            loadContent(AudioPlay.durChapterIndex)
-        }
-    }
-
-    private fun moveToNext() {
-        if (AudioPlay.durChapterIndex < AudioPlay.chapterSize - 1) {
-            mediaPlayer.pause()
-            AudioPlay.durChapterIndex++
-            AudioPlay.durPageIndex = 0
-            AudioPlay.book?.durChapterIndex = AudioPlay.durChapterIndex
-            saveRead()
-            position = 0
-            loadContent(AudioPlay.durChapterIndex)
-        } else {
-            stopSelf()
-        }
-    }
-
-    private fun saveRead() {
-        launch(IO) {
-            AudioPlay.book?.let { book ->
-                book.lastCheckCount = 0
-                book.durChapterTime = System.currentTimeMillis()
-                book.durChapterIndex = AudioPlay.durChapterIndex
-                book.durChapterPos = AudioPlay.durPageIndex
-                book.durChapterTitle = subtitle
-                App.db.bookDao().update(book)
-            }
-        }
-    }
-
     private fun saveProgress() {
         launch(IO) {
             AudioPlay.book?.let {
@@ -417,8 +380,7 @@ class AudioPlayService : BaseService(),
         })
         mediaSessionCompat?.setMediaButtonReceiver(
             PendingIntent.getBroadcast(
-                this,
-                0,
+                this, 0,
                 Intent(
                     Intent.ACTION_MEDIA_BUTTON,
                     null,

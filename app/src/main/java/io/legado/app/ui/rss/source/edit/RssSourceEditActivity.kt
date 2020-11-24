@@ -218,7 +218,6 @@ class RssSourceEditActivity :
         TextDialog.show(supportFragmentManager, mdText, TextDialog.MD)
     }
 
-
     private fun showKeyboardTopPopupWindow() {
         mSoftKeyboardTool?.let {
             if (it.isShowing) return
