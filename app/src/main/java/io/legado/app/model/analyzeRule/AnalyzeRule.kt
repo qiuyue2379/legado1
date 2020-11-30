@@ -177,20 +177,24 @@ class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
      * 获取文本
      */
     @JvmOverloads
-    fun getString(ruleStr: String?, isUrl: Boolean = false): String {
+    fun getString(ruleStr: String?, isUrl: Boolean = false, value: String? = null): String {
         if (TextUtils.isEmpty(ruleStr)) return ""
         val ruleList = splitSourceRule(ruleStr)
-        return getString(ruleList, isUrl)
+        return getString(ruleList, isUrl, value)
     }
 
     @JvmOverloads
-    fun getString(ruleList: List<SourceRule>, isUrl: Boolean = false): String {
-        var result: Any? = null
+    fun getString(
+        ruleList: List<SourceRule>,
+        isUrl: Boolean = false,
+        value: String? = null
+    ): String {
+        var result: Any? = value
         val content = this.content
-        if (content != null && ruleList.isNotEmpty()) {
-            result = content
-            if (content is NativeObject) {
-                result = content[ruleList[0].rule]?.toString()
+        if ((content != null || result != null) && ruleList.isNotEmpty()) {
+            if (result == null) result = content
+            if (result is NativeObject) {
+                result = result[ruleList[0].rule]?.toString()
             } else {
                 for (sourceRule in ruleList) {
                     putRule(sourceRule.putMap)
@@ -621,7 +625,7 @@ class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
     /**
      * 执行JS
      */
-    fun evalJS(jsStr: String, result: Any?, content: String? = null): Any? {
+    fun evalJS(jsStr: String, result: Any?): Any? {
         val bindings = SimpleBindings()
         bindings["java"] = this
         bindings["cookie"] = CookieStore
@@ -631,7 +635,7 @@ class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
         bindings["baseUrl"] = baseUrl
         bindings["chapter"] = chapter
         bindings["title"] = chapter?.title
-        bindings["content"] = content
+        bindings["src"] = content
         return SCRIPT_ENGINE.eval(jsStr, bindings)
     }
 

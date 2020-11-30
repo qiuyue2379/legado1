@@ -411,9 +411,8 @@
     <string name="rule_update_time">更新時間(ChapterInfo)</string>
     <string name="rule_book_content">正文規則(content)</string>
     <string name="rule_next_content">正文下一頁URL規則(nextContentUrl)</string>
-    <string name="rule_web_js">webJs</string>
+    <string name="rule_web_js">WebViewJs(webJs)</string>
     <string name="rule_source_regex">資源正則(sourceRegex)</string>
-    <string name="rule_font_js">字体处理js</string>
     <string name="source_icon">圖示(sourceIcon)</string>
     <string name="r_articles">列表規則(ruleArticles)</string>
     <string name="r_next">列表下一頁規則(ruleArticles)</string>
@@ -785,5 +784,6 @@
     <string name="non_action">无操作</string>
     <string name="body_title">正文标题</string>
     <string name="show_hide">显示/隐藏</string>
+    <string name="header_footer">页眉<![CDATA[&]]>页脚</string>
 
 </resources>
