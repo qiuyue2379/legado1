@@ -8,7 +8,7 @@
   * @XPath: xpath规则,直接写时以//开头可省略@XPath
   * @Json: json规则,直接写时以$.开头可省略@Json
   * : regex规则,不可省略,只可以用在书籍列表和目录列表
-
+  
 * js 变量和函数
   * java 变量-当前类
   * baseUrl 变量-当前url,String
@@ -54,6 +54,7 @@ order // 手动排序
 originOrder //书源排序
 variable // 自定义书籍变量信息(用于书源规则检索书籍信息)
  ```
+
 ### chapter对象的可用属性
 
  > 使用方法: 在js中或{{}}中使用chapter.属性的方式即可获取.如在正文内容后加上 ##{{chapter.title+chapter.index}} 可以净化 章节标题+序号(如 第二章 天仙下凡2) 这一类的字符.
@@ -69,3 +70,4 @@ variable // 自定义书籍变量信息(用于书源规则检索书籍信息)
  end // 章节终止位置
  variable //变量
  ```
+

@@ -7,14 +7,15 @@ import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.SearchBook
+import io.legado.app.databinding.ActivityExploreShowBinding
+import io.legado.app.databinding.ViewLoadMoreBinding
 import io.legado.app.ui.book.info.BookInfoActivity
 import io.legado.app.ui.widget.recycler.LoadMoreView
 import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.getViewModel
-import kotlinx.android.synthetic.main.activity_explore_show.*
 import org.jetbrains.anko.startActivity
 
-class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activity_explore_show),
+class ExploreShowActivity : VMBaseActivity<ActivityExploreShowBinding, ExploreShowViewModel>(),
     ExploreShowAdapter.CallBack {
     override val viewModel: ExploreShowViewModel
         get() = getViewModel(ExploreShowViewModel::class.java)
@@ -23,8 +24,12 @@ class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activi
     private lateinit var loadMoreView: LoadMoreView
     private var isLoading = true
 
+    override fun getViewBinding(): ActivityExploreShowBinding {
+        return ActivityExploreShowBinding.inflate(layoutInflater)
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        title_bar.title = intent.getStringExtra("exploreName")
+        binding.titleBar.title = intent.getStringExtra("exploreName")
         initRecyclerView()
         viewModel.booksData.observe(this, { upData(it) })
         viewModel.initData(intent)
@@ -32,11 +37,11 @@ class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activi
 
     private fun initRecyclerView() {
         adapter = ExploreShowAdapter(this, this)
-        recycler_view.layoutManager = LinearLayoutManager(this)
-        recycler_view.addItemDecoration(VerticalDivider(this))
-        recycler_view.adapter = adapter
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.addItemDecoration(VerticalDivider(this))
+        binding.recyclerView.adapter = adapter
         loadMoreView = LoadMoreView(this)
-        adapter.addFooterView(loadMoreView)
+        adapter.addFooterView(ViewLoadMoreBinding.bind(loadMoreView))
         loadMoreView.startLoad()
         loadMoreView.setOnClickListener {
             if (!isLoading) {
@@ -45,7 +50,7 @@ class ExploreShowActivity : VMBaseActivity<ExploreShowViewModel>(R.layout.activi
                 isLoading = true
             }
         }
-        recycler_view.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (!recyclerView.canScrollVertically(1)) {

@@ -198,6 +198,7 @@
     <string name="volume_key_page">音量鍵翻頁</string>
     <string name="click_turn_page">點擊翻頁</string>
     <string name="page_anim">翻頁動畫</string>
+    <string name="book_page_anim">翻頁動畫(本書)</string>
     <string name="keep_light">屏幕超時</string>
     <string name="back">返回</string>
     <string name="menu">菜單</string>
@@ -402,6 +403,7 @@
     <string name="book_url_pattern">書籍 URL 正則 (bookUrlPattern)</string>
     <string name="rule_book_info_init">預處理規則 (bookInfoInit)</string>
     <string name="rule_toc_url">目錄 URL 規則 (tocUrl)</string>
+    <string name="rule_can_re_name">允许修改书名作者(canReName)</string>
     <string name="rule_next_toc_url">目錄下一頁規則 (nextTocUrl)</string>
     <string name="rule_chapter_list">目錄列表規則 (chapterList)</string>
     <string name="rule_chapter_name">章節名稱規則 (ChapterName)</string>
@@ -727,8 +729,7 @@
     <string name="restore_ignore_summary">恢復時忽略一些內容不恢復,方便不同手機配置不同</string>
     <string name="read_config">閱讀界面設置</string>
     <string name="rule_image_style">图片样式(imageStyle)</string>
-    <string name="rule_replace_regex">取代規則(replaceRegex)</string>
-    <string name="rule_font_js">字体处理js</string>
+    <string name="rule_replace_regex">替换规则(replaceRegex)</string>
     <string name="group_name">分組名稱</string>
     <string name="note_content">備註內容</string>
     <string name="replace_enable_default_t">默认启用替换净化</string>

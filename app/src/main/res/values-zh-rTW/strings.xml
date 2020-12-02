@@ -45,7 +45,7 @@
     <string name="recent_reading">最近閱讀</string>
     <string name="last_read">最後閱讀</string>
     <string name="update_log">更新日誌</string>
-    <string name="bookshelf_empty">書架還空著，先去搜索書籍或從發現裏添加吧！\n如果初次使用請先關註公眾號[开源阅读]獲取書源！</string>
+    <string name="bookshelf_empty">書架還空著，先去搜尋書籍或從發現裡添加吧！\n如果初次使用請先關注公眾號[开源阅读]獲取書源！</string>
     <string name="action_search">搜尋</string>
     <string name="action_download">下載</string>
     <string name="layout_list">列表</string>
@@ -198,6 +198,7 @@
     <string name="volume_key_page">音量鍵翻頁</string>
     <string name="click_turn_page">點擊翻頁</string>
     <string name="page_anim">翻頁動畫</string>
+    <string name="book_page_anim">翻頁動畫(本書)</string>
     <string name="keep_light">螢幕超時</string>
     <string name="back">返回</string>
     <string name="menu">選單</string>
@@ -403,6 +404,7 @@
     <string name="book_url_pattern">書籍URL正則(bookUrlPattern)</string>
     <string name="rule_book_info_init">預處理規則(bookInfoInit)</string>
     <string name="rule_toc_url">目錄URL規則(tocUrl)</string>
+    <string name="rule_can_re_name">允许修改书名作者(canReName)</string>
     <string name="rule_next_toc_url">目錄下一頁規則(nextTocUrl)</string>
     <string name="rule_chapter_list">目錄列表規則(chapterList)</string>
     <string name="rule_chapter_name">章節名稱規則(ChapterName)</string>
@@ -413,6 +415,7 @@
     <string name="rule_next_content">正文下一頁URL規則(nextContentUrl)</string>
     <string name="rule_web_js">WebViewJs(webJs)</string>
     <string name="rule_source_regex">資源正則(sourceRegex)</string>
+
     <string name="source_icon">圖示(sourceIcon)</string>
     <string name="r_articles">列表規則(ruleArticles)</string>
     <string name="r_next">列表下一頁規則(ruleArticles)</string>
@@ -727,7 +730,7 @@
     <string name="restore_ignore_summary">復原時忽略一些內容不復原,方便不同手機配置不同</string>
     <string name="read_config">閱讀介面設定</string>
     <string name="rule_image_style">圖片樣式(imageStyle)</string>
-    <string name="rule_replace_regex">替换规则(replaceRegex)</string>
+    <string name="rule_replace_regex">取代規則(replaceRegex)</string>
     <string name="group_name">分組名稱</string>
     <string name="note_content">備註內容</string>
     <string name="replace_enable_default_t">預設啟用取代淨化</string>

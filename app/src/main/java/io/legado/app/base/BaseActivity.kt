@@ -10,6 +10,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.viewbinding.ViewBinding
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.constant.AppConst
@@ -24,14 +25,15 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 
 
-abstract class BaseActivity(
-    private val layoutID: Int,
+abstract class BaseActivity<VB : ViewBinding>(
     val fullScreen: Boolean = true,
     private val theme: Theme = Theme.Auto,
     private val toolBarTheme: Theme = Theme.Auto,
     private val transparent: Boolean = false
 ) : AppCompatActivity(),
     CoroutineScope by MainScope() {
+
+    protected val binding: VB by lazy { getViewBinding() }
 
     val isInMultiWindow: Boolean
         get() {
@@ -45,6 +47,8 @@ abstract class BaseActivity(
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LanguageUtils.setConfiguration(newBase))
     }
+
+    protected abstract fun getViewBinding(): VB
 
     override fun onCreateView(
         parent: View?,
@@ -61,9 +65,9 @@ abstract class BaseActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         window.decorView.disableAutoFill()
         initTheme()
-        setupSystemBar()
         super.onCreate(savedInstanceState)
-        setContentView(layoutID)
+        setContentView(binding.root)
+        setupSystemBar()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             findViewById<TitleBar>(R.id.title_bar)
                 ?.onMultiWindowModeChanged(isInMultiWindowMode, fullScreen)

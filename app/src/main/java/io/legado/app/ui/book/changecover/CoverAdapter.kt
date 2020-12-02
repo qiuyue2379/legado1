@@ -1,24 +1,33 @@
 package io.legado.app.ui.book.changecover
 
 import android.content.Context
-import io.legado.app.R
+import android.view.ViewGroup
 import io.legado.app.base.adapter.ItemViewHolder
 import io.legado.app.base.adapter.SimpleRecyclerAdapter
 import io.legado.app.data.entities.SearchBook
-import kotlinx.android.synthetic.main.item_cover.view.*
+import io.legado.app.databinding.ItemCoverBinding
 import org.jetbrains.anko.sdk27.listeners.onClick
 
 class CoverAdapter(context: Context, val callBack: CallBack) :
-    SimpleRecyclerAdapter<SearchBook>(context, R.layout.item_cover) {
+    SimpleRecyclerAdapter<SearchBook, ItemCoverBinding>(context) {
 
-    override fun convert(holder: ItemViewHolder, item: SearchBook, payloads: MutableList<Any>) {
-        with(holder.itemView) {
-            iv_cover.load(item.coverUrl, item.name, item.author)
-            tv_source.text = item.originName
+    override fun getViewBinding(parent: ViewGroup): ItemCoverBinding {
+        return ItemCoverBinding.inflate(inflater, parent, false)
+    }
+
+    override fun convert(
+        holder: ItemViewHolder,
+        binding: ItemCoverBinding,
+        item: SearchBook,
+        payloads: MutableList<Any>
+    ) {
+        binding.apply {
+            ivCover.load(item.coverUrl, item.name, item.author)
+            tvSource.text = item.originName
         }
     }
 
-    override fun registerListener(holder: ItemViewHolder) {
+    override fun registerListener(holder: ItemViewHolder, binding: ItemCoverBinding) {
         holder.itemView.apply {
             onClick {
                 getItem(holder.layoutPosition)?.let {

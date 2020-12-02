@@ -15,6 +15,7 @@ import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
+import io.legado.app.databinding.ActivityMainBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.help.BookHelp
 import io.legado.app.help.DefaultData
@@ -31,11 +32,10 @@ import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.getViewModel
 import io.legado.app.utils.hideSoftInput
 import io.legado.app.utils.observeEvent
-import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
 
 
-class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
+class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     BottomNavigationView.OnNavigationItemSelectedListener,
     BottomNavigationView.OnNavigationItemReselectedListener,
     ViewPager.OnPageChangeListener by ViewPager.SimpleOnPageChangeListener() {
@@ -47,17 +47,21 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
     private var pagePosition = 0
     private val fragmentMap = hashMapOf<Int, Fragment>()
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        ATH.applyEdgeEffectColor(view_pager_main)
-        ATH.applyBottomNavigationColor(bottom_navigation_view)
-        view_pager_main.offscreenPageLimit = 3
-        view_pager_main.adapter = TabFragmentPageAdapter(supportFragmentManager)
-        view_pager_main.addOnPageChangeListener(this)
-        bottom_navigation_view.elevation =
+    override fun getViewBinding(): ActivityMainBinding {
+        return ActivityMainBinding.inflate(layoutInflater)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) = with(binding) {
+        ATH.applyEdgeEffectColor(viewPagerMain)
+        ATH.applyBottomNavigationColor(bottomNavigationView)
+        viewPagerMain.offscreenPageLimit = 3
+        viewPagerMain.adapter = TabFragmentPageAdapter(supportFragmentManager)
+        viewPagerMain.addOnPageChangeListener(this@MainActivity)
+        bottomNavigationView.elevation =
             if (AppConfig.elevation < 0) elevation else AppConfig.elevation.toFloat()
-        bottom_navigation_view.setOnNavigationItemSelectedListener(this)
-        bottom_navigation_view.setOnNavigationItemReselectedListener(this)
-        bottom_navigation_view.menu.findItem(R.id.menu_rss).isVisible = AppConfig.isShowRSS
+        bottomNavigationView.setOnNavigationItemSelectedListener(this@MainActivity)
+        bottomNavigationView.setOnNavigationItemReselectedListener(this@MainActivity)
+        bottomNavigationView.menu.findItem(R.id.menu_rss).isVisible = AppConfig.isShowRSS
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -65,21 +69,21 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
         upVersion()
         //自动更新书籍
         if (AppConfig.autoRefreshBook) {
-            view_pager_main.postDelayed({
+            binding.viewPagerMain.postDelayed({
                 viewModel.upAllBookToc()
             }, 1000)
         }
-        view_pager_main.postDelayed({
+        binding.viewPagerMain.postDelayed({
             viewModel.postLoad()
         }, 3000)
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+    override fun onNavigationItemSelected(item: MenuItem): Boolean = with(binding) {
         when (item.itemId) {
-            R.id.menu_bookshelf -> view_pager_main.setCurrentItem(0, false)
-            R.id.menu_explore -> view_pager_main.setCurrentItem(1, false)
-            R.id.menu_rss -> view_pager_main.setCurrentItem(2, false)
-            R.id.menu_my_config -> view_pager_main.setCurrentItem(3, false)
+            R.id.menu_bookshelf -> viewPagerMain.setCurrentItem(0, false)
+            R.id.menu_explore -> viewPagerMain.setCurrentItem(1, false)
+            R.id.menu_rss -> viewPagerMain.setCurrentItem(2, false)
+            R.id.menu_my_config -> viewPagerMain.setCurrentItem(3, false)
         }
         return false
     }
@@ -118,15 +122,15 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
         }
     }
 
-    override fun onPageSelected(position: Int) {
-        view_pager_main.hideSoftInput()
+    override fun onPageSelected(position: Int) = with(binding) {
+        viewPagerMain.hideSoftInput()
         pagePosition = position
         when (position) {
-            0, 1, 3 -> bottom_navigation_view.menu.getItem(position).isChecked = true
+            0, 1, 3 -> bottomNavigationView.menu.getItem(position).isChecked = true
             2 -> if (AppConfig.isShowRSS) {
-                bottom_navigation_view.menu.getItem(position).isChecked = true
+                bottomNavigationView.menu.getItem(position).isChecked = true
             } else {
-                bottom_navigation_view.menu.getItem(3).isChecked = true
+                bottomNavigationView.menu.getItem(3).isChecked = true
             }
         }
     }
@@ -136,7 +140,7 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK -> if (event.isTracking && !event.isCanceled) {
                     if (pagePosition != 0) {
-                        view_pager_main.currentItem = 0
+                        binding.viewPagerMain.currentItem = 0
                         return true
                     }
                     if (System.currentTimeMillis() - exitTime > 2000) {
@@ -173,10 +177,11 @@ class MainActivity : VMBaseActivity<MainViewModel>(R.layout.activity_main),
             recreate()
         }
         observeEvent<String>(EventBus.SHOW_RSS) {
-            bottom_navigation_view.menu.findItem(R.id.menu_rss).isVisible = AppConfig.isShowRSS
-            view_pager_main.adapter?.notifyDataSetChanged()
+            binding.bottomNavigationView.menu.findItem(R.id.menu_rss).isVisible =
+                AppConfig.isShowRSS
+            binding.viewPagerMain.adapter?.notifyDataSetChanged()
             if (AppConfig.isShowRSS) {
-                view_pager_main.setCurrentItem(3, false)
+                binding.viewPagerMain.setCurrentItem(3, false)
             }
         }
         observeEvent<String>(PreferKey.threadCount) {
