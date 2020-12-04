@@ -22,6 +22,7 @@ import io.legado.app.constant.AppPattern
 import io.legado.app.constant.EventBus
 import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.ActivityBookSourceBinding
+import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.help.IntentDataHelp
 import io.legado.app.help.LocalConfig
 import io.legado.app.lib.dialogs.alert
@@ -38,7 +39,6 @@ import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.ui.widget.recycler.DragSelectTouchHelper
 import io.legado.app.ui.widget.recycler.ItemTouchCallback
 import io.legado.app.ui.widget.recycler.VerticalDivider
-import io.legado.app.ui.widget.text.AutoCompleteTextView
 import io.legado.app.utils.*
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.startActivityForResult
@@ -63,8 +63,8 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     private var bookSourceLiveDate: LiveData<List<BookSource>>? = null
     private var groups = linkedSetOf<String>()
     private var groupMenu: SubMenu? = null
-    private var sort = 0
-    private var sortAscending = 0
+    private var sort = Sort.Default
+    private var sortAscending = true
     private var snackBar: Snackbar? = null
 
     override fun getViewBinding(): ActivityBookSourceBinding {
@@ -108,27 +108,27 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             R.id.menu_import_source_onLine -> showImportDialog()
             R.id.menu_sort_manual -> {
                 item.isChecked = true
-                sortCheck(0)
+                sortCheck(Sort.Default)
                 initLiveDataBookSource(searchView.query?.toString())
             }
             R.id.menu_sort_auto -> {
                 item.isChecked = true
-                sortCheck(1)
+                sortCheck(Sort.Weight)
                 initLiveDataBookSource(searchView.query?.toString())
             }
-            R.id.menu_sort_pin_yin -> {
+            R.id.menu_sort_name -> {
                 item.isChecked = true
-                sortCheck(2)
+                sortCheck(Sort.Name)
                 initLiveDataBookSource(searchView.query?.toString())
             }
             R.id.menu_sort_url -> {
                 item.isChecked = true
-                sortCheck(3)
+                sortCheck(Sort.Url)
                 initLiveDataBookSource(searchView.query?.toString())
             }
             R.id.menu_sort_time -> {
                 item.isChecked = true
-                sortCheck(4)
+                sortCheck(Sort.Update)
                 initLiveDataBookSource(searchView.query?.toString())
             }
             R.id.menu_enabled_group -> {
@@ -187,22 +187,25 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             }
         }
         bookSourceLiveDate?.observe(this, { data ->
-            val sourceList = when (sortAscending % 2) {
-                0 -> when (sort) {
-                    1 -> data.sortedBy { it.weight }
-                    2 -> data.sortedBy { it.bookSourceName }
-                    3 -> data.sortedBy { it.bookSourceUrl }
-                    4 -> data.sortedByDescending { it.lastUpdateTime }
+            val sourceList =
+                if (sortAscending) when (sort) {
+                    Sort.Weight -> data.sortedBy { it.weight }
+                    Sort.Name -> data.sortedWith { o1, o2 ->
+                        o1.bookSourceName.cnCompare(o2.bookSourceName)
+                    }
+                    Sort.Url -> data.sortedBy { it.bookSourceUrl }
+                    Sort.Update -> data.sortedByDescending { it.lastUpdateTime }
                     else -> data
                 }
-                else -> when (sort) {
-                    1 -> data.sortedByDescending { it.weight }
-                    2 -> data.sortedByDescending { it.bookSourceName }
-                    3 -> data.sortedByDescending { it.bookSourceUrl }
-                    4 -> data.sortedBy { it.lastUpdateTime }
+                else when (sort) {
+                    Sort.Weight -> data.sortedByDescending { it.weight }
+                    Sort.Name -> data.sortedWith { o1, o2 ->
+                        o2.bookSourceName.cnCompare(o1.bookSourceName)
+                    }
+                    Sort.Url -> data.sortedByDescending { it.bookSourceUrl }
+                    Sort.Update -> data.sortedBy { it.lastUpdateTime }
                     else -> data.reversed()
                 }
-            }
             val diffResult = DiffUtil
                 .calculateDiff(DiffCallBack(ArrayList(adapter.getItems()), sourceList))
             adapter.setItems(sourceList, diffResult)
@@ -215,12 +218,12 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
         TextDialog.show(supportFragmentManager, text, TextDialog.MD)
     }
 
-    private fun sortCheck(sortId: Int) {
-        if (sort == sortId) {
-            sortAscending += 1
+    private fun sortCheck(sort: Sort) {
+        if (this.sort == sort) {
+            sortAscending = !sortAscending
         } else {
-            sortAscending = 0
-            sort = sortId
+            sortAscending = true
+            this.sort = sort
         }
     }
 
@@ -279,15 +282,12 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     @SuppressLint("InflateParams")
     private fun checkSource() {
         alert(titleResource = R.string.search_book_key) {
-            var editText: AutoCompleteTextView? = null
-            customView {
-                layoutInflater.inflate(R.layout.dialog_edit_text, null).apply {
-                    editText = findViewById(R.id.edit_view)
-                    editText?.setText(CheckSource.keyword)
-                }
+            val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                editView.setText(CheckSource.keyword)
             }
+            customView = alertBinding.root
             okButton {
-                editText?.text?.toString()?.let {
+                alertBinding.editView.text?.toString()?.let {
                     if (it.isNotEmpty()) {
                         CheckSource.keyword = it
                     }
@@ -301,17 +301,14 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     @SuppressLint("InflateParams")
     private fun selectionAddToGroups() {
         alert(titleResource = R.string.add_group) {
-            var editText: AutoCompleteTextView? = null
-            customView {
-                layoutInflater.inflate(R.layout.dialog_edit_text, null).apply {
-                    editText = findViewById(R.id.edit_view)
-                    editText?.setHint(R.string.group_name)
-                    editText?.setFilterValues(groups.toList())
-                    editText?.dropDownHeight = 180.dp
-                }
+            val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                editView.setHint(R.string.group_name)
+                editView.setFilterValues(groups.toList())
+                editView.dropDownHeight = 180.dp
             }
+            customView = alertBinding.root
             okButton {
-                editText?.text?.toString()?.let {
+                alertBinding.editView.text?.toString()?.let {
                     if (it.isNotEmpty()) {
                         viewModel.selectionAddToGroups(adapter.getSelection(), it)
                     }
@@ -324,17 +321,14 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     @SuppressLint("InflateParams")
     private fun selectionRemoveFromGroups() {
         alert(titleResource = R.string.remove_group) {
-            var editText: AutoCompleteTextView? = null
-            customView {
-                layoutInflater.inflate(R.layout.dialog_edit_text, null).apply {
-                    editText = findViewById(R.id.edit_view)
-                    editText?.setHint(R.string.group_name)
-                    editText?.setFilterValues(groups.toList())
-                    editText?.dropDownHeight = 180.dp
-                }
+            val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                editView.setHint(R.string.group_name)
+                editView.setFilterValues(groups.toList())
+                editView.dropDownHeight = 180.dp
             }
+            customView = alertBinding.root
             okButton {
-                editText?.text?.toString()?.let {
+                alertBinding.editView.text?.toString()?.let {
                     if (it.isNotEmpty()) {
                         viewModel.selectionRemoveFromGroups(adapter.getSelection(), it)
                     }
@@ -360,19 +354,16 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             ?.splitNotBlank(",")
             ?.toMutableList() ?: mutableListOf()
         alert(titleResource = R.string.import_book_source_on_line) {
-            var editText: AutoCompleteTextView? = null
-            customView {
-                layoutInflater.inflate(R.layout.dialog_edit_text, null).apply {
-                    editText = findViewById(R.id.edit_view)
-                    editText?.setFilterValues(cacheUrls)
-                    editText?.delCallBack = {
-                        cacheUrls.remove(it)
-                        aCache.put(importRecordKey, cacheUrls.joinToString(","))
-                    }
+            val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                editView.setFilterValues(cacheUrls)
+                editView.delCallBack = {
+                    cacheUrls.remove(it)
+                    aCache.put(importRecordKey, cacheUrls.joinToString(","))
                 }
             }
+            customView = alertBinding.root
             okButton {
-                val text = editText?.text?.toString()
+                val text = alertBinding.editView.text?.toString()
                 text?.let {
                     if (!cacheUrls.contains(it)) {
                         cacheUrls.add(0, it)
@@ -491,4 +482,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
         }
     }
 
+    enum class Sort {
+        Default, Name, Url, Weight, Update
+    }
 }
