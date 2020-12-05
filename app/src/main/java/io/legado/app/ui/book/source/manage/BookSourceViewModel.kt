@@ -7,14 +7,10 @@ import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import io.legado.app.App
 import io.legado.app.BuildConfig
-import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppPattern
 import io.legado.app.data.entities.BookSource
-import io.legado.app.utils.FileUtils
-import io.legado.app.utils.GSON
-import io.legado.app.utils.splitNotBlank
-import io.legado.app.utils.writeText
+import io.legado.app.utils.*
 import org.jetbrains.anko.longToast
 import java.io.File
 
@@ -167,7 +163,7 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
         }
     }
 
-    fun shareSelection(sources: List<BookSource>) {
+    fun shareSelection(sources: List<BookSource>, success: ((intent: Intent) -> Unit)) {
         execute {
             val intent = Intent(Intent.ACTION_SEND)
             val file = FileUtils.createFileWithReplace("${context.filesDir}/shareBookSource.json")
@@ -183,9 +179,9 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent
         }.onSuccess {
-            context.startActivity(
-                Intent.createChooser(it, context.getString(R.string.share_selected_source))
-            )
+            success.invoke(it)
+        }.onError {
+            toast(it.msg)
         }
     }
 
