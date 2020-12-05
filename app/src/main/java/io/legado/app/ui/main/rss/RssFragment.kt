@@ -16,7 +16,7 @@ import io.legado.app.ui.rss.favorites.RssFavoritesActivity
 import io.legado.app.ui.rss.source.edit.RssSourceEditActivity
 import io.legado.app.ui.rss.source.manage.RssSourceActivity
 import io.legado.app.ui.rss.source.manage.RssSourceViewModel
-import io.legado.app.ui.rss.subscription.SourceSubActivity
+import io.legado.app.ui.rss.subscription.RuleSubActivity
 import io.legado.app.utils.getViewModel
 import io.legado.app.utils.startActivity
 import io.legado.app.utils.viewbindingdelegate.viewBinding
@@ -59,7 +59,7 @@ class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
                 tvName.setText(R.string.source_subscription)
                 ivIcon.setImageResource(R.mipmap.ic_launcher)
                 root.onClick {
-                    startActivity<SourceSubActivity>()
+                    startActivity<RuleSubActivity>()
                 }
             }
         }
