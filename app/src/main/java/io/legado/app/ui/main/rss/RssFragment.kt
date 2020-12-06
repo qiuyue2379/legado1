@@ -56,7 +56,7 @@ class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
         binding.recyclerView.adapter = adapter
         adapter.addHeaderView {
             ItemRssBinding.inflate(layoutInflater, it, false).apply {
-                tvName.setText(R.string.source_subscription)
+                tvName.setText(R.string.rule_subscription)
                 ivIcon.setImageResource(R.mipmap.ic_launcher)
                 root.onClick {
                     startActivity<RuleSubActivity>()
