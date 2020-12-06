@@ -16,6 +16,7 @@ import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
 import io.legado.app.data.entities.RssSource
 import io.legado.app.databinding.ActivityRssSourceEditBinding
+import io.legado.app.help.LocalConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.ATH
 import io.legado.app.ui.qrcode.QrCodeActivity
@@ -54,6 +55,13 @@ class RssSourceEditActivity :
         }
     }
 
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        if (!LocalConfig.ruleHelpVersionIsLast) {
+            showRuleHelp()
+        }
+    }
+
     override fun finish() {
         val source = getRssSource()
         if (!source.equal(viewModel.rssSource)) {
@@ -76,6 +84,7 @@ class RssSourceEditActivity :
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.source_edit, menu)
+        menu.findItem(R.id.menu_login).isVisible = false
         return super.onCompatCreateOptionsMenu(menu)
     }
 
@@ -102,7 +111,11 @@ class RssSourceEditActivity :
             R.id.menu_qr_code_camera -> startActivityForResult<QrCodeActivity>(qrRequestCode)
             R.id.menu_paste_source -> viewModel.pasteSource { upRecyclerView(it) }
             R.id.menu_share_str -> share(GSON.toJson(getRssSource()))
-            R.id.menu_share_qr -> shareWithQr(getString(R.string.share_rss_source), GSON.toJson(getRssSource()))
+            R.id.menu_share_qr -> shareWithQr(
+                getString(R.string.share_rss_source),
+                GSON.toJson(getRssSource())
+            )
+            R.id.menu_help -> showRuleHelp()
         }
         return super.onCompatOptionsItemSelected(item)
     }
@@ -205,14 +218,14 @@ class RssSourceEditActivity :
         selector(getString(R.string.help), items) { _, index ->
             when (index) {
                 0 -> insertText(AppConst.urlOption)
-                1 -> showSourceHelp()
+                1 -> showRuleHelp()
                 2 -> showRegexHelp()
             }
         }
     }
 
-    private fun showSourceHelp() {
-        val mdText = String(assets.open("help/sourceHelp.md").readBytes())
+    private fun showRuleHelp() {
+        val mdText = String(assets.open("help/ruleHelp.md").readBytes())
         TextDialog.show(supportFragmentManager, mdText, TextDialog.MD)
     }
 

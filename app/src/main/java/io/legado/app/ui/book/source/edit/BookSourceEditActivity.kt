@@ -3,7 +3,6 @@ package io.legado.app.ui.book.source.edit
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Rect
-import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.Menu
@@ -19,6 +18,7 @@ import io.legado.app.constant.AppConst
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.rule.*
 import io.legado.app.databinding.ActivityBookSourceEditBinding
+import io.legado.app.help.LocalConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.backgroundColor
@@ -64,6 +64,13 @@ class BookSourceEditActivity :
         }
     }
 
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        if (!LocalConfig.ruleHelpVersionIsLast) {
+            showRuleHelp()
+        }
+    }
+
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.source_edit, menu)
         return super.onCompatCreateOptionsMenu(menu)
@@ -94,15 +101,7 @@ class BookSourceEditActivity :
                 getString(R.string.share_book_source),
                 GSON.toJson(getSource())
             )
-            R.id.menu_rule_summary -> {
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse(getString(R.string.source_rule_url))
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    toast(R.string.can_not_open)
-                }
-            }
+            R.id.menu_help -> showRuleHelp()
             R.id.menu_login -> getSource().let {
                 if (checkSource(it)) {
                     if (it.loginUrl.isNullOrEmpty()) {
@@ -392,15 +391,15 @@ class BookSourceEditActivity :
         selector(getString(R.string.help), items) { _, index ->
             when (index) {
                 0 -> insertText(AppConst.urlOption)
-                1 -> showSourceHelp()
+                1 -> showRuleHelp()
                 2 -> showRegexHelp()
                 3 -> FilePicker.selectFile(this, selectPathRequestCode)
             }
         }
     }
 
-    private fun showSourceHelp() {
-        val mdText = String(assets.open("help/sourceHelp.md").readBytes())
+    private fun showRuleHelp() {
+        val mdText = String(assets.open("help/ruleHelp.md").readBytes())
         TextDialog.show(supportFragmentManager, mdText, TextDialog.MD)
     }
 

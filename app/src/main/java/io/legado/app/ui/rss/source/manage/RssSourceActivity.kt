@@ -30,6 +30,7 @@ import io.legado.app.ui.filepicker.FilePicker
 import io.legado.app.ui.filepicker.FilePickerDialog
 import io.legado.app.ui.qrcode.QrCodeActivity
 import io.legado.app.ui.rss.source.edit.RssSourceEditActivity
+import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.ui.widget.SelectActionBar
 import io.legado.app.ui.widget.recycler.DragSelectTouchHelper
 import io.legado.app.ui.widget.recycler.ItemTouchCallback
@@ -92,6 +93,10 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
             R.id.menu_import_source_qr -> startActivityForResult<QrCodeActivity>(qrRequestCode)
             R.id.menu_group_manage -> GroupManageDialog()
                 .show(supportFragmentManager, "rssGroupManage")
+            R.id.menu_share_source -> viewModel.shareSelection(adapter.getSelection()) {
+                startActivity(Intent.createChooser(it, getString(R.string.share_selected_source)))
+            }
+            R.id.menu_help -> showHelp()
             else -> if (item.groupId == R.id.source_group) {
                 binding.titleBar.findViewById<SearchView>(R.id.search_view)
                     .setQuery(item.title, true)
@@ -212,6 +217,11 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
             adapter.setItems(it, diffResult)
             upCountView()
         })
+    }
+
+    private fun showHelp() {
+        val text = String(assets.open("help/SourceMRssHelp.md").readBytes())
+        TextDialog.show(supportFragmentManager, text, TextDialog.MD)
     }
 
     override fun upCountView() {
