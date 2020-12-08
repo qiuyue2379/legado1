@@ -30,8 +30,8 @@ import io.legado.app.ui.filepicker.FilePicker
 import io.legado.app.ui.filepicker.FilePickerDialog
 import io.legado.app.ui.qrcode.QrCodeActivity
 import io.legado.app.ui.rss.source.edit.RssSourceEditActivity
-import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.ui.widget.SelectActionBar
+import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.ui.widget.recycler.DragSelectTouchHelper
 import io.legado.app.ui.widget.recycler.ItemTouchCallback
 import io.legado.app.ui.widget.recycler.VerticalDivider
@@ -156,7 +156,7 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
     }
 
     private fun initLiveDataGroup() {
-        App.db.rssSourceDao().liveGroup().observe(this, {
+        App.db.rssSourceDao.liveGroup().observe(this, {
             groups.clear()
             it.map { group ->
                 groups.addAll(group.splitNotBlank(AppPattern.splitGroupRegex))
@@ -207,9 +207,9 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
         sourceLiveData?.removeObservers(this)
         sourceLiveData =
             if (key.isNullOrBlank()) {
-                App.db.rssSourceDao().liveAll()
+                App.db.rssSourceDao.liveAll()
             } else {
-                App.db.rssSourceDao().liveSearch("%$key%")
+                App.db.rssSourceDao.liveSearch("%$key%")
             }
         sourceLiveData?.observe(this, {
             val diffResult = DiffUtil

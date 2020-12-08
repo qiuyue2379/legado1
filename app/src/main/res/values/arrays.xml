@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string-array name="book_type">
-        <item>Text</item>
-        <item>Audio</item>
+		<item>Text</item>
+		<item>Audio</item>
 	</string-array>
 
 	<string-array name="indent">
@@ -101,10 +101,10 @@
 		<item>English</item>
 	</string-array>
 
-    <string-array name="rule_type">
-        <item>BookSource</item>
-        <item>RssSource</item>
-        <item>ReplaceRule</item>
-    </string-array>
+	<string-array name="rule_type">
+		<item>BookSource</item>
+		<item>RssSource</item>
+		<item>ReplaceRule</item>
+	</string-array>
 
 </resources>

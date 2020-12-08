@@ -2,6 +2,8 @@ package io.legado.app.ui.about
 
 import android.content.Context
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.ViewGroup
 import io.legado.app.App
 import io.legado.app.R
@@ -12,15 +14,18 @@ import io.legado.app.data.entities.ReadRecordShow
 import io.legado.app.databinding.ActivityReadRecordBinding
 import io.legado.app.databinding.ItemReadRecordBinding
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.utils.cnCompare
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.anko.sdk27.listeners.onClick
+import java.util.*
 
 class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
 
     lateinit var adapter: RecordAdapter
+    private var sortMode = 0
 
     override fun getViewBinding(): ActivityReadRecordBinding {
         return ActivityReadRecordBinding.inflate(layoutInflater)
@@ -31,14 +36,33 @@ class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
         initData()
     }
 
-    private fun initView() {
-        binding.readRecord.tvBookName.setText(R.string.all_read_time)
-        adapter = RecordAdapter(this)
-        binding.recyclerView.adapter = adapter
-        binding.readRecord.ivRemove.onClick {
+    override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.book_read_record, menu)
+        return super.onCompatCreateOptionsMenu(menu)
+    }
+
+    override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_sort_name -> {
+                sortMode = 0
+                initData()
+            }
+            R.id.menu_sort_time -> {
+                sortMode = 1
+                initData()
+            }
+        }
+        return super.onCompatOptionsItemSelected(item)
+    }
+
+    private fun initView() = with(binding) {
+        readRecord.tvBookName.setText(R.string.all_read_time)
+        adapter = RecordAdapter(this@ReadRecordActivity)
+        recyclerView.adapter = adapter
+        readRecord.ivRemove.onClick {
             alert(R.string.delete, R.string.sure_del) {
                 okButton {
-                    App.db.readRecordDao().clear()
+                    App.db.readRecordDao.clear()
                     initData()
                 }
                 noButton()
@@ -48,11 +72,19 @@ class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
 
     private fun initData() {
         launch(IO) {
-            val allTime = App.db.readRecordDao().allTime
+            val allTime = App.db.readRecordDao.allTime
             withContext(Main) {
                 binding.readRecord.tvReadTime.text = formatDuring(allTime)
             }
-            val readRecords = App.db.readRecordDao().allShow
+            var readRecords = App.db.readRecordDao.allShow
+            readRecords = when (sortMode) {
+                1 -> readRecords.sortedBy { it.readTime }
+                else -> {
+                    readRecords.sortedWith { o1, o2 ->
+                        o1.bookName.cnCompare(o2.bookName)
+                    }
+                }
+            }
             withContext(Main) {
                 adapter.setItems(readRecords)
             }
@@ -84,7 +116,7 @@ class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
                     alert(R.string.delete, R.string.sure_del) {
                         okButton {
                             getItem(holder.layoutPosition)?.let {
-                                App.db.readRecordDao().deleteByName(it.bookName)
+                                App.db.readRecordDao.deleteByName(it.bookName)
                                 initData()
                             }
                         }

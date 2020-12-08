@@ -31,7 +31,6 @@ import io.legado.app.receiver.MediaButtonReceiver
 import io.legado.app.service.help.AudioPlay
 import io.legado.app.ui.audio.AudioPlayActivity
 import io.legado.app.utils.postEvent
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,7 +61,6 @@ class AudioPlayService : BaseService(),
     private var position = 0
     private val dsRunnable: Runnable = Runnable { doDs() }
     private var mpRunnable: Runnable = Runnable { upPlayProgress() }
-    private var bookChapter: BookChapter? = null
     private var playSpeed: Float = 1f
 
     override fun onCreate() {
@@ -85,8 +83,9 @@ class AudioPlayService : BaseService(),
                 IntentAction.play -> {
                     AudioPlay.book?.let {
                         title = it.name
+                        subtitle = AudioPlay.durChapter?.title ?: ""
                         position = it.durChapterPos
-                        loadContent(it.durChapterIndex)
+                        loadContent()
                     }
                 }
                 IntentAction.pause -> pause(true)
@@ -130,6 +129,7 @@ class AudioPlayService : BaseService(),
                 val uri = Uri.parse(analyzeUrl.url)
                 mediaPlayer.setDataSource(this, uri, analyzeUrl.headerMap)
                 mediaPlayer.prepareAsync()
+                handler.removeCallbacks(mpRunnable)
             } catch (e: Exception) {
                 e.printStackTrace()
                 launch {
@@ -203,15 +203,13 @@ class AudioPlayService : BaseService(),
         } else {
             mediaPlayer.start()
         }
+        mediaPlayer.seekTo(position)
         AudioPlay.status = Status.PLAY
         postEvent(EventBus.AUDIO_STATE, Status.PLAY)
-        mediaPlayer.seekTo(position)
         postEvent(EventBus.AUDIO_SIZE, mediaPlayer.duration)
-        bookChapter?.let {
-            it.end = mediaPlayer.duration.toLong()
-        }
         handler.removeCallbacks(mpRunnable)
         handler.post(mpRunnable)
+        AudioPlay.saveDurChapter(mediaPlayer.duration.toLong())
     }
 
     /**
@@ -266,45 +264,31 @@ class AudioPlayService : BaseService(),
         handler.postDelayed(mpRunnable, 1000)
     }
 
-
-    private fun loadContent(index: Int) {
-        AudioPlay.book?.let { book ->
-            if (addLoading(index)) {
-                launch(IO) {
-                    App.db.bookChapterDao().getChapter(book.bookUrl, index)?.let { chapter ->
-                        if (index == AudioPlay.durChapterIndex) {
-                            bookChapter = chapter
-                            subtitle = chapter.title
-                            postEvent(EventBus.AUDIO_SIZE, chapter.end?.toInt() ?: 0)
-                            postEvent(EventBus.AUDIO_PROGRESS, position)
+    private fun loadContent() = with(AudioPlay) {
+        durChapter?.let { chapter ->
+            if (addLoading(durChapterIndex)) {
+                val book = AudioPlay.book
+                val webBook = AudioPlay.webBook
+                if (book != null && webBook != null) {
+                    webBook.getContent(book, chapter, scope = this@AudioPlayService)
+                        .onSuccess { content ->
+                            if (content.isEmpty()) {
+                                withContext(Main) {
+                                    toast("未获取到资源链接")
+                                }
+                            } else {
+                                contentLoadFinish(chapter, content)
+                            }
+                        }.onError {
+                            contentLoadFinish(chapter, it.localizedMessage ?: toString())
+                        }.onFinally {
+                            removeLoading(chapter.index)
                         }
-                        loadContent(chapter)
-                    } ?: removeLoading(index)
+                } else {
+                    removeLoading(chapter.index)
+                    toast("book or source is null")
                 }
             }
-        }
-    }
-
-    private fun loadContent(chapter: BookChapter) {
-        val book = AudioPlay.book
-        val webBook = AudioPlay.webBook
-        if (book != null && webBook != null) {
-            webBook.getContent(book, chapter, scope = this@AudioPlayService)
-                .onSuccess { content ->
-                    removeLoading(chapter.index)
-                    if (content.isEmpty()) {
-                        withContext(Main) {
-                            toast("未获取到资源链接")
-                        }
-                    } else {
-                        contentLoadFinish(chapter, content)
-                    }
-                }.onError {
-                    contentLoadFinish(chapter, it.localizedMessage ?: toString())
-                    removeLoading(chapter.index)
-                }
-        } else {
-            toast("book or source is null")
         }
     }
 
@@ -334,9 +318,10 @@ class AudioPlayService : BaseService(),
     }
 
     private fun saveProgress() {
-        launch(IO) {
+        execute {
             AudioPlay.book?.let {
-                App.db.bookDao().upProgress(it.bookUrl, AudioPlay.durChapterPos)
+                AudioPlay.durChapterPos = mediaPlayer.currentPosition
+                App.db.bookDao.upProgress(it.bookUrl, AudioPlay.durChapterPos)
             }
         }
     }
@@ -438,7 +423,7 @@ class AudioPlayService : BaseService(),
         var nTitle: String = when {
             pause -> getString(R.string.audio_pause)
             timeMinute in 1..60 -> getString(
-                R.string.read_aloud_timer,
+                R.string.playing_timer,
                 timeMinute
             )
             else -> getString(R.string.audio_play_t)
