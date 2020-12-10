@@ -22,7 +22,10 @@ import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.ui.book.read.page.provider.TextPageFactory
 import io.legado.app.utils.activity
 import io.legado.app.utils.screenshot
+import java.text.BreakIterator
+import java.util.*
 import kotlin.math.abs
+
 
 class ReadView(context: Context, attrs: AttributeSet) :
     FrameLayout(context, attrs),
@@ -83,14 +86,9 @@ class ReadView(context: Context, attrs: AttributeSet) :
     private val blRect = RectF(10F, height * 0.66f, width * 0.33f, height - 10f)
     private val bcRect = RectF(width * 0.33f, height * 0.66f, width * 0.66f, height - 10f)
     private val brRect = RectF(width * 0.66f, height * 0.66f, width - 10f, height - 10f)
-    private val autoPageRect by lazy {
-        Rect()
-    }
-    private val autoPagePint by lazy {
-        Paint().apply {
-            color = context.accentColor
-        }
-    }
+    private val autoPageRect by lazy { Rect() }
+    private val autoPagePint by lazy { Paint().apply { color = context.accentColor } }
+    private val boundary by lazy { BreakIterator.getWordInstance(Locale.getDefault()) }
 
     init {
         addView(nextPage)
@@ -244,14 +242,113 @@ class ReadView(context: Context, attrs: AttributeSet) :
     /**
      * 长按选择
      */
-    private fun onLongPress() {
+    private fun onLongPress() = with(curPage.textPage) {
         curPage.selectText(startX, startY) { relativePage, lineIndex, charIndex ->
             isTextSelected = true
             firstRelativePage = relativePage
             firstLineIndex = lineIndex
             firstCharIndex = charIndex
-            curPage.selectStartMoveIndex(firstRelativePage, firstLineIndex, firstCharIndex)
-            curPage.selectEndMoveIndex(firstRelativePage, firstLineIndex, firstCharIndex)
+            var lineStart = lineIndex
+            var lineEnd = lineIndex
+            var start: Int
+            var end: Int
+            if (lineIndex - 1 > 0 && lineIndex + 1 < lineSize) {
+                // 中间行
+                val lineText = with(textLines) {
+                    get(lineIndex - 1).text + get(lineIndex).text + get(lineIndex + 1).text
+                }
+                boundary.setText(lineText)
+                start = boundary.first()
+                end = boundary.next()
+                val cIndex = textLines[lineIndex - 1].text.length + charIndex
+                while (end != BreakIterator.DONE) {
+                    if (cIndex in start until end) {
+                        break
+                    }
+                    start = end
+                    end = boundary.next()
+                }
+                if (start < textLines[lineIndex - 1].text.length) {
+                    lineStart = lineIndex - 1
+                } else {
+                    start -= textLines[lineIndex - 1].text.length
+                }
+                if (end > textLines[lineIndex - 1].text.length + textLines[lineIndex].text.length) {
+                    lineEnd = lineIndex + 1
+                    end = (end - textLines[lineIndex - 1].text.length
+                            - textLines[lineIndex].text.length)
+                } else {
+                    end = end - textLines[lineIndex - 1].text.length - 1
+                }
+            } else if (lineIndex - 1 > 0) {
+                // 尾行
+                val lineText = with(textLines) {
+                    get(lineIndex - 1).text + get(lineIndex).text
+                }
+                boundary.setText(lineText)
+                start = boundary.first()
+                end = boundary.next()
+                val cIndex = textLines[lineIndex - 1].text.length + charIndex
+                while (end != BreakIterator.DONE) {
+                    if (cIndex in start until end) {
+                        break
+                    }
+                    start = end
+                    end = boundary.next()
+                }
+                if (start < textLines[lineIndex - 1].text.length) {
+                    lineStart = lineIndex - 1
+                } else {
+                    start -= textLines[lineIndex - 1].text.length
+                }
+                end = end - textLines[lineIndex - 1].text.length - 1
+            } else if (lineIndex + 1 < lineSize) {
+                // 首行
+                val lineText = with(textLines) {
+                    get(lineIndex).text + get(lineIndex + 1).text
+                }
+                boundary.setText(lineText)
+                start = boundary.first()
+                end = boundary.next()
+                while (end != BreakIterator.DONE) {
+                    if (charIndex in start until end) {
+                        break
+                    }
+                    start = end
+                    end = boundary.next()
+                }
+                if (end > textLines[lineIndex].text.length) {
+                    lineEnd = lineIndex + 1
+                    end -= textLines[lineIndex].text.length
+                } else {
+                    end -= 1
+                }
+            } else {
+                // 单行
+                val lineText = textLines[lineIndex].text
+                boundary.setText(lineText)
+                start = boundary.first()
+                end = boundary.next()
+                while (end != BreakIterator.DONE) {
+                    if (charIndex in start until end) {
+                        break
+                    }
+                    start = end
+                    end = boundary.next()
+                }
+                end -= 1
+            }
+            try {
+                curPage.selectStartMoveIndex(firstRelativePage, lineStart, start)
+                curPage.selectEndMoveIndex(firstRelativePage, lineEnd, end)
+            } catch (e: Exception) {
+                print(
+                    """
+                    curPage.selectStartMoveIndex($firstRelativePage, $lineStart, $start)
+                    curPage.selectEndMoveIndex($firstRelativePage, $lineEnd, $end)
+                """.trimIndent()
+                )
+            }
         }
     }
 

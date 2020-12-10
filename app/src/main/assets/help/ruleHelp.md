@@ -4,6 +4,7 @@
 * [订阅源帮助文档](https://alanskycn.gitee.io/teachme/Rule/rss.html)
 * 辅助键盘❓中可插入URL参数模板,打开帮助,选择文件
 * 规则标志, {{......}}内使用规则必须有明显的规则标志,没有规则标志当作js执行
+```
 @@ 默认规则,直接写时可以省略@@
 @XPath: xpath规则,直接写时以//开头可省略@XPath
 @Json: json规则,直接写时以$.开头可省略@Json
@@ -37,6 +38,7 @@ cookie 变量-cookie操作类,方法见 io.legado.app.help.http.CookieStore
 cache 变量-缓存操作类,方法见 io.legado.app.help.CacheManager
 chapter 变量-当前目录类,方法见 io.legado.app.data.entities.BookChapter
 title 变量-当前标题,String
+src 内容,源码
 ```
 
  ## 部分js对象属性说明

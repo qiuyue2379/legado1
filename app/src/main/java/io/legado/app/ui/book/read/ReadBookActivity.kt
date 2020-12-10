@@ -23,7 +23,7 @@ import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.ReadBookConfig
 import io.legado.app.help.ReadTipConfig
 import io.legado.app.help.storage.Backup
-import io.legado.app.help.storage.SyncBookProgress
+import io.legado.app.help.storage.BookWebDav
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.receiver.TimeBatteryReceiver
@@ -138,7 +138,9 @@ class ReadBookActivity : ReadBookBaseActivity(),
         }
         upSystemUiVisibility()
         if (!BuildConfig.DEBUG) {
-            SyncBookProgress.uploadBookProgress()
+            ReadBook.book?.let {
+                BookWebDav.uploadBookProgress(it)
+            }
             Backup.autoBack(this)
         }
     }
@@ -232,6 +234,9 @@ class ReadBookActivity : ReadBookBaseActivity(),
                 )
             }
             R.id.menu_set_charset -> showCharsetConfig()
+            R.id.menu_get_progress -> ReadBook.book?.let {
+                viewModel.syncBookProgress(it)
+            }
             R.id.menu_help -> showReadMenuHelp()
         }
         return super.onCompatOptionsItemSelected(item)
@@ -814,7 +819,6 @@ class ReadBookActivity : ReadBookBaseActivity(),
         binding.readView.onDestroy()
         ReadBook.msg = null
         if (!BuildConfig.DEBUG) {
-            SyncBookProgress.uploadBookProgress()
             Backup.autoBack(this)
         }
     }

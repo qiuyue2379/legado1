@@ -6,6 +6,8 @@ import android.os.Looper
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.constant.PreferKey
+import io.legado.app.data.entities.Book
+import io.legado.app.data.entities.BookProgress
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.webdav.HttpAuth
@@ -18,10 +20,10 @@ import org.jetbrains.anko.toast
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.min
 
-object WebDavHelp {
+object BookWebDav {
     private const val defaultWebDavUrl = "https://dav.jianguoyun.com/dav/"
+    private val bookProgressUrl = "${rootWebDavUrl}bookProgress/"
     private val zipFilePath = "${FileUtils.getCachePath()}${File.separator}backup.zip"
 
     val rootWebDavUrl: String
@@ -43,6 +45,7 @@ object WebDavHelp {
         if (!account.isNullOrBlank() && !password.isNullOrBlank()) {
             HttpAuth.auth = HttpAuth.Auth(account, password)
             WebDav(rootWebDavUrl).makeAsDir()
+            WebDav(bookProgressUrl).makeAsDir()
             return true
         }
         return false
@@ -55,9 +58,10 @@ object WebDavHelp {
         if (initWebDav()) {
             var files = WebDav(url).listFiles()
             files = files.reversed()
-            for (index: Int in 0 until min(10, files.size)) {
-                files[index].displayName?.let {
-                    names.add(it)
+            files.forEach {
+                val name = it.displayName
+                if (name?.startsWith("backup") == true) {
+                    names.add(name)
                 }
             }
         }
@@ -85,16 +89,12 @@ object WebDavHelp {
     private fun restoreWebDav(name: String) {
         Coroutine.async {
             rootWebDavUrl.let {
-                if (name == SyncBookProgress.fileName) {
-                    SyncBookProgress.downloadBookProgress()
-                } else {
-                    val webDav = WebDav(it + name)
-                    webDav.downloadTo(zipFilePath, true)
-                    @Suppress("BlockingMethodInNonBlockingContext")
-                    ZipUtils.unzipFile(zipFilePath, Backup.backupPath)
-                    Restore.restoreDatabase()
-                    Restore.restoreConfig()
-                }
+                val webDav = WebDav(it + name)
+                webDav.downloadTo(zipFilePath, true)
+                @Suppress("BlockingMethodInNonBlockingContext")
+                ZipUtils.unzipFile(zipFilePath, Backup.backupPath)
+                Restore.restoreDatabase()
+                Restore.restoreConfig()
             }
         }.onError {
             App.INSTANCE.toast("WebDavError:${it.localizedMessage}")
@@ -122,6 +122,7 @@ object WebDavHelp {
             }
         }
     }
+
     fun exportWebDav(path: String, fileName: String) {
         try {
             if (initWebDav()) {
@@ -131,7 +132,7 @@ object WebDavHelp {
                 WebDav(exportsWebDavUrl).makeAsDir()
                 val file = File("${path}${File.separator}${fileName}")
                 // 如果导出的本地文件存在,开始上传
-                if(file.exists()) {
+                if (file.exists()) {
                     val putUrl = exportsWebDavUrl + fileName
                     WebDav(putUrl).upload("${path}${File.separator}${fileName}")
                 }
@@ -141,5 +142,40 @@ object WebDavHelp {
                 App.INSTANCE.toast("WebDav导出\n${e.localizedMessage}")
             }
         }
+    }
+
+    fun uploadBookProgress(book: Book) {
+        Coroutine.async {
+            val bookProgress = BookProgress(
+                name = book.name,
+                author = book.author,
+                durChapterIndex = book.durChapterIndex,
+                durChapterPos = book.durChapterPos,
+                durChapterTime = book.durChapterTime,
+                durChapterTitle = book.durChapterTitle
+            )
+            val json = GSON.toJson(bookProgress)
+            val url = getUrl(book)
+            if (initWebDav()) {
+                WebDav(url).upload(json.toByteArray())
+            }
+        }
+    }
+
+    fun getBookProgress(book: Book): BookProgress? {
+        if (initWebDav()) {
+            val url = getUrl(book)
+            WebDav(url).download()?.let { byteArray ->
+                val json = String(byteArray)
+                GSON.fromJsonObject<BookProgress>(json)?.let {
+                    return it
+                }
+            }
+        }
+        return null
+    }
+
+    private fun getUrl(book: Book): String {
+        return bookProgressUrl + book.name + "_" + book.author + ".json"
     }
 }
