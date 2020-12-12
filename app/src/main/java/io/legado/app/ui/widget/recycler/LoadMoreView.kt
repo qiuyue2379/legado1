@@ -47,4 +47,11 @@ class LoadMoreView(context: Context, attrs: AttributeSet? = null) : FrameLayout(
         binding.tvText.visible()
     }
 
+    fun error(msg: String) {
+        hasMore = false
+        binding.rotateLoading.hide()
+        binding.tvText.text = msg
+        binding.tvText.visible()
+    }
+
 }

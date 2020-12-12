@@ -130,7 +130,7 @@ class AboutFragment : PreferenceFragmentCompat() {
 
                     @Throws(IOException::class)
                     override fun onResponse(call: Call, response: Response) {
-                        val string = response.body()?.string()
+                        val string = response.body?.string()
                         print(string)
                         if (string != null) {
                             try {
