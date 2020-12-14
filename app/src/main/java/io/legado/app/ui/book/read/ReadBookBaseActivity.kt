@@ -24,7 +24,6 @@ import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.lib.theme.backgroundColor
-import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.service.help.CacheBook
 import io.legado.app.service.help.ReadBook
 import io.legado.app.ui.book.read.config.BgTextConfigDialog
@@ -78,7 +77,7 @@ abstract class ReadBookBaseActivity :
      */
     @SuppressLint("SourceLockedOrientationActivity")
     fun setOrientation() {
-        when (AppConfig.requestedDirection) {
+        when (AppConfig.screenDirection) {
             "0" -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             "1" -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             "2" -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
@@ -144,10 +143,12 @@ abstract class ReadBookBaseActivity :
 
     override fun upNavigationBarColor() {
         when {
-            binding.readMenu.isVisible -> ATH.setNavigationBarColorAuto(this)
-            bottomDialog > 0 -> ATH.setNavigationBarColorAuto(this, bottomBackground)
-            else -> {
+            binding.readMenu.isVisible -> super.upNavigationBarColor()
+            bottomDialog > 0 -> super.upNavigationBarColor()
+            else -> if (AppConfig.immNavigationBar) {
                 ATH.setNavigationBarColorAuto(this, Color.TRANSPARENT)
+            } else {
+                ATH.setNavigationBarColorAuto(this, Color.parseColor("#20000000"))
             }
         }
     }

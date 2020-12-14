@@ -24,7 +24,6 @@ import io.legado.app.data.entities.BookProgress
 import io.legado.app.help.ReadBookConfig
 import io.legado.app.help.ReadTipConfig
 import io.legado.app.help.storage.Backup
-import io.legado.app.help.storage.BookWebDav
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.receiver.TimeBatteryReceiver
@@ -142,9 +141,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         }
         upSystemUiVisibility()
         if (!BuildConfig.DEBUG) {
-            ReadBook.book?.let {
-                BookWebDav.uploadBookProgress(it)
-            }
+            ReadBook.uploadProgress()
             Backup.autoBack(this)
         }
     }
@@ -614,7 +611,9 @@ class ReadBookActivity : ReadBookBaseActivity(),
             autoPageProgress += scrollOffset
             if (autoPageProgress >= binding.readView.height) {
                 autoPageProgress = 0
-                binding.readView.fillPage(PageDirection.NEXT)
+                if (!binding.readView.fillPage(PageDirection.NEXT)) {
+                    autoPageStop()
+                }
             } else {
                 binding.readView.invalidate()
             }
@@ -735,7 +734,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         alert(R.string.get_book_progress) {
             message = getString(R.string.current_progress_exceeds_cloud)
             okButton {
-                ReadBook.upProgress(progress)
+                ReadBook.setProgress(progress)
             }
             noButton()
         }.show()
@@ -852,7 +851,6 @@ class ReadBookActivity : ReadBookBaseActivity(),
         observeEvent<Boolean>(EventBus.UP_CONFIG) {
             upSystemUiVisibility()
             readView.upBg()
-            readView.upTipStyle()
             readView.upStyle()
             if (it) {
                 ReadBook.loadContent(resetPageOffset = false)
