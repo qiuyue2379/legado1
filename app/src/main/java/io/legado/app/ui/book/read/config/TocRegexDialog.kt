@@ -17,8 +17,8 @@ import com.google.android.material.snackbar.Snackbar
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
-import io.legado.app.base.adapter.SimpleRecyclerAdapter
 import io.legado.app.data.entities.TxtTocRule
 import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.databinding.DialogTocRegexBinding
@@ -189,7 +189,7 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
     }
 
     inner class TocRegexAdapter(context: Context) :
-        SimpleRecyclerAdapter<TxtTocRule, ItemTocRegexBinding>(context),
+        RecyclerAdapter<TxtTocRule, ItemTocRegexBinding>(context),
         ItemTouchCallback.Callback {
 
         override fun getViewBinding(parent: ViewGroup): ItemTocRegexBinding {
@@ -247,11 +247,10 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
         private var isMoved = false
 
-        override fun onMove(srcPosition: Int, targetPosition: Int): Boolean {
-            Collections.swap(getItems(), srcPosition, targetPosition)
-            notifyItemMoved(srcPosition, targetPosition)
+        override fun swap(srcPosition: Int, targetPosition: Int): Boolean {
+            swapItem(srcPosition, targetPosition)
             isMoved = true
-            return super.onMove(srcPosition, targetPosition)
+            return super.swap(srcPosition, targetPosition)
         }
 
         override fun onClearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {

@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
-import io.legado.app.base.adapter.SimpleRecyclerAdapter
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.databinding.DialogBookGroupPickerBinding
 import io.legado.app.databinding.DialogEditTextBinding
@@ -33,7 +33,6 @@ import io.legado.app.utils.getViewModel
 import io.legado.app.utils.requestInputMethod
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import org.jetbrains.anko.sdk27.listeners.onClick
-import java.util.*
 
 class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
@@ -153,7 +152,7 @@ class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
     }
 
     private inner class GroupAdapter(context: Context) :
-        SimpleRecyclerAdapter<BookGroup, ItemGroupSelectBinding>(context),
+        RecyclerAdapter<BookGroup, ItemGroupSelectBinding>(context),
         ItemTouchCallback.Callback {
 
         private var isMoved: Boolean = false
@@ -178,8 +177,8 @@ class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
         override fun registerListener(holder: ItemViewHolder, binding: ItemGroupSelectBinding) {
             with(binding) {
                 cbGroup.setOnCheckedChangeListener { buttonView, isChecked ->
-                    getItem(holder.layoutPosition)?.let {
-                        if (buttonView.isPressed) {
+                    if (buttonView.isPressed) {
+                        getItem(holder.layoutPosition)?.let {
                             groupId = if (isChecked) {
                                 groupId + it.groupId
                             } else {
@@ -192,9 +191,8 @@ class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
             }
         }
 
-        override fun onMove(srcPosition: Int, targetPosition: Int): Boolean {
-            Collections.swap(getItems(), srcPosition, targetPosition)
-            notifyItemMoved(srcPosition, targetPosition)
+        override fun swap(srcPosition: Int, targetPosition: Int): Boolean {
+            swapItem(srcPosition, targetPosition)
             isMoved = true
             return true
         }

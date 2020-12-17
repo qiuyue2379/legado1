@@ -2,7 +2,7 @@ package io.legado.app.ui.book.read.config
 
 import android.content.Context
 import android.view.ViewGroup
-import io.legado.app.base.adapter.CommonRecyclerAdapter
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
 import io.legado.app.constant.EventBus
 import io.legado.app.databinding.ItemBgImageBinding
@@ -13,7 +13,7 @@ import org.jetbrains.anko.sdk27.listeners.onClick
 import java.io.File
 
 class BgAdapter(context: Context, val textColor: Int) :
-    CommonRecyclerAdapter<String, ItemBgImageBinding>(context) {
+    RecyclerAdapter<String, ItemBgImageBinding>(context) {
 
     override fun getViewBinding(parent: ViewGroup): ItemBgImageBinding {
         return ItemBgImageBinding.inflate(inflater, parent, false)

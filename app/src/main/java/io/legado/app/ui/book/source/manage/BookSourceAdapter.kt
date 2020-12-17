@@ -8,11 +8,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import androidx.core.os.bundleOf
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.R
 import io.legado.app.base.adapter.ItemViewHolder
-import io.legado.app.base.adapter.SimpleRecyclerAdapter
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.ItemBookSourceBinding
 import io.legado.app.lib.theme.backgroundColor
@@ -21,14 +20,10 @@ import io.legado.app.ui.widget.recycler.ItemTouchCallback.Callback
 import io.legado.app.utils.invisible
 import io.legado.app.utils.visible
 import org.jetbrains.anko.sdk27.listeners.onClick
-import java.util.*
 
 class BookSourceAdapter(context: Context, val callBack: CallBack) :
-    SimpleRecyclerAdapter<BookSource, ItemBookSourceBinding>(context),
+    RecyclerAdapter<BookSource, ItemBookSourceBinding>(context),
     Callback {
-
-    override val diffItemCallback: DiffUtil.ItemCallback<BookSource>
-        get() = DiffCallBack()
 
     private val selected = linkedSetOf<BookSource>()
 
@@ -59,14 +54,6 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
                 payload.keySet().map {
                     when (it) {
                         "selected" -> cbBookSource.isChecked = selected.contains(item)
-                        "name", "group" -> if (item.bookSourceGroup.isNullOrEmpty()) {
-                            cbBookSource.text = item.bookSourceName
-                        } else {
-                            cbBookSource.text =
-                                String.format("%s (%s)", item.bookSourceName, item.bookSourceGroup)
-                        }
-                        "enabled" -> swtEnabled.isChecked = payload.getBoolean(it)
-                        "showExplore" -> upShowExplore(ivExplore, item)
                     }
                 }
             }
@@ -76,22 +63,26 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
     override fun registerListener(holder: ItemViewHolder, binding: ItemBookSourceBinding) {
         binding.apply {
             swtEnabled.setOnCheckedChangeListener { view, checked ->
-                getItem(holder.layoutPosition)?.let {
-                    if (view.isPressed) {
-                        it.enabled = checked
-                        callBack.update(it)
+                if (view.isPressed) {
+                    getItem(holder.layoutPosition)?.let {
+                        if (view.isPressed) {
+                            it.enabled = checked
+                            callBack.update(it)
+                        }
                     }
                 }
             }
             cbBookSource.setOnCheckedChangeListener { view, checked ->
-                getItem(holder.layoutPosition)?.let {
-                    if (view.isPressed) {
-                        if (checked) {
-                            selected.add(it)
-                        } else {
-                            selected.remove(it)
+                if (view.isPressed) {
+                    getItem(holder.layoutPosition)?.let {
+                        if (view.isPressed) {
+                            if (checked) {
+                                selected.add(it)
+                            } else {
+                                selected.remove(it)
+                            }
+                            callBack.upCountView()
                         }
-                        callBack.upCountView()
                     }
                 }
             }
@@ -104,6 +95,10 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
                 showMenu(ivMenuMore, holder.layoutPosition)
             }
         }
+    }
+
+    override fun onCurrentListChanged() {
+        callBack.upCountView()
     }
 
     private fun showMenu(view: View, position: Int) {
@@ -180,7 +175,7 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
         return selection.sortedBy { it.customOrder }
     }
 
-    override fun onMove(srcPosition: Int, targetPosition: Int): Boolean {
+    override fun swap(srcPosition: Int, targetPosition: Int): Boolean {
         val srcItem = getItem(srcPosition)
         val targetItem = getItem(targetPosition)
         if (srcItem != null && targetItem != null) {
@@ -194,8 +189,7 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
                 movedItems.add(targetItem)
             }
         }
-        Collections.swap(getItems(), srcPosition, targetPosition)
-        notifyItemMoved(srcPosition, targetPosition)
+        swapItem(srcPosition, targetPosition)
         return true
     }
 
