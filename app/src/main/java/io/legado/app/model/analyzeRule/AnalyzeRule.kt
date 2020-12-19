@@ -24,7 +24,8 @@ import kotlin.collections.HashMap
  */
 @Keep
 @Suppress("unused", "RegExpRedundantEscape")
-class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
+class AnalyzeRule(val ruleData: RuleDataInterface) : JsExtensions {
+    var book: BaseBook? = null
     var chapter: BookChapter? = null
     private var content: Any? = null
     private var baseUrl: String? = null
@@ -39,6 +40,12 @@ class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
     private var objectChangedXP = false
     private var objectChangedJS = false
     private var objectChangedJP = false
+
+    init {
+        if (ruleData is BaseBook) {
+            book = ruleData
+        }
+    }
 
     @JvmOverloads
     fun setContent(content: Any?, baseUrl: String? = null): AnalyzeRule {
@@ -606,6 +613,7 @@ class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
     fun put(key: String, value: String): String {
         chapter?.putVariable(key, value)
             ?: book?.putVariable(key, value)
+            ?: ruleData.putVariable(key, value)
         return value
     }
 
@@ -620,6 +628,7 @@ class AnalyzeRule(var book: BaseBook? = null) : JsExtensions {
         }
         return chapter?.variableMap?.get(key)
             ?: book?.variableMap?.get(key)
+            ?: ruleData.variableMap[key]
             ?: ""
     }
 

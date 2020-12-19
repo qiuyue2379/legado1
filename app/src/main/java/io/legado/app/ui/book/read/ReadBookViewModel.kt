@@ -2,14 +2,12 @@ package io.legado.app.ui.book.read
 
 import android.app.Application
 import android.content.Intent
-import androidx.lifecycle.MutableLiveData
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookProgress
-import io.legado.app.data.entities.SearchBook
 import io.legado.app.help.AppConfig
 import io.legado.app.help.BookHelp
 import io.legado.app.help.IntentDataHelp
@@ -26,7 +24,6 @@ import kotlinx.coroutines.withContext
 class ReadBookViewModel(application: Application) : BaseViewModel(application) {
     var isInitFinish = false
     var searchContentQuery = ""
-    val processLiveData = MutableLiveData<BookProgress>()
 
     fun initData(intent: Intent) {
         execute {
@@ -162,14 +159,20 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun syncBookProgress(book: Book, syncBookProgress: Boolean = AppConfig.syncBookProgress) {
+    fun syncBookProgress(
+        book: Book,
+        syncBookProgress: Boolean = AppConfig.syncBookProgress,
+        alertSync: ((progress: BookProgress) -> Unit)? = null
+    ) {
         if (syncBookProgress)
             execute {
-                BookWebDav.getBookProgress(book)?.let { progress ->
+                BookWebDav.getBookProgress(book)
+            }.onSuccess {
+                it?.let { progress ->
                     if (progress.durChapterIndex < book.durChapterIndex ||
                         (progress.durChapterIndex == book.durChapterIndex && progress.durChapterPos < book.durChapterPos)
                     ) {
-                        processLiveData.postValue(progress)
+                        alertSync?.invoke(progress)
                     } else {
                         ReadBook.setProgress(progress)
                     }
@@ -212,9 +215,8 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         execute {
             App.db.bookSourceDao.allTextEnabled.forEach { source ->
                 try {
-                    val variableBook = SearchBook()
                     WebBook(source)
-                        .searchBookSuspend(this, name, variableBook = variableBook)
+                        .searchBookSuspend(this, name)
                         .getOrNull(0)?.let {
                             if (it.name == name && (it.author == author || author == "")) {
                                 val book = it.toBook()

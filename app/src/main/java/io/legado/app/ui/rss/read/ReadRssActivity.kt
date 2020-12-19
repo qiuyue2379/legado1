@@ -166,6 +166,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             domStorageEnabled = true
             allowContentAccess = true
+            mediaPlaybackRequiresUserGesture = false
         }
         binding.webView.setOnLongClickListener {
             val hitTestResult = binding.webView.hitTestResult
