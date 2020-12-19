@@ -76,34 +76,32 @@ class BookmarkFragment : VMBaseFragment<ChapterListViewModel>(R.layout.fragment_
     override fun onClick(bookmark: Bookmark) {
         val bookmarkData = Intent()
         bookmarkData.putExtra("index", bookmark.chapterIndex)
-        bookmarkData.putExtra("pageIndex", bookmark.pageIndex)
+        bookmarkData.putExtra("chapterPos", bookmark.chapterPos)
         activity?.setResult(Activity.RESULT_OK, bookmarkData)
         activity?.finish()
     }
 
     @SuppressLint("InflateParams")
     override fun onLongClick(bookmark: Bookmark) {
-        viewModel.book?.let { book ->
-            requireContext().alert(R.string.bookmark) {
-                val alertBinding = DialogEditTextBinding.inflate(layoutInflater)
-                message = book.name + " • " + bookmark.chapterName
-                customView {
-                    alertBinding.apply {
-                        editView.setHint(R.string.note_content)
-                        editView.setText(bookmark.content)
-                    }.root
+        requireContext().alert(R.string.bookmark) {
+            val alertBinding = DialogEditTextBinding.inflate(layoutInflater)
+            message = bookmark.bookText
+            customView {
+                alertBinding.apply {
+                    editView.setHint(R.string.note_content)
+                    editView.setText(bookmark.content)
+                }.root
+            }
+            yesButton {
+                alertBinding.editView.text?.toString()?.let { editContent ->
+                    bookmark.content = editContent
+                    App.db.bookmarkDao.update(bookmark)
                 }
-                yesButton {
-                    alertBinding.editView.text?.toString()?.let { editContent ->
-                        bookmark.content = editContent
-                        App.db.bookmarkDao.update(bookmark)
-                    }
-                }
-                noButton()
-                neutralButton(R.string.delete) {
-                    App.db.bookmarkDao.delete(bookmark)
-                }
-            }.show().requestInputMethod()
-        }
+            }
+            noButton()
+            neutralButton(R.string.delete) {
+                App.db.bookmarkDao.delete(bookmark)
+            }
+        }.show().requestInputMethod()
     }
 }

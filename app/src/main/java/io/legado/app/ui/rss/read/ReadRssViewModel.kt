@@ -46,23 +46,27 @@ class ReadRssViewModel(application: Application) : BaseViewModel(application),
         execute {
             val origin = intent.getStringExtra("origin")
             val link = intent.getStringExtra("link")
-            if (origin != null && link != null) {
+            origin?.let {
                 rssSource = App.db.rssSourceDao.getByKey(origin)
-                rssStar = App.db.rssStarDao.get(origin, link)
-                rssArticle = rssStar?.toRssArticle() ?: App.db.rssArticleDao.get(origin, link)
-                rssArticle?.let { rssArticle ->
-                    if (!rssArticle.description.isNullOrBlank()) {
-                        contentLiveData.postValue(rssArticle.description)
-                    } else {
-                        rssSource?.let {
-                            val ruleContent = it.ruleContent
-                            if (!ruleContent.isNullOrBlank()) {
-                                loadContent(rssArticle, ruleContent)
-                            } else {
-                                loadUrl(rssArticle)
-                            }
-                        } ?: loadUrl(rssArticle)
+                if (link != null) {
+                    rssStar = App.db.rssStarDao.get(origin, link)
+                    rssArticle = rssStar?.toRssArticle() ?: App.db.rssArticleDao.get(origin, link)
+                    rssArticle?.let { rssArticle ->
+                        if (!rssArticle.description.isNullOrBlank()) {
+                            contentLiveData.postValue(rssArticle.description)
+                        } else {
+                            rssSource?.let {
+                                val ruleContent = it.ruleContent
+                                if (!ruleContent.isNullOrBlank()) {
+                                    loadContent(rssArticle, ruleContent)
+                                } else {
+                                    loadUrl(rssArticle.link, rssArticle.origin)
+                                }
+                            } ?: loadUrl(rssArticle.link, rssArticle.origin)
+                        }
                     }
+                } else {
+                    loadUrl(origin, origin)
                 }
             }
         }.onFinally {
@@ -70,10 +74,10 @@ class ReadRssViewModel(application: Application) : BaseViewModel(application),
         }
     }
 
-    private fun loadUrl(rssArticle: RssArticle) {
+    private fun loadUrl(url: String, baseUrl: String) {
         val analyzeUrl = AnalyzeUrl(
-            rssArticle.link,
-            baseUrl = rssArticle.origin,
+            ruleUrl = url,
+            baseUrl = baseUrl,
             useWebView = true,
             headerMapF = rssSource?.getHeaderMap()
         )

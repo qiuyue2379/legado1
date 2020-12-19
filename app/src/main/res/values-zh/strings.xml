@@ -484,6 +484,7 @@
     <string name="no">否</string>
     <string name="sure">确认</string>
     <string name="sure_del">是否确认删除？</string>
+    <string name="sure_del_any">是否确认删除 %s？</string>
     <string name="sure_del_all_book">是否删除全部书籍？</string>
     <string name="sure_del_download_book">是否同时删除已下载的书籍目录？</string>
     <string name="qr_per">扫描二维码需相机权限</string>
@@ -796,5 +797,7 @@
     <string name="current_progress_exceeds_cloud">当前进度超过云端进度,是否同步?</string>
     <string name="sync_book_progress_t">同步阅读进度</string>
     <string name="sync_book_progress_s">进入退出阅读界面时同步阅读进度</string>
+    <string name="create_bookmark_error">创建书签失败</string>
+    <string name="single_url">单URL</string>
 
 </resources>

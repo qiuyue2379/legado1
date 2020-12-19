@@ -199,26 +199,19 @@ abstract class ReadBookBaseActivity :
     }
 
     @SuppressLint("InflateParams")
-    fun showBookMark() {
+    fun showBookMark(bookmark: Bookmark) {
         val book = ReadBook.book ?: return
         val textChapter = ReadBook.curTextChapter ?: return
         alert(title = getString(R.string.bookmark_add)) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.setHint(R.string.note_content)
             }
-            message = book.name + " • " + textChapter.title
+            message = bookmark.bookText
             customView = alertBinding.root
             yesButton {
                 alertBinding.editView.text?.toString()?.let { editContent ->
                     Coroutine.async {
-                        val bookmark = Bookmark(
-                            bookUrl = book.bookUrl,
-                            bookName = book.name,
-                            chapterIndex = ReadBook.durChapterIndex,
-                            pageIndex = ReadBook.durChapterPos,
-                            chapterName = textChapter.title,
-                            content = editContent
-                        )
+                        bookmark.content = editContent
                         App.db.bookmarkDao.insert(bookmark)
                     }
                 }
