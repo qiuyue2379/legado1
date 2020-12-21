@@ -22,6 +22,7 @@ import io.legado.app.utils.postEvent
 import org.jetbrains.anko.defaultSharedPreferences
 import rxhttp.wrapper.param.RxHttp
 
+
 @Suppress("DEPRECATION")
 class App : MultiDexApplication() {
 

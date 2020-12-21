@@ -252,6 +252,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private fun upJavaScriptEnable() {
         if (viewModel.rssSource?.enableJs == true) {
             binding.webView.settings.javaScriptEnabled = true
+            binding.webView.settings.mediaPlaybackRequiresUserGesture = false
         }
     }
 
@@ -313,6 +314,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             upTtsMenu(false)
         } else {
             binding.webView.settings.javaScriptEnabled = true
+            binding.webView.settings.mediaPlaybackRequiresUserGesture = false
             binding.webView.evaluateJavascript("document.documentElement.outerHTML") {
                 val html = StringEscapeUtils.unescapeJson(it)
                     .replace("^\"|\"$".toRegex(), "")
