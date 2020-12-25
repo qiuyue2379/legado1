@@ -5,7 +5,7 @@
 ```
 speakText //朗读文本
 speakSpeed //朗读速度,0-45
-~~~
+```
 * 例:
 ```
 http://tts.baidu.com/text2audio,{
