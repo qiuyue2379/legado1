@@ -9,8 +9,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
-import android.webkit.*
+import android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 import androidx.core.view.size
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest
+import com.tencent.smtt.sdk.*
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.databinding.ActivityRssReadBinding
@@ -40,7 +43,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private val imagePathKey = ""
     private var starMenuItem: MenuItem? = null
     private var ttsMenuItem: MenuItem? = null
-    private var customWebViewCallback: WebChromeClient.CustomViewCallback? = null
+    private var customWebViewCallback: IX5WebChromeClient.CustomViewCallback? = null
     private var webPic: String? = null
 
     override fun getViewBinding(): ActivityRssReadBinding {
@@ -50,6 +53,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         viewModel.callBack = this
         binding.titleBar.title = intent.getStringExtra("title")
+
         initWebView()
         initLiveData()
         viewModel.initData(intent)
@@ -96,7 +100,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
 
     private fun initWebView() {
         binding.webView.webChromeClient = object : WebChromeClient() {
-            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+            override fun onShowCustomView(view: View?, callback: IX5WebChromeClient.CustomViewCallback?) {
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
                 binding.llView.invisible()
                 binding.customWebView.addView(view)
@@ -163,7 +167,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             }
         }
         binding.webView.settings.apply {
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            mixedContentMode = WebSettings.LOAD_NORMAL
             domStorageEnabled = true
             allowContentAccess = true
             mediaPlaybackRequiresUserGesture = false
@@ -208,6 +212,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
                 Download.start(this, downloadId, fileName)
             }
         }
+
     }
 
     private fun saveImage() {
@@ -237,8 +242,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
                     binding.webView
                         .loadDataWithBaseURL(url, html, "text/html", "utf-8", url)//不想用baseUrl进else
                 } else {
-                    binding.webView
-                        .loadDataWithBaseURL(null, html, "text/html;charset=utf-8", "utf-8", url)
+                    binding.webView.loadDataWithBaseURL( null, html, "text/html;charset=utf-8", "utf-8", url)
                 }
             }
         }
