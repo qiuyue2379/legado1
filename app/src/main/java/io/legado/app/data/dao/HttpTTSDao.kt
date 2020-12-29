@@ -28,4 +28,7 @@ interface HttpTTSDao {
     @Update
     fun update(vararg httpTTS: HttpTTS)
 
+    @Query("delete from httpTTS where id < 0")
+    fun deleteDefault()
+
 }

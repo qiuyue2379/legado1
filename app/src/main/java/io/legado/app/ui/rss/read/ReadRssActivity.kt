@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
-import android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 import androidx.core.view.size
 import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
 import com.tencent.smtt.export.external.interfaces.WebResourceRequest
