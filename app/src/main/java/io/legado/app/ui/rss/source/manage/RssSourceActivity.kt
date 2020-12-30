@@ -12,7 +12,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
@@ -116,7 +115,6 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
 
     private fun initRecyclerView() {
         ATH.applyEdgeEffectColor(binding.recyclerView)
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.addItemDecoration(VerticalDivider(this))
         adapter = RssSourceAdapter(this, this)
         binding.recyclerView.adapter = adapter
@@ -208,7 +206,7 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
                 App.db.rssSourceDao.liveSearch("%$key%")
             }
         sourceLiveData?.observe(this, {
-            adapter.setItems(it)
+            adapter.setItems(it, adapter.diffItemCallback)
         })
     }
 
