@@ -7,9 +7,11 @@ import io.legado.app.base.BaseViewModel
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.data.entities.BookSource
+import io.legado.app.model.webBook.PreciseSearch
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.isActive
 import rxhttp.wrapper.param.RxHttp
 import rxhttp.wrapper.param.toText
 
@@ -43,7 +45,7 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
                         origin = bookSource.bookSourceUrl,
                         originName = bookSource.bookSourceName
                     )
-                    WebBook(bookSource).getBookInfo(book, this)
+                    WebBook(bookSource).getBookInfo(this, book)
                         .onSuccess(IO) {
                             it.order = App.db.bookDao.maxOrder + 1
                             App.db.bookDao.insert(it)
@@ -71,13 +73,6 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
                 val bookMap = hashMapOf<String, String?>()
                 bookMap["name"] = it.name
                 bookMap["author"] = it.author
-                bookMap["bookUrl"] = it.bookUrl
-                bookMap["coverUrl"] = it.coverUrl
-                bookMap["tocUrl"] = it.tocUrl
-                bookMap["kind"] = it.kind
-                bookMap["intro"] = it.getDisplayIntro()
-                bookMap["origin"] = it.origin
-                bookMap["originName"] = it.originName
                 exportList.add(bookMap)
             }
             GSON.toJson(exportList)
@@ -96,25 +91,7 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
                     }
                 }
                 text.isJsonArray() -> {
-                    GSON.fromJsonArray<Map<String, String?>>(text)?.forEach {
-                        val book = Book(
-                            bookUrl = it["bookUrl"] ?: "",
-                            name = it["name"] ?: "",
-                            author = it["author"] ?: "",
-                            coverUrl = it["coverUrl"],
-                            tocUrl = it["tocUrl"] ?: "",
-                            kind = it["kind"],
-                            intro = it["intro"] ?: "",
-                            origin = it["origin"] ?: "",
-                            originName = it["originName"] ?: ""
-                        )
-                        if (groupId > 0) {
-                            book.group = groupId
-                        }
-                        if (App.db.bookDao.getBook(book.name, book.author) == null) {
-                            App.db.bookDao.insert(book)
-                        }
-                    }
+                    importBookshelfByJson(text, groupId)
                 }
                 else -> {
                     throw Exception("格式不对")
@@ -122,6 +99,29 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
             }
         }.onError {
             toast(it.localizedMessage ?: "ERROR")
+        }
+    }
+
+    private fun importBookshelfByJson(json: String, groupId: Long) {
+        execute {
+            val bookSources = App.db.bookSourceDao.allEnabled
+            GSON.fromJsonArray<Map<String, String?>>(json)?.forEach {
+                if (!isActive) return@execute
+                val name = it["name"] ?: ""
+                val author = it["author"] ?: ""
+                if (name.isNotEmpty() && App.db.bookDao.getBook(name, author) == null) {
+                    val book = PreciseSearch
+                        .searchFirstBook(this, bookSources, name, author)
+                    book?.let {
+                        if (groupId > 0) {
+                            book.group = groupId
+                        }
+                        App.db.bookDao.insert(book)
+                    }
+                }
+            }
+        }.onFinally {
+            toast(R.string.success)
         }
     }
 

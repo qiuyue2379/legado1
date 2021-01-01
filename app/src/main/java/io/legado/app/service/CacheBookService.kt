@@ -183,12 +183,8 @@ class CacheBookService : BaseService() {
                     return@async
                 }
                 if (!BookHelp.hasContent(book, bookChapter)) {
-                    webBook.getContent(
-                        book,
-                        bookChapter,
-                        scope = this,
-                        context = searchPool
-                    ).timeout(60000L)
+                    webBook.getContent(this, book, bookChapter, context = searchPool)
+                        .timeout(60000L)
                         .onError {
                             synchronized(this) {
                                 downloadingList.remove(bookChapter.url)
