@@ -8,9 +8,11 @@ import io.legado.app.base.BaseService
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.IntentAction
+import io.legado.app.data.entities.BookSource
 import io.legado.app.help.AppConfig
 import io.legado.app.help.IntentHelp
 import io.legado.app.help.coroutine.CompositeCoroutine
+import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.help.CheckSource
 import io.legado.app.ui.book.source.manage.BookSourceActivity
 import io.legado.app.utils.postEvent
@@ -21,11 +23,12 @@ import kotlin.math.min
 
 class CheckSourceService : BaseService() {
     private var threadCount = AppConfig.threadCount
-    private var searchPool = Executors.newFixedThreadPool(threadCount).asCoroutineDispatcher()
+    private var searchCoroutine = Executors.newFixedThreadPool(threadCount).asCoroutineDispatcher()
     private var tasks = CompositeCoroutine()
     private val allIds = ArrayList<String>()
     private val checkedIds = ArrayList<String>()
     private var processIndex = 0
+    private var notificationMsg = ""
     private val notificationBuilder by lazy {
         NotificationCompat.Builder(this, AppConst.channelIdReadAloud)
             .setSmallIcon(R.drawable.ic_network_check)
@@ -44,7 +47,8 @@ class CheckSourceService : BaseService() {
 
     override fun onCreate() {
         super.onCreate()
-        updateNotification(0, getString(R.string.start))
+        notificationMsg = getString(R.string.start)
+        upNotification()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -60,7 +64,7 @@ class CheckSourceService : BaseService() {
     override fun onDestroy() {
         super.onDestroy()
         tasks.clear()
-        searchPool.close()
+        searchCoroutine.close()
         postEvent(EventBus.CHECK_SOURCE_DONE, 0)
     }
 
@@ -75,7 +79,8 @@ class CheckSourceService : BaseService() {
         allIds.addAll(ids)
         processIndex = 0
         threadCount = min(allIds.size, threadCount)
-        updateNotification(0, getString(R.string.progress_show, "", 0, allIds.size))
+        notificationMsg = getString(R.string.progress_show, "", 0, allIds.size)
+        upNotification()
         for (i in 0 until threadCount) {
             check()
         }
@@ -93,26 +98,41 @@ class CheckSourceService : BaseService() {
             if (index < allIds.size) {
                 val sourceUrl = allIds[index]
                 App.db.bookSourceDao.getBookSource(sourceUrl)?.let { source ->
-                    if (source.searchUrl.isNullOrEmpty()) {
-                        onNext(sourceUrl, source.bookSourceName)
-                    } else {
-                        CheckSource(source).check(this, searchPool) {
-                            onNext(it, source.bookSourceName)
-                        }
-                    }
+                    check(source)
                 } ?: onNext(sourceUrl, "")
             }
         }
+    }
+
+    fun check(source: BookSource) {
+        execute(context = searchCoroutine) {
+            val webBook = WebBook(source)
+            val books = webBook.searchBookAwait(this, CheckSource.keyword)
+            val book = webBook.getBookInfoAwait(this, books.first().toBook())
+            val toc = webBook.getChapterListAwait(this, book)
+            val content = webBook.getContentAwait(this, book, toc.first())
+            if (content.isBlank()) {
+                throw Exception("正文内容为空")
+            }
+        }.timeout(60000L)
+            .onError {
+                source.addGroup("失效")
+                App.db.bookSourceDao.update(source)
+            }.onSuccess {
+                source.removeGroup("失效")
+                App.db.bookSourceDao.update(source)
+            }.onFinally {
+                onNext(source.bookSourceUrl, source.bookSourceName)
+            }
     }
 
     private fun onNext(sourceUrl: String, sourceName: String) {
         synchronized(this) {
             check()
             checkedIds.add(sourceUrl)
-            updateNotification(
-                checkedIds.size,
+            notificationMsg =
                 getString(R.string.progress_show, sourceName, checkedIds.size, allIds.size)
-            )
+            upNotification()
             if (processIndex >= allIds.size + threadCount - 1) {
                 stopSelf()
             }
@@ -122,10 +142,10 @@ class CheckSourceService : BaseService() {
     /**
      * 更新通知
      */
-    private fun updateNotification(state: Int, msg: String) {
-        notificationBuilder.setContentText(msg)
-        notificationBuilder.setProgress(allIds.size, state, false)
-        postEvent(EventBus.CHECK_SOURCE, msg)
+    private fun upNotification() {
+        notificationBuilder.setContentText(notificationMsg)
+        notificationBuilder.setProgress(allIds.size, checkedIds.size, false)
+        postEvent(EventBus.CHECK_SOURCE, notificationMsg)
         startForeground(112202, notificationBuilder.build())
     }
 
