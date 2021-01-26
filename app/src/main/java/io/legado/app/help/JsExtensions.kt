@@ -18,7 +18,7 @@ import rxhttp.wrapper.param.RxHttp
 import rxhttp.wrapper.param.toByteArray
 import java.io.File
 import java.net.URLEncoder
-import java.nio.charset.Charset
+import java.text.DateFormat
 import java.util.*
 
 @Keep
@@ -104,7 +104,7 @@ interface JsExtensions {
             if (it != null) {
                 for (f in it) {
                     val charsetName = EncodingDetect.getEncode(f)
-                    contents.append(String(f.readBytes(), Charset.forName(charsetName)))
+                    contents.append(String(f.readBytes(), charset(charsetName)))
                         .append("\n")
                 }
                 contents.deleteCharAt(contents.length - 1)
@@ -112,6 +112,13 @@ interface JsExtensions {
         }
         FileUtils.deleteFile(unzipPath)
         return contents.toString()
+    }
+
+    /**
+     * js实现文件夹/文件的删除
+     */
+    fun deleteFolder(path: String) {
+        FileUtils.deleteFile(path)
     }
 
     /**
@@ -202,6 +209,15 @@ interface JsExtensions {
         return dateFormat.format(Date(time))
     }
 
+    fun timeFormat(time: String): String {
+        val date = DateFormat.getDateTimeInstance().parse(time)
+        return if (date == null) {
+            ""
+        } else {
+            dateFormat.format(date)
+        }
+    }
+
     /**
      * utf8编码转gbk编码
      */
@@ -234,8 +250,18 @@ interface JsExtensions {
     /**
      * 读取本地文件
      */
-    fun readFile(path: String): ByteArray? {
+    fun readFile(path: String): ByteArray {
         return File(path).readBytes()
+    }
+
+    fun readTxtFile(path: String): String {
+        val f = File(path)
+        val charsetName = EncodingDetect.getEncode(f)
+        return String(f.readBytes(), charset(charsetName))
+    }
+
+    fun readTxtFile(path: String, charsetName: String): String {
+        return String(File(path).readBytes(), charset(charsetName))
     }
 
     /**
