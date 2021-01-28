@@ -17,9 +17,12 @@ import io.legado.app.utils.postEvent
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import org.jetbrains.anko.collections.forEachWithIndex
+import org.jetbrains.anko.runOnUiThread
+import org.jetbrains.anko.toast
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream
+import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.util.*
@@ -105,22 +108,38 @@ class HttpReadAloudService : BaseReadAloudService(),
                                     speakSpeed = AppConfig.ttsSpeechRate
                                 ).getByteArray().let { bytes ->
                                     ensureActive()
-                                    val file = getSpeakFileAsMd5(fileName)
+
+                                    val file = getSpeakFileAsMd5IfNotExist(fileName)
                                     //val file = getSpeakFile(index)
                                     file.writeBytes(bytes)
                                     removeSpeakCacheFile(fileName)
+
+                                    val fis = FileInputStream(file)
+
+                                    // 用来检测下载的文件是否为可正常播放的音频 （如果不是的话抛出异常，没找到更秒的办法，先这么着吧）
+                                    MediaPlayer().apply {
+                                        setDataSource(fis.fd)
+                                        prepare()
+                                        release()
+                                    }
                                     if (index == nowSpeak) {
                                         @Suppress("BlockingMethodInNonBlockingContext")
-                                        val fis = FileInputStream(file)
                                         playAudio(fis.fd)
                                     }
                                 }
                             } catch (e: SocketTimeoutException) {
                                 removeSpeakCacheFile(fileName)
-                                // delay(2000)
-                                // downloadAudio()
+                                runOnUiThread { toast("tts接口超时，尝试重新获取") }
+                                downloadAudio()
                             } catch (e: ConnectException) {
                                 removeSpeakCacheFile(fileName)
+                                runOnUiThread { toast("网络错误") }
+                            } catch (e: IOException) {
+                                val file = getSpeakFileAsMd5(fileName)
+                                if (file.exists()) {
+                                    FileUtils.deleteFile(file.absolutePath)
+                                }
+                                runOnUiThread { toast("tts文件解析错误") }
                             } catch (e: Exception) {
                                 removeSpeakCacheFile(fileName)
                             }
@@ -165,6 +184,9 @@ class HttpReadAloudService : BaseReadAloudService(),
     }
 
     private fun getSpeakFileAsMd5(name: String): File =
+        FileUtils.getFile(File(speakFilePath()), "$name.mp3")
+
+    private fun getSpeakFileAsMd5IfNotExist(name: String): File =
         FileUtils.createFileIfNotExist("${speakFilePath()}$name.mp3")
 
     private fun removeCacheFile() {
