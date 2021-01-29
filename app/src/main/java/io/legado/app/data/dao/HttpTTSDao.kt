@@ -30,5 +30,4 @@ interface HttpTTSDao {
 
     @Query("delete from httpTTS where id < 0")
     fun deleteDefault()
-
 }

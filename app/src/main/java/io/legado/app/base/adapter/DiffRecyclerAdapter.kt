@@ -211,4 +211,5 @@ abstract class DiffRecyclerAdapter<ITEM, VB : ViewBinding>(protected val context
      * 注册事件
      */
     abstract fun registerListener(holder: ItemViewHolder, binding: VB)
+
 }

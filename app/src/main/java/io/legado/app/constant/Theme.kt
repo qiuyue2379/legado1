@@ -16,6 +16,6 @@ enum class Theme {
         fun getTheme(backgroundColor: Int) =
             if (ColorUtils.isColorLight(backgroundColor)) Light
             else Dark
-        
+
     }
 }

@@ -69,5 +69,4 @@ object AppConst {
     )
 
     val sysElevation = App.INSTANCE.resources.getDimension(R.dimen.design_appbar_elevation).toInt()
-
 }

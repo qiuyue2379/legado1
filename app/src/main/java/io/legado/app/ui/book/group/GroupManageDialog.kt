@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.isGone
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,7 +19,7 @@ import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.databinding.DialogRecyclerViewBinding
-import io.legado.app.databinding.ItemGroupManageBinding
+import io.legado.app.databinding.ItemBookGroupManageBinding
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.lib.theme.backgroundColor
@@ -43,9 +42,9 @@ class GroupManageDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         viewModel = getViewModel(GroupViewModel::class.java)
         return inflater.inflate(R.layout.dialog_recycler_view, container)
@@ -116,6 +115,11 @@ class GroupManageDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
                 editView.setHint(R.string.group_name)
                 editView.setText(bookGroup.groupName)
             }
+            if (bookGroup.groupId >= 0) {
+                neutralButton(R.string.delete) {
+                    deleteGroup(bookGroup)
+                }
+            }
             customView = alertBinding.root
             yesButton {
                 alertBinding.editView.text?.toString()?.let {
@@ -136,34 +140,31 @@ class GroupManageDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
     }
 
     private inner class GroupAdapter(context: Context) :
-        RecyclerAdapter<BookGroup, ItemGroupManageBinding>(context),
-        ItemTouchCallback.Callback {
+            RecyclerAdapter<BookGroup, ItemBookGroupManageBinding>(context),
+            ItemTouchCallback.Callback {
 
         private var isMoved = false
 
-        override fun getViewBinding(parent: ViewGroup): ItemGroupManageBinding {
-            return ItemGroupManageBinding.inflate(inflater, parent, false)
+        override fun getViewBinding(parent: ViewGroup): ItemBookGroupManageBinding {
+            return ItemBookGroupManageBinding.inflate(inflater, parent, false)
         }
 
         override fun convert(
-            holder: ItemViewHolder,
-            binding: ItemGroupManageBinding,
-            item: BookGroup,
-            payloads: MutableList<Any>
+                holder: ItemViewHolder,
+                binding: ItemBookGroupManageBinding,
+                item: BookGroup,
+                payloads: MutableList<Any>
         ) {
             with(binding) {
                 root.setBackgroundColor(context.backgroundColor)
                 tvGroup.text = item.getManageName(context)
                 swShow.isChecked = item.show
-                tvDel.isGone = item.groupId < 0
-                swShow.isGone = item.groupId >= 0
             }
         }
 
-        override fun registerListener(holder: ItemViewHolder, binding: ItemGroupManageBinding) {
+        override fun registerListener(holder: ItemViewHolder, binding: ItemBookGroupManageBinding) {
             with(binding) {
                 tvEdit.onClick { getItem(holder.layoutPosition)?.let { editGroup(it) } }
-                tvDel.onClick { getItem(holder.layoutPosition)?.let { deleteGroup(it) } }
                 swShow.setOnCheckedChangeListener { buttonView, isChecked ->
                     if (buttonView.isPressed) {
                         getItem(holder.layoutPosition)?.let {

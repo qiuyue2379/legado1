@@ -63,7 +63,7 @@ public class CharsetDetector {
      * Set the declared encoding for charset detection.
      *  The declared encoding of an input text is an encoding obtained
      *  from an http header or xml declaration or similar source that
-     *  can be provided as additional information to the charset detector.
+     *  can be provided as additional information to the charset detector.  
      *  A match between a declared encoding and a possible detected encoding
      *  will raise the quality of that detected encoding by a small delta,
      *  and will also appear as a "reason" for the match.
@@ -71,7 +71,7 @@ public class CharsetDetector {
      * A declared encoding that is incompatible with the input data being
      * analyzed will not be added to the list of possible encodings.
      *
-     *  @param encoding The declared encoding
+     *  @param encoding The declared encoding 
      *
      * @stable ICU 3.4
      */
@@ -140,12 +140,12 @@ public class CharsetDetector {
     /**
      * Return the charset that best matches the supplied input data.
      *
-     * Note though, that because the detection
+     * Note though, that because the detection 
      * only looks at the start of the input data,
      * there is a possibility that the returned charset will fail to handle
      * the full set of input data.
      * <p>
-     * Raise an exception if
+     * Raise an exception if 
      *  <ul>
      *    <li>no charset appears to match the data.</li>
      *    <li>no input text has been provided</li>
@@ -175,7 +175,7 @@ public class CharsetDetector {
      *  matches with the input data.  The array is ordered with the
      *  best quality match first.
      * <p>
-     * Raise an exception if
+     * Raise an exception if 
      *  <ul>
      *    <li>no charsets appear to match the input data.</li>
      *    <li>no input text has been provided</li>

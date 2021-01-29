@@ -9,12 +9,12 @@ import kotlin.experimental.and
 
 class QueryTTF(buffer: ByteArray) {
     private class Header(
-        var majorVersion: Int = 0,
-        var minorVersion: Int = 0,
-        var numOfTables: Int = 0,
-        var searchRange: Int = 0,
-        var entrySelector: Int = 0,
-        var rangeShift: Int = 0,
+            var majorVersion: Int = 0,
+            var minorVersion: Int = 0,
+            var numOfTables: Int = 0,
+            var searchRange: Int = 0,
+            var entrySelector: Int = 0,
+            var rangeShift: Int = 0,
     )
 
     private class Directory {
@@ -25,72 +25,72 @@ class QueryTTF(buffer: ByteArray) {
     }
 
     private class NameLayout(
-        var format: Int = 0,
-        var count: Int = 0,
-        var stringOffset: Int = 0,
-        var records: MutableList<NameRecord> = LinkedList(),
+            var format: Int = 0,
+            var count: Int = 0,
+            var stringOffset: Int = 0,
+            var records: MutableList<NameRecord> = LinkedList(),
     )
 
     private class NameRecord(
-        var platformID: Int = 0, // 平台标识符<0:Unicode, 1:Mac, 2:ISO, 3:Windows, 4:Custom>
-        var encodingID: Int = 0, // 编码标识符
-        var languageID: Int = 0, // 语言标识符
-        var nameID: Int = 0, // 名称标识符
-        var length: Int = 0,// 名称字符串的长度
-        var offset: Int = 0, // 名称字符串相对于stringOffset的字节偏移量
+            var platformID: Int = 0, // 平台标识符<0:Unicode, 1:Mac, 2:ISO, 3:Windows, 4:Custom>
+            var encodingID: Int = 0, // 编码标识符
+            var languageID: Int = 0, // 语言标识符
+            var nameID: Int = 0, // 名称标识符
+            var length: Int = 0,// 名称字符串的长度
+            var offset: Int = 0, // 名称字符串相对于stringOffset的字节偏移量
     )
 
     private class HeadLayout(
-        var majorVersion: Int = 0,
-        var minorVersion: Int = 0,
-        var fontRevision: Int = 0,
-        var checkSumAdjustment: Int = 0,
-        var magicNumber: Int = 0,
-        var flags: Int = 0,
-        var unitsPerEm: Int = 0,
-        var created: Long = 0,
-        var modified: Long = 0,
-        var xMin: Short = 0,
-        var yMin: Short = 0,
-        var xMax: Short = 0,
-        var yMax: Short = 0,
-        var macStyle: Int = 0,
-        var lowestRecPPEM: Int = 0,
-        var fontDirectionHint: Short = 0,
-        var indexToLocFormat: Short = 0, // <0:loca是2字节数组, 1:loca是4字节数组>
-        var glyphDataFormat: Short = 0,
+            var majorVersion: Int = 0,
+            var minorVersion: Int = 0,
+            var fontRevision: Int = 0,
+            var checkSumAdjustment: Int = 0,
+            var magicNumber: Int = 0,
+            var flags: Int = 0,
+            var unitsPerEm: Int = 0,
+            var created: Long = 0,
+            var modified: Long = 0,
+            var xMin: Short = 0,
+            var yMin: Short = 0,
+            var xMax: Short = 0,
+            var yMax: Short = 0,
+            var macStyle: Int = 0,
+            var lowestRecPPEM: Int = 0,
+            var fontDirectionHint: Short = 0,
+            var indexToLocFormat: Short = 0, // <0:loca是2字节数组, 1:loca是4字节数组>
+            var glyphDataFormat: Short = 0,
     )
 
     private class MaxpLayout(
-        var majorVersion: Int = 0,
-        var minorVersion: Int = 0,
-        var numGlyphs: Int = 0, // 字体中的字形数量
-        var maxPoints: Int = 0,
-        var maxContours: Int = 0,
-        var maxCompositePoints: Int = 0,
-        var maxCompositeContours: Int = 0,
-        var maxZones: Int = 0,
-        var maxTwilightPoints: Int = 0,
-        var maxStorage: Int = 0,
-        var maxFunctionDefs: Int = 0,
-        var maxInstructionDefs: Int = 0,
-        var maxStackElements: Int = 0,
-        var maxSizeOfInstructions: Int = 0,
-        var maxComponentElements: Int = 0,
-        var maxComponentDepth: Int = 0,
+            var majorVersion: Int = 0,
+            var minorVersion: Int = 0,
+            var numGlyphs: Int = 0, // 字体中的字形数量
+            var maxPoints: Int = 0,
+            var maxContours: Int = 0,
+            var maxCompositePoints: Int = 0,
+            var maxCompositeContours: Int = 0,
+            var maxZones: Int = 0,
+            var maxTwilightPoints: Int = 0,
+            var maxStorage: Int = 0,
+            var maxFunctionDefs: Int = 0,
+            var maxInstructionDefs: Int = 0,
+            var maxStackElements: Int = 0,
+            var maxSizeOfInstructions: Int = 0,
+            var maxComponentElements: Int = 0,
+            var maxComponentDepth: Int = 0,
     )
 
     private class CmapLayout(
-        var version: Int = 0,
-        var numTables: Int = 0,
-        var records: MutableList<CmapRecord> = LinkedList(),
-        var tables: MutableMap<Int, CmapFormat> = HashMap(),
+            var version: Int = 0,
+            var numTables: Int = 0,
+            var records: MutableList<CmapRecord> = LinkedList(),
+            var tables: MutableMap<Int, CmapFormat> = HashMap(),
     )
 
     private class CmapRecord(
-        var platformID: Int = 0,
-        var encodingID: Int = 0,
-        var offset: Int = 0,
+            var platformID: Int = 0,
+            var encodingID: Int = 0,
+            var offset: Int = 0,
     )
 
     private open class CmapFormat {
@@ -114,26 +114,26 @@ class QueryTTF(buffer: ByteArray) {
     }
 
     private class CmapFormat6(
-        var firstCode: Int = 0,
-        var entryCount: Int = 0,
+            var firstCode: Int = 0,
+            var entryCount: Int = 0,
     ) : CmapFormat()
 
     private class CmapFormat12(
-        var reserved: Int = 0,
-        override var length: Int = 0,
-        override var language: Int = 0,
-        var numGroups: Int = 0,
-        var groups: MutableList<Triple<Int, Int, Int>>
+            var reserved: Int = 0,
+            override var length: Int = 0,
+            override var language: Int = 0,
+            var numGroups: Int = 0,
+            var groups: MutableList<Triple<Int, Int, Int>>
     ) : CmapFormat()
 
     private class GlyfLayout(
-        var numberOfContours: Short = 0, // 非负值为简单字型,负值为符合字型
-        var xMin: Short = 0,
-        var yMin: Short = 0,
-        var xMax: Short = 0,
-        var yMax: Short = 0,
-        var instructionLength: Int = 0
-    ) {
+            var numberOfContours: Short = 0, // 非负值为简单字型,负值为符合字型
+            var xMin: Short = 0,
+            var yMin: Short = 0,
+            var xMax: Short = 0,
+            var yMax: Short = 0,
+            var instructionLength: Int = 0
+            ) {
         lateinit var endPtsOfContours: IntArray // length=numberOfContours
         lateinit var instructions: IntArray // length=instructionLength
         lateinit var flags: ByteArray
@@ -201,12 +201,12 @@ class QueryTTF(buffer: ByteArray) {
     private val name = NameLayout()
     private val cmap = CmapLayout()
     private val pps: Array<Pair<Int, Int>> = arrayOf(
-        Pair.of(3, 10),
-        Pair.of(0, 4),
-        Pair.of(3, 1),
-        Pair.of(1, 0),
-        Pair.of(0, 3),
-        Pair.of(0, 1)
+            Pair.of(3, 10),
+            Pair.of(0, 4),
+            Pair.of(3, 1),
+            Pair.of(1, 0),
+            Pair.of(0, 3),
+            Pair.of(0, 1)
     )
     private val codeToGlyph: MutableMap<Int, String> = HashMap()
     private val glyphToCode: MutableMap<String, Int> = HashMap()
@@ -518,11 +518,11 @@ class QueryTTF(buffer: ByteArray) {
                         }
                         12 -> {
                             val f = CmapFormat12(
-                                reserved = fontReader.readUInt16(),
-                                length = fontReader.readUInt32(),
-                                language = fontReader.readUInt32(),
-                                numGroups = fontReader.readUInt32(),
-                                groups = ArrayList(fontReader.readUInt32())
+                                    reserved = fontReader.readUInt16(),
+                                    length = fontReader.readUInt32(),
+                                    language = fontReader.readUInt32(),
+                                    numGroups = fontReader.readUInt32(),
+                                    groups = ArrayList(fontReader.readUInt32())
                             )
                             f.format = format
                             for (n in 0 until f.numGroups) {

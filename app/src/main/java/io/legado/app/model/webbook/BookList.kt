@@ -65,8 +65,8 @@ object BookList {
             ruleList = ruleList.substring(1)
         }
         Debug.log(bookSource.bookSourceUrl, "┌获取书籍列表")
-        scope.ensureActive()
         collections = analyzeRule.getElements(ruleList)
+        scope.ensureActive()
         if (collections.isEmpty() && bookSource.bookUrlPattern.isNullOrEmpty()) {
             Debug.log(bookSource.bookSourceUrl, "└列表为空,按详情页解析")
             getInfoItem(scope, analyzeRule, bookSource, baseUrl, variableBook.variable)

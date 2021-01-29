@@ -167,3 +167,4 @@ abstract class CharsetRecog_2022 extends CharsetRecognizer {
     }
 
 }
+
