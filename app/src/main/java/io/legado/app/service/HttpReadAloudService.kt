@@ -115,7 +115,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                                     removeSpeakCacheFile(fileName)
 
                                     val fis = FileInputStream(file)
-                                    
+
                                     if (index == nowSpeak) {
                                         @Suppress("BlockingMethodInNonBlockingContext")
                                         playAudio(fis.fd)
