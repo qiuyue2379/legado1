@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseActivity
-import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.ReadRecordShow
 import io.legado.app.databinding.ActivityReadRecordBinding
 import io.legado.app.databinding.ItemReadRecordBinding
@@ -19,7 +19,6 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.anko.sdk27.coroutines.onClick
 import java.util.*
 
 class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
@@ -59,7 +58,7 @@ class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
         readRecord.tvBookName.setText(R.string.all_read_time)
         adapter = RecordAdapter(this@ReadRecordActivity)
         recyclerView.adapter = adapter
-        readRecord.tvRemove.onClick {
+        readRecord.tvRemove.setOnClickListener {
             alert(R.string.delete, R.string.sure_del) {
                 okButton {
                     App.db.readRecordDao.clear()
@@ -112,7 +111,7 @@ class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
 
         override fun registerListener(holder: ItemViewHolder, binding: ItemReadRecordBinding) {
             binding.apply {
-                tvRemove.onClick {
+                tvRemove.setOnClickListener {
                     getItem(holder.layoutPosition)?.let { item ->
                         sureDelAlert(item)
                     }
@@ -122,7 +121,7 @@ class ReadRecordActivity : BaseActivity<ActivityReadRecordBinding>() {
 
         private fun sureDelAlert(item: ReadRecordShow) {
             alert(R.string.delete) {
-                message = getString(R.string.sure_del_any, item.bookName)
+                setMessage(getString(R.string.sure_del_any, item.bookName))
                 okButton {
                     App.db.readRecordDao.deleteByName(item.bookName)
                     initData()

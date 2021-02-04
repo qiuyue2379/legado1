@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
@@ -28,8 +29,6 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.anko.sdk27.coroutines.onClick
-import org.jetbrains.anko.toast
 import java.io.File
 import java.util.*
 
@@ -50,7 +49,7 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
     private var path = sdPath
 
     override val viewModel: ImportBookViewModel
-        get() = getViewModel(ImportBookViewModel::class.java)
+            by viewModels()
 
     override fun getViewBinding(): ActivityImportBookBinding {
         return ActivityImportBookBinding.inflate(layoutInflater)
@@ -112,7 +111,7 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
     }
 
     private fun initEvent() {
-        binding.tvGoBack.onClick {
+        binding.tvGoBack.setOnClickListener {
             goBackDir()
         }
     }
@@ -253,7 +252,7 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
         } ?: let {
             val lastPath = AppConfig.importBookPath
             if (lastPath.isNullOrEmpty()) {
-                toast(R.string.empty_msg_import_book)
+                toastOnUi(R.string.empty_msg_import_book)
             } else {
                 adapter.clearItems()
                 val file = File(path)

@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.SeekBar
+import androidx.activity.viewModels
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
@@ -28,9 +29,7 @@ import io.legado.app.ui.book.toc.ChapterListActivity
 import io.legado.app.ui.widget.image.CoverImageView
 import io.legado.app.ui.widget.seekbar.SeekBarChangeListener
 import io.legado.app.utils.*
-import org.jetbrains.anko.sdk27.coroutines.onClick
-import org.jetbrains.anko.sdk27.coroutines.onLongClick
-import org.jetbrains.anko.startActivityForResult
+import splitties.views.onLongClick
 import java.util.*
 
 /**
@@ -41,7 +40,7 @@ class AudioPlayActivity :
     ChangeSourceDialog.CallBack {
 
     override val viewModel: AudioPlayViewModel
-        get() = getViewModel(AudioPlayViewModel::class.java)
+            by viewModels()
 
     private var requestCodeChapter = 8461
     private var adjustProgress = false
@@ -80,16 +79,16 @@ class AudioPlayActivity :
     }
 
     private fun initView() {
-        binding.fabPlayStop.onClick {
+        binding.fabPlayStop.setOnClickListener {
             playButton()
         }
-        binding.fabPlayStop.onLongClick(returnValue = true) {
+        binding.fabPlayStop.onLongClick {
             AudioPlay.stop(this@AudioPlayActivity)
         }
-        binding.ivSkipNext.onClick {
+        binding.ivSkipNext.setOnClickListener {
             AudioPlay.next(this@AudioPlayActivity)
         }
-        binding.ivSkipPrevious.onClick {
+        binding.ivSkipPrevious.setOnClickListener {
             AudioPlay.prev(this@AudioPlayActivity)
         }
         binding.playerProgress.setOnSeekBarChangeListener(object : SeekBarChangeListener {
@@ -106,25 +105,24 @@ class AudioPlayActivity :
                 AudioPlay.adjustProgress(this@AudioPlayActivity, seekBar.progress)
             }
         })
-        binding.ivChapter.onClick {
+        binding.ivChapter.setOnClickListener {
             AudioPlay.book?.let {
-                startActivityForResult<ChapterListActivity>(
-                    requestCodeChapter,
-                    Pair("bookUrl", it.bookUrl)
-                )
+                startActivityForResult<ChapterListActivity>(requestCodeChapter) {
+                    putExtra("bookUrl", it.bookUrl)
+                }
             }
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             binding.ivFastRewind.invisible()
             binding.ivFastForward.invisible()
         }
-        binding.ivFastForward.onClick {
+        binding.ivFastForward.setOnClickListener {
             AudioPlay.adjustSpeed(this@AudioPlayActivity, 0.1f)
         }
-        binding.ivFastRewind.onClick {
+        binding.ivFastRewind.setOnClickListener {
             AudioPlay.adjustSpeed(this@AudioPlayActivity, -0.1f)
         }
-        binding.ivTimer.onClick {
+        binding.ivTimer.setOnClickListener {
             AudioPlay.addTimer(this@AudioPlayActivity)
         }
     }
@@ -165,7 +163,7 @@ class AudioPlayActivity :
         AudioPlay.book?.let {
             if (!AudioPlay.inBookshelf) {
                 alert(title = getString(R.string.add_to_shelf)) {
-                    message = getString(R.string.check_add_bookshelf, it.name)
+                    setMessage(getString(R.string.check_add_bookshelf, it.name))
                     okButton {
                         AudioPlay.inBookshelf = true
                         setResult(Activity.RESULT_OK)

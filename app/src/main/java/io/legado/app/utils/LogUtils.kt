@@ -1,7 +1,7 @@
 package io.legado.app.utils
 
 import android.annotation.SuppressLint
-import io.legado.app.App
+import splitties.init.appCtx
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.*
@@ -30,7 +30,7 @@ object LogUtils {
     }
 
     private val fileHandler by lazy {
-        val root = App.INSTANCE.externalCacheDir ?: return@lazy null
+        val root = appCtx.externalCacheDir ?: return@lazy null
         val logFolder = FileUtils.createFolderIfNotExist(root, "logs")
         val logPath = FileUtils.getPath(root = logFolder, "appLog")
         FileHandler(logPath, 10240, 10).apply {
@@ -40,7 +40,7 @@ object LogUtils {
                     return (getCurrentDateStr(TIME_PATTERN) + ": " + record.message + "\n")
                 }
             }
-            level = if (App.INSTANCE.getPrefBoolean("recordLog")) {
+            level = if (appCtx.getPrefBoolean("recordLog")) {
                 Level.INFO
             } else {
                 Level.OFF
@@ -49,7 +49,7 @@ object LogUtils {
     }
 
     fun upLevel() {
-        fileHandler?.level = if (App.INSTANCE.getPrefBoolean("recordLog")) {
+        fileHandler?.level = if (appCtx.getPrefBoolean("recordLog")) {
             Level.INFO
         } else {
             Level.OFF

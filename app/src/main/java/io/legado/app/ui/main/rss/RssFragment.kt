@@ -6,6 +6,7 @@ import android.view.MenuItem
 import android.view.SubMenu
 import android.view.View
 import androidx.appcompat.widget.SearchView
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import io.legado.app.App
 import io.legado.app.R
@@ -24,11 +25,11 @@ import io.legado.app.ui.rss.source.manage.RssSourceActivity
 import io.legado.app.ui.rss.source.manage.RssSourceViewModel
 import io.legado.app.ui.rss.subscription.RuleSubActivity
 import io.legado.app.utils.cnCompare
-import io.legado.app.utils.getViewModel
+
 import io.legado.app.utils.splitNotBlank
 import io.legado.app.utils.startActivity
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import org.jetbrains.anko.sdk27.coroutines.onClick
+
 
 /**
  * 订阅界面
@@ -39,7 +40,7 @@ class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
     private lateinit var adapter: RssAdapter
     private lateinit var searchView: SearchView
     override val viewModel: RssSourceViewModel
-        get() = getViewModel(RssSourceViewModel::class.java)
+            by viewModels()
     private var liveRssData: LiveData<List<RssSource>>? = null
     private val groups = linkedSetOf<String>()
     private var liveGroup: LiveData<List<String>>? = null
@@ -106,7 +107,7 @@ class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
             ItemRssBinding.inflate(layoutInflater, it, false).apply {
                 tvName.setText(R.string.rule_subscription)
                 ivIcon.setImageResource(R.drawable.image_legado)
-                root.onClick {
+                root.setOnClickListener {
                     startActivity<RuleSubActivity>()
                 }
             }
@@ -143,12 +144,14 @@ class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
 
     override fun openRss(rssSource: RssSource) {
         if (rssSource.singleUrl) {
-            startActivity<ReadRssActivity>(
-                Pair("title", rssSource.sourceName),
-                Pair("origin", rssSource.sourceUrl)
-            )
+            startActivity<ReadRssActivity> {
+                putExtra("title", rssSource.sourceName)
+                putExtra("origin", rssSource.sourceUrl)
+            }
         } else {
-            startActivity<RssSortActivity>(Pair("url", rssSource.sourceUrl))
+            startActivity<RssSortActivity> {
+                putExtra("url", rssSource.sourceUrl)
+            }
         }
     }
 
@@ -157,7 +160,9 @@ class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
     }
 
     override fun edit(rssSource: RssSource) {
-        startActivity<RssSourceEditActivity>(Pair("data", rssSource.sourceUrl))
+        startActivity<RssSourceEditActivity> {
+            putExtra("data", rssSource.sourceUrl)
+        }
     }
 
     override fun del(rssSource: RssSource) {

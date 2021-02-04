@@ -9,9 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.fragment.app.*
 import androidx.lifecycle.LiveData
 import com.google.android.material.tabs.TabLayout
 import io.legado.app.App
@@ -37,7 +35,6 @@ import io.legado.app.ui.main.MainViewModel
 import io.legado.app.ui.main.bookshelf.books.BooksFragment
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import org.jetbrains.anko.share
 
 /**
  * 书架界面
@@ -49,10 +46,8 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
 
     private val requestCodeImportBookshelf = 312
     private val binding by viewBinding(FragmentBookshelfBinding::bind)
-    override val viewModel: BookshelfViewModel
-        get() = getViewModel(BookshelfViewModel::class.java)
-    private val activityViewModel: MainViewModel
-        get() = getViewModelOfActivity(MainViewModel::class.java)
+    override val viewModel: BookshelfViewModel by viewModels()
+    private val activityViewModel: MainViewModel by activityViewModels()
     private lateinit var adapter: FragmentStatePagerAdapter
     private lateinit var tabLayout: TabLayout
     private var bookGroupLiveData: LiveData<List<BookGroup>>? = null
@@ -85,14 +80,14 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
                 .show(childFragmentManager, "groupManageDialog")
             R.id.menu_add_local -> startActivity<ImportBookActivity>()
             R.id.menu_add_url -> addBookByUrl()
-            R.id.menu_arrange_bookshelf -> startActivity<ArrangeBookActivity>(
-                Pair("groupId", selectedGroup.groupId),
-                Pair("groupName", selectedGroup.groupName)
-            )
-            R.id.menu_download -> startActivity<CacheActivity>(
-                Pair("groupId", selectedGroup.groupId),
-                Pair("groupName", selectedGroup.groupName)
-            )
+            R.id.menu_arrange_bookshelf -> startActivity<ArrangeBookActivity> {
+                putExtra("groupId", selectedGroup.groupId)
+                putExtra("groupName", selectedGroup.groupName)
+            }
+            R.id.menu_download -> startActivity<CacheActivity> {
+                putExtra("groupId", selectedGroup.groupId)
+                putExtra("groupName", selectedGroup.groupName)
+            }
             R.id.menu_export_bookshelf -> {
                 val fragment = fragmentMap[selectedGroup.groupId]
                 viewModel.exportBookshelf(fragment?.getBooks()) {
@@ -128,7 +123,9 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        startActivity<SearchActivity>(Pair("key", query))
+        startActivity<SearchActivity> {
+            putExtra("key", query)
+        }
         return false
     }
 
@@ -168,7 +165,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
                         rgLayout.checkByIndex(bookshelfLayout)
                         rgSort.checkByIndex(bookshelfSort)
                     }
-            customView = alertBinding.root
+            customView { alertBinding.root }
             okButton {
                 alertBinding.apply {
                     var changed = false
@@ -193,7 +190,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
     private fun addBookByUrl() {
         alert(titleResource = R.string.add_book_url) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater)
-            customView = alertBinding.root
+            customView { alertBinding.root }
             okButton {
                 alertBinding.editView.text?.toString()?.let {
                     viewModel.addBookByUrl(it)
@@ -205,7 +202,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
 
     override fun onTabReselected(tab: TabLayout.Tab) {
         fragmentMap[selectedGroup.groupId]?.let {
-            toast("${selectedGroup.groupName}(${it.getBooksCount()})")
+            toastOnUi("${selectedGroup.groupName}(${it.getBooksCount()})")
         }
     }
 
@@ -224,7 +221,7 @@ class BookshelfFragment : VMBaseFragment<BookshelfViewModel>(R.layout.fragment_b
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.hint = "url/json"
             }
-            customView = alertBinding.root
+            customView { alertBinding.root }
             okButton {
                 alertBinding.editView.text?.toString()?.let {
                     viewModel.importBookshelf(it, selectedGroup.groupId)

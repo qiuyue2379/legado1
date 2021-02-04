@@ -75,10 +75,10 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
                         }
                         AudioPlay.upDurChapter(book)
                     } else {
-                        toast(R.string.error_load_toc)
+                        toastOnUi(R.string.error_load_toc)
                     }
                 }?.onError {
-                    toast(R.string.error_load_toc)
+                    toastOnUi(R.string.error_load_toc)
                 }
         }
     }

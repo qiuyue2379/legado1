@@ -57,12 +57,12 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
             }
         }.onSuccess {
             if (successCount > 0) {
-                toast(R.string.success)
+                toastOnUi(R.string.success)
             } else {
-                toast("ERROR")
+                toastOnUi("ERROR")
             }
         }.onError {
-            toast(it.localizedMessage ?: "ERROR")
+            toastOnUi(it.localizedMessage ?: "ERROR")
         }
     }
 
@@ -98,7 +98,7 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
                 }
             }
         }.onError {
-            toast(it.localizedMessage ?: "ERROR")
+            toastOnUi(it.localizedMessage ?: "ERROR")
         }
     }
 
@@ -121,7 +121,7 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
                 }
             }
         }.onFinally {
-            toast(R.string.success)
+            toastOnUi(R.string.success)
         }
     }
 

@@ -7,14 +7,14 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.RssStar
 import io.legado.app.databinding.ItemRssArticleBinding
 import io.legado.app.help.ImageLoader
 import io.legado.app.utils.gone
 import io.legado.app.utils.visible
-import org.jetbrains.anko.sdk27.coroutines.onClick
+
 
 class RssFavoritesAdapter(context: Context, val callBack: CallBack) :
     RecyclerAdapter<RssStar, ItemRssArticleBinding>(context) {
@@ -65,7 +65,7 @@ class RssFavoritesAdapter(context: Context, val callBack: CallBack) :
     }
 
     override fun registerListener(holder: ItemViewHolder, binding: ItemRssArticleBinding) {
-        holder.itemView.onClick {
+        holder.itemView.setOnClickListener {
             getItem(holder.layoutPosition)?.let {
                 callBack.readRss(it)
             }

@@ -35,7 +35,7 @@ class LoadMoreView(context: Context, attrs: AttributeSet? = null) : FrameLayout(
         binding.tvText.invisible()
         binding.rotateLoading.show()
     }
-    
+
     fun noMore(msg: String? = null) {
         hasMore = false
         binding.rotateLoading.hide()

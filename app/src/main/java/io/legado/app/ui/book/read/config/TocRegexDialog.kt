@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,8 +18,8 @@ import com.google.android.material.snackbar.Snackbar
 import io.legado.app.App
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
-import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.TxtTocRule
 import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.databinding.DialogTocRegexBinding
@@ -33,7 +34,7 @@ import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.sdk27.coroutines.onClick
+
 import java.util.*
 
 class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
@@ -42,7 +43,7 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
     private var tocRegexLiveData: LiveData<List<TxtTocRule>>? = null
     var selectedName: String? = null
     private var durRegex: String? = null
-    lateinit var viewModel: TocRegexViewModel
+    private val viewModel: TocRegexViewModel by viewModels()
     private val binding by viewBinding(DialogTocRegexBinding::bind)
 
     override fun onStart() {
@@ -56,7 +57,6 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        viewModel = getViewModel(TocRegexViewModel::class.java)
         return inflater.inflate(R.layout.dialog_toc_regex, container)
     }
 
@@ -79,16 +79,16 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
         val itemTouchCallback = ItemTouchCallback(adapter)
         itemTouchCallback.isCanDrag = true
         ItemTouchHelper(itemTouchCallback).attachToRecyclerView(recyclerView)
-        tvCancel.onClick {
+        tvCancel.setOnClickListener {
             dismiss()
         }
-        tvOk.onClick {
+        tvOk.setOnClickListener {
             adapter.getItems().forEach { tocRule ->
                 if (selectedName == tocRule.name) {
                     val callBack = activity as? CallBack
                     callBack?.onTocRegexDialogResult(tocRule.rule)
                     dismiss()
-                    return@onClick
+                    return@setOnClickListener
                 }
             }
         }
@@ -147,7 +147,7 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
                     aCache.put(importTocRuleKey, cacheUrls.joinToString(","))
                 }
             }
-            customView = alertBinding.root
+            customView { alertBinding.root }
             okButton {
                 val text = alertBinding.editView.text?.toString()
                 text?.let {
@@ -175,7 +175,7 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
                 tvRuleName.setText(tocRule.name)
                 tvRuleRegex.setText(tocRule.rule)
             }
-            customView = alertBinding.root
+            customView { alertBinding.root }
             okButton {
                 alertBinding.apply {
                     tocRule.name = tvRuleName.text.toString()
@@ -231,10 +231,10 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
                         }
                     }
                 }
-                ivEdit.onClick {
+                ivEdit.setOnClickListener {
                     editRule(getItem(holder.layoutPosition))
                 }
-                ivDelete.onClick {
+                ivDelete.setOnClickListener {
                     getItem(holder.layoutPosition)?.let { item ->
                         launch(IO) {
                             App.db.txtTocRule.delete(item)

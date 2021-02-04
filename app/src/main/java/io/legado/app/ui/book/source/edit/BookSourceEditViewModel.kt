@@ -45,7 +45,7 @@ class BookSourceEditViewModel(application: Application) : BaseViewModel(applicat
         }.onSuccess {
             success?.invoke()
         }.onError {
-            toast(it.localizedMessage)
+            toastOnUi(it.localizedMessage)
             it.printStackTrace()
         }
     }
@@ -58,13 +58,13 @@ class BookSourceEditViewModel(application: Application) : BaseViewModel(applicat
             }
             source
         }.onError {
-            toast(it.localizedMessage)
+            toastOnUi(it.localizedMessage)
             it.printStackTrace()
         }.onSuccess {
             if (it != null) {
                 onSuccess(it)
             } else {
-                toast("格式不对")
+                toastOnUi("格式不对")
             }
         }
     }
@@ -76,7 +76,7 @@ class BookSourceEditViewModel(application: Application) : BaseViewModel(applicat
                 finally.invoke(it)
             }
         }.onError {
-            toast(it.localizedMessage ?: "Error")
+            toastOnUi(it.localizedMessage ?: "Error")
         }
     }
 }

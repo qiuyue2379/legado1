@@ -20,9 +20,10 @@ import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.help.CacheBook
 import io.legado.app.utils.postEvent
+import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.isActive
-import org.jetbrains.anko.toast
+import splitties.init.appCtx
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
@@ -43,7 +44,7 @@ class CacheBookService : BaseService() {
 
     @Volatile
     private var downloadingCount = 0
-    private var notificationContent = App.INSTANCE.getString(R.string.starting_download)
+    private var notificationContent = appCtx.getString(R.string.starting_download)
 
     private val notificationBuilder by lazy {
         val builder = NotificationCompat.Builder(this, AppConst.channelIdDownload)
@@ -128,7 +129,7 @@ class CacheBookService : BaseService() {
         if (downloadMap.containsKey(bookUrl)) {
             notificationContent = getString(R.string.already_in_download)
             upNotification()
-            toast(notificationContent)
+            toastOnUi(notificationContent)
             return
         }
         downloadCount[bookUrl] = DownloadCount()

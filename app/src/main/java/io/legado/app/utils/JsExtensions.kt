@@ -39,7 +39,7 @@ fun ContextFactory.eval(jsStr: String, scriptObjects: Map<String, Any>): Any {
 }
 
 class SandboxNativeJavaObject(scope: Scriptable?, javaObject: Any?, staticType: Class<*>?) :
-        NativeJavaObject(scope, javaObject, staticType) {
+    NativeJavaObject(scope, javaObject, staticType) {
     override fun get(name: String, start: Scriptable): Any {
         return when (name) {
             "getClass", "delete" -> NOT_FOUND
@@ -50,10 +50,10 @@ class SandboxNativeJavaObject(scope: Scriptable?, javaObject: Any?, staticType: 
 
 class SandboxWrapFactory : WrapFactory() {
     override fun wrapAsJavaObject(
-            cx: Context?,
-            scope: Scriptable?,
-            javaObject: Any?,
-            staticType: Class<*>?
+        cx: Context?,
+        scope: Scriptable?,
+        javaObject: Any?,
+        staticType: Class<*>?
     ): Scriptable {
         return SandboxNativeJavaObject(scope, javaObject, staticType)
     }

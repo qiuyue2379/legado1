@@ -15,15 +15,15 @@ import androidx.preference.PreferenceViewHolder
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
-import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemIconPreferenceBinding
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.utils.getCompatDrawable
 import io.legado.app.utils.getSize
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import org.jetbrains.anko.sdk27.coroutines.onClick
+
 
 
 class IconListPreference(context: Context, attrs: AttributeSet) : ListPreference(context, attrs) {
@@ -186,7 +186,7 @@ class IconListPreference(context: Context, attrs: AttributeSet) : ListPreference
                         }
                     }
                     label.isChecked = item.toString() == dialogValue
-                    root.onClick {
+                    root.setOnClickListener {
                         onChanged?.invoke(item.toString())
                         this@IconDialog.dismiss()
                     }
@@ -197,7 +197,7 @@ class IconListPreference(context: Context, attrs: AttributeSet) : ListPreference
                 holder: ItemViewHolder,
                 binding: ItemIconPreferenceBinding
             ) {
-                holder.itemView.onClick {
+                holder.itemView.setOnClickListener {
                     getItem(holder.layoutPosition)?.let {
                         onChanged?.invoke(it.toString())
                     }

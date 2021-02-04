@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDexApplication
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.tencent.smtt.sdk.QbSdk
@@ -15,13 +14,14 @@ import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.channelIdDownload
 import io.legado.app.constant.AppConst.channelIdReadAloud
 import io.legado.app.constant.AppConst.channelIdWeb
-import io.legado.app.constant.EventBus
 import io.legado.app.data.AppDatabase
-import io.legado.app.help.*
+import io.legado.app.help.ActivityHelp
+import io.legado.app.help.AppConfig
+import io.legado.app.help.CrashHandler
+import io.legado.app.help.ThemeConfig.applyDayNight
 import io.legado.app.help.http.HttpHelper
 import io.legado.app.utils.LanguageUtils
-import io.legado.app.utils.postEvent
-import org.jetbrains.anko.defaultSharedPreferences
+import io.legado.app.utils.defaultSharedPreferences
 import rxhttp.wrapper.param.RxHttp
 
 
@@ -29,9 +29,6 @@ import rxhttp.wrapper.param.RxHttp
 class App : MultiDexApplication() {
 
     companion object {
-        @JvmStatic
-        lateinit var INSTANCE: App
-            private set
 
         @JvmStatic
         lateinit var db: AppDatabase
@@ -45,11 +42,10 @@ class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        INSTANCE = this
         androidId = Settings.System.getString(contentResolver, Settings.Secure.ANDROID_ID)
         CrashHandler(this)
         LanguageUtils.setConfiguration(this)
-        db = AppDatabase.createDatabase(INSTANCE)
+        db = AppDatabase.createDatabase(this)
         RxHttp.init(HttpHelper.client, BuildConfig.DEBUG)
         RxHttp.setOnParamAssembly {
             it.addHeader(AppConst.UA_NAME, AppConfig.userAgent)
@@ -59,7 +55,7 @@ class App : MultiDexApplication() {
             versionName = it.versionName
         }
         createNotificationChannels()
-        applyDayNight()
+        applyDayNight(this)
         LiveEventBus.config()
             .supportBroadcast(this)
             .lifecycleObserverAlwaysActive(true)
@@ -73,7 +69,7 @@ class App : MultiDexApplication() {
         super.onConfigurationChanged(newConfig)
         when (newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
             Configuration.UI_MODE_NIGHT_YES,
-            Configuration.UI_MODE_NIGHT_NO -> applyDayNight()
+            Configuration.UI_MODE_NIGHT_NO -> applyDayNight(this)
         }
     }
 
@@ -87,23 +83,6 @@ class App : MultiDexApplication() {
         }
         //x5内核初始化接口
         QbSdk.initX5Environment(applicationContext, cb)
-    }
-
-    fun applyDayNight() {
-        ReadBookConfig.upBg()
-        ThemeConfig.applyTheme(this)
-        initNightMode()
-        postEvent(EventBus.RECREATE, "")
-    }
-
-    private fun initNightMode() {
-        val targetMode =
-            if (AppConfig.isNightTheme) {
-                AppCompatDelegate.MODE_NIGHT_YES
-            } else {
-                AppCompatDelegate.MODE_NIGHT_NO
-            }
-        AppCompatDelegate.setDefaultNightMode(targetMode)
     }
 
     /**

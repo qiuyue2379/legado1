@@ -7,8 +7,8 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import io.legado.app.App
 import io.legado.app.R
-import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
+import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.ItemFilletTextBinding
 import io.legado.app.databinding.ItemFindBookBinding
@@ -19,8 +19,7 @@ import io.legado.app.utils.dp
 import io.legado.app.utils.gone
 import io.legado.app.utils.visible
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.anko.sdk27.coroutines.onClick
-import org.jetbrains.anko.sdk27.coroutines.onLongClick
+import splitties.views.onLongClick
 
 class ExploreAdapter(context: Context, private val scope: CoroutineScope, val callBack: CallBack) :
     RecyclerAdapter<BookSource, ItemFindBookBinding>(context) {
@@ -68,7 +67,7 @@ class ExploreAdapter(context: Context, private val scope: CoroutineScope, val ca
                             glChild.addView(tv.root)
                             tv.textView.text = kind.title
                             if (!kind.url.isNullOrEmpty()) {
-                                tv.textView.onClick {
+                                tv.textView.setOnClickListener {
                                     callBack.openExplore(
                                         item.bookSourceUrl,
                                         kind.title,
@@ -95,7 +94,7 @@ class ExploreAdapter(context: Context, private val scope: CoroutineScope, val ca
 
     override fun registerListener(holder: ItemViewHolder, binding: ItemFindBookBinding) {
         binding.apply {
-            llTitle.onClick {
+            llTitle.setOnClickListener {
                 val position = holder.layoutPosition
                 val oldEx = exIndex
                 exIndex = if (exIndex == position) -1 else position
