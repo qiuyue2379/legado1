@@ -25,10 +25,6 @@ import rxhttp.wrapper.param.RxHttp
 
 class App : MultiDexApplication() {
 
-    companion object {
-        var navigationBarHeight = 0
-    }
-
     override fun onCreate() {
         super.onCreate()
         CrashHandler(this)
@@ -107,6 +103,10 @@ class App : MultiDexApplication() {
             //向notification manager 提交channel
             it.createNotificationChannels(listOf(downloadChannel, readAloudChannel, webChannel))
         }
+    }
+
+    companion object {
+        var navigationBarHeight = 0
     }
 
 }
