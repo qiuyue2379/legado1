@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.provider.Settings
 import androidx.multidex.MultiDexApplication
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.tencent.smtt.sdk.QbSdk
@@ -14,7 +13,6 @@ import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.channelIdDownload
 import io.legado.app.constant.AppConst.channelIdReadAloud
 import io.legado.app.constant.AppConst.channelIdWeb
-import io.legado.app.data.AppDatabase
 import io.legado.app.help.ActivityHelp
 import io.legado.app.help.AppConfig
 import io.legado.app.help.CrashHandler
@@ -25,34 +23,19 @@ import io.legado.app.utils.defaultSharedPreferences
 import rxhttp.wrapper.param.RxHttp
 
 
-@Suppress("DEPRECATION")
 class App : MultiDexApplication() {
 
     companion object {
-
-        @JvmStatic
-        lateinit var db: AppDatabase
-            private set
-
-        lateinit var androidId: String
-        var versionCode = 0
-        var versionName = ""
         var navigationBarHeight = 0
     }
 
     override fun onCreate() {
         super.onCreate()
-        androidId = Settings.System.getString(contentResolver, Settings.Secure.ANDROID_ID)
         CrashHandler(this)
         LanguageUtils.setConfiguration(this)
-        db = AppDatabase.createDatabase(this)
         RxHttp.init(HttpHelper.client, BuildConfig.DEBUG)
         RxHttp.setOnParamAssembly {
             it.addHeader(AppConst.UA_NAME, AppConfig.userAgent)
-        }
-        packageManager.getPackageInfo(packageName, 0)?.let {
-            versionCode = it.versionCode
-            versionName = it.versionName
         }
         createNotificationChannels()
         applyDayNight(this)
@@ -94,7 +77,7 @@ class App : MultiDexApplication() {
             val downloadChannel = NotificationChannel(
                 channelIdDownload,
                 getString(R.string.action_download),
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 enableLights(false)
                 enableVibration(false)
@@ -104,7 +87,7 @@ class App : MultiDexApplication() {
             val readAloudChannel = NotificationChannel(
                 channelIdReadAloud,
                 getString(R.string.read_aloud),
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 enableLights(false)
                 enableVibration(false)
@@ -114,7 +97,7 @@ class App : MultiDexApplication() {
             val webChannel = NotificationChannel(
                 channelIdWeb,
                 getString(R.string.web_service),
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 enableLights(false)
                 enableVibration(false)

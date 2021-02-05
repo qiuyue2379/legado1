@@ -5,7 +5,6 @@ import splitties.init.appCtx
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.*
-import java.util.logging.Formatter
 
 @Suppress("unused")
 object LogUtils {
@@ -34,7 +33,7 @@ object LogUtils {
         val logFolder = FileUtils.createFolderIfNotExist(root, "logs")
         val logPath = FileUtils.getPath(root = logFolder, "appLog")
         FileHandler(logPath, 10240, 10).apply {
-            formatter = object : Formatter() {
+            formatter = object : java.util.logging.Formatter() {
                 override fun format(record: LogRecord): String {
                     // 设置文件输出格式
                     return (getCurrentDateStr(TIME_PATTERN) + ": " + record.message + "\n")
