@@ -27,6 +27,24 @@ class ImportBookSourceViewModel(app: Application) : BaseViewModel(app) {
     val checkSources = arrayListOf<BookSource?>()
     val selectStatus = arrayListOf<Boolean>()
 
+    fun isSelectAll(): Boolean {
+        selectStatus.forEach {
+            if (!it) {
+                return false
+            }
+        }
+        return true
+    }
+
+    fun selectCount(): Int {
+        var count = 0
+        selectStatus.forEach {
+            if (it) {
+                count++
+            }
+        }
+        return count
+    }
 
     fun importSelect(finally: () -> Unit) {
         execute {
@@ -134,9 +152,9 @@ class ImportBookSourceViewModel(app: Application) : BaseViewModel(app) {
     private fun comparisonSource() {
         execute {
             allSources.forEach {
-                val has = appDb.bookSourceDao.getBookSource(it.bookSourceUrl)
-                checkSources.add(has)
-                selectStatus.add(has == null)
+                val source = appDb.bookSourceDao.getBookSource(it.bookSourceUrl)
+                checkSources.add(source)
+                selectStatus.add(source == null || source.lastUpdateTime < it.lastUpdateTime)
             }
             successLiveData.postValue(allSources.size)
         }
