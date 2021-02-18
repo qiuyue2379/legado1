@@ -3,6 +3,7 @@ package io.legado.app.service
 import android.app.PendingIntent
 import android.content.Intent
 import android.media.MediaPlayer
+
 import io.legado.app.constant.EventBus
 import io.legado.app.help.AppConfig
 import io.legado.app.help.IntentHelp
@@ -81,7 +82,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                 contentList.forEachIndexed { index, item ->
                     if (isActive) {
                         val fileName =
-                            md5SpeakFileName(it.url, AppConfig.ttsSpeechRate.toString(), item)
+                                md5SpeakFileName(it.url, AppConfig.ttsSpeechRate.toString(), item)
 
                         if (hasSpeakFile(fileName)) { //已经下载好的语音缓存
                             if (index == nowSpeak) {
