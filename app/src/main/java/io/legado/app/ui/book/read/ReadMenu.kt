@@ -27,8 +27,8 @@ import splitties.views.onLongClick
  * 阅读界面菜单
  */
 class ReadMenu @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null
+        context: Context,
+        attrs: AttributeSet? = null
 ) : FrameLayout(context, attrs) {
     var cnaShowMenu: Boolean = false
     private val callBack: CallBack get() = activity as CallBack
@@ -40,9 +40,9 @@ class ReadMenu @JvmOverloads constructor(
     private val bgColor: Int = context.bottomBackground
     private val textColor: Int = context.getPrimaryTextColor(ColorUtils.isColorLight(bgColor))
     private val bottomBackgroundList: ColorStateList = Selector.colorBuild()
-        .setDefaultColor(bgColor)
-        .setPressedColor(ColorUtils.darkenColor(bgColor))
-        .create()
+            .setDefaultColor(bgColor)
+            .setPressedColor(ColorUtils.darkenColor(bgColor))
+            .create()
     private var onMenuOutEnd: (() -> Unit)? = null
     val showBrightnessView get() = context.getPrefBoolean(PreferKey.showBrightnessView, true)
 
@@ -255,7 +255,7 @@ class ReadMenu @JvmOverloads constructor(
         //隐藏菜单
         menuTopOut = AnimationUtilsSupport.loadAnimation(context, R.anim.anim_readbook_top_out)
         menuBottomOut =
-            AnimationUtilsSupport.loadAnimation(context, R.anim.anim_readbook_bottom_out)
+                AnimationUtilsSupport.loadAnimation(context, R.anim.anim_readbook_bottom_out)
         menuTopOut.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationStart(animation: Animation) {
                 binding.vwMenuBg.setOnClickListener(null)
