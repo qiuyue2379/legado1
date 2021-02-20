@@ -75,6 +75,11 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         return super.onPrepareOptionsMenu(menu)
     }
 
+    override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
+        menu.findItem(R.id.menu_enable_replace).isChecked = AppConfig.exportUseReplace
+        return super.onMenuOpened(featureId, menu)
+    }
+
     private fun upMenu() {
         menu?.findItem(R.id.menu_book_group)?.subMenu?.let { subMenu ->
             subMenu.removeGroup(R.id.menu_group)
@@ -100,15 +105,11 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                     CacheBook.stop(this@CacheActivity)
                 }
             }
-            R.id.menu_export_folder -> {
-
-            }
-            R.id.menu_export_charset -> {
-
-            }
-            R.id.menu_log -> {
+            R.id.menu_enable_replace -> AppConfig.exportUseReplace = !item.isChecked
+            R.id.menu_export_folder -> export(-1)
+            R.id.menu_export_charset -> showCharsetConfig()
+            R.id.menu_log ->
                 TextListDialog.show(supportFragmentManager, getString(R.string.log), CacheBook.logs)
-            }
             else -> if (item.groupId == R.id.menu_group) {
                 binding.titleBar.subtitle = item.title
                 groupId = appDb.bookGroupDao.getByName(item.title.toString())?.groupId ?: 0
@@ -198,6 +199,15 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
     override fun export(position: Int) {
         exportPosition = position
+        val path = ACache.get(this@CacheActivity).getAsString(exportBookPathKey)
+        if (path.isNullOrEmpty()) {
+            selectExportFolder()
+        } else {
+            startExport(path)
+        }
+    }
+
+    private fun selectExportFolder() {
         val default = arrayListOf<String>()
         val path = ACache.get(this@CacheActivity).getAsString(exportBookPathKey)
         if (!path.isNullOrEmpty()) {
