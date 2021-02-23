@@ -14,6 +14,7 @@ import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
+import io.legado.app.constant.charsets
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
@@ -49,8 +50,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     private val groupList: ArrayList<BookGroup> = arrayListOf()
     private var groupId: Long = -1
 
-    override val viewModel: CacheViewModel
-            by viewModels()
+    override val viewModel: CacheViewModel by viewModels()
 
     override fun getViewBinding(): ActivityCacheBookBinding {
         return ActivityCacheBookBinding.inflate(layoutInflater)
@@ -231,8 +231,6 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     }
 
     private fun showCharsetConfig() {
-        val charsets =
-                arrayListOf("UTF-8", "GB2312", "GBK", "Unicode", "UTF-16", "UTF-16LE", "ASCII")
         alert(R.string.set_charset) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.setFilterValues(charsets)
