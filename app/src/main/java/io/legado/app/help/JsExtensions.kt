@@ -6,10 +6,12 @@ import androidx.annotation.Keep
 import io.legado.app.constant.AppConst.dateFormat
 import io.legado.app.help.http.CookieStore
 import io.legado.app.help.http.SSLHelper
+import io.legado.app.help.http.StrResponse
 import io.legado.app.model.Debug
 import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.analyzeRule.QueryTTF
 import io.legado.app.utils.*
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Connection
 import org.jsoup.Jsoup
@@ -37,6 +39,25 @@ interface JsExtensions {
             }.getOrElse {
                 it.msg
             }
+        }
+    }
+
+    /**
+     * 并发访问网络
+     */
+    fun fetchAll(urlList: List<String>): Array<StrResponse?> {
+        return runBlocking {
+            val asyncArray = Array(urlList.size) {
+                async {
+                    val url = urlList[it]
+                    val analyzeUrl = AnalyzeUrl(url)
+                    analyzeUrl.getStrResponse(url)
+                }
+            }
+            val resArray = Array<StrResponse?>(urlList.size) {
+                asyncArray[it].await()
+            }
+            resArray
         }
     }
 
