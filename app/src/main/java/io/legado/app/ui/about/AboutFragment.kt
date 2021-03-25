@@ -15,7 +15,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import constant.UiType
 import io.legado.app.R
-import io.legado.app.constant.appInfo
+import io.legado.app.constant.AppConst.appInfo
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector

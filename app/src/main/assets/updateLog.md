@@ -4,7 +4,7 @@
 * 旧版数据导入教程：先在旧版阅读(2.x)中进行备份，然后在新版阅读(3.x)【我的】->【备份与恢复】，选择【导入旧版本数据】。
 
 **2021/03/23**
-* js添加一个并发访问的方法 java.ajaxAll(urlList: List<String>) 返回 Array<StrResponse?>
+* js添加一个并发访问的方法 java.ajaxAll(urlList: Array<String>) 返回 Array<StrResponse?>
 * 优化目录并发访问
 
 **2021/03/19**
