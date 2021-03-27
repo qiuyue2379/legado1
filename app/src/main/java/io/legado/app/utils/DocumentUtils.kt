@@ -54,10 +54,10 @@ object DocumentUtils {
     @JvmStatic
     @Throws(Exception::class)
     fun writeText(
-            context: Context,
-            data: String,
-            fileUri: Uri,
-            charset: Charset = Charsets.UTF_8
+        context: Context,
+        data: String,
+        fileUri: Uri,
+        charset: Charset = Charsets.UTF_8
     ): Boolean {
         return writeBytes(context, data.toByteArray(charset), fileUri)
     }

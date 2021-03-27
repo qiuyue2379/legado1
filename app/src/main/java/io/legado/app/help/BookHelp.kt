@@ -181,10 +181,10 @@ object BookHelp {
             val string = LocalBook.getContext(book, bookChapter)
             string?.let {
                 FileUtils.createFileIfNotExist(
-                        downloadDir,
-                        cacheFolderName,
-                        book.getFolderName(),
-                        bookChapter.getFileName(),
+                    downloadDir,
+                    cacheFolderName,
+                    book.getFolderName(),
+                    bookChapter.getFileName(),
                 ).writeText(it)
             }
             return string
@@ -205,10 +205,10 @@ object BookHelp {
     fun reverseContent(book: Book, bookChapter: BookChapter) {
         if (!book.isLocalBook()) {
             val file = FileUtils.getFile(
-                    downloadDir,
-                    cacheFolderName,
-                    book.getFolderName(),
-                    bookChapter.getFileName()
+                downloadDir,
+                cacheFolderName,
+                book.getFolderName(),
+                bookChapter.getFileName()
             )
             if (file.exists()) {
                 val text = file.readText()

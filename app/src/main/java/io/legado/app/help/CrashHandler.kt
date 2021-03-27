@@ -131,7 +131,7 @@ class CrashHandler(val context: Context) : Thread.UncaughtExceptionHandler {
                 }
             }
             FileUtils.createFileIfNotExist(rootFile, "crash", fileName)
-                    .writeText(sb.toString())
+                .writeText(sb.toString())
         }
     }
 

@@ -39,10 +39,10 @@ import splitties.init.appCtx
 
 
 class AudioPlayService : BaseService(),
-        AudioManager.OnAudioFocusChangeListener,
-        MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener,
-        MediaPlayer.OnCompletionListener {
+    AudioManager.OnAudioFocusChangeListener,
+    MediaPlayer.OnPreparedListener,
+    MediaPlayer.OnErrorListener,
+    MediaPlayer.OnCompletionListener {
 
     companion object {
         var isRun = false
@@ -126,7 +126,7 @@ class AudioPlayService : BaseService(),
                 postEvent(EventBus.AUDIO_STATE, Status.STOP)
                 mediaPlayer.reset()
                 val analyzeUrl =
-                        AnalyzeUrl(url, headerMapF = AudioPlay.headers(), useWebView = true)
+                    AnalyzeUrl(url, headerMapF = AudioPlay.headers(), useWebView = true)
                 val uri = Uri.parse(analyzeUrl.url)
                 mediaPlayer.setDataSource(this, uri, analyzeUrl.headerMap)
                 mediaPlayer.prepareAsync()
@@ -188,7 +188,7 @@ class AudioPlayService : BaseService(),
                 playSpeed += adjust
                 if (mediaPlayer.isPlaying) {
                     mediaPlayer.playbackParams =
-                            mediaPlayer.playbackParams.apply { speed = playSpeed }
+                        mediaPlayer.playbackParams.apply { speed = playSpeed }
                 }
                 postEvent(EventBus.AUDIO_SPEED, playSpeed)
             }
@@ -272,19 +272,19 @@ class AudioPlayService : BaseService(),
                 val webBook = AudioPlay.webBook
                 if (book != null && webBook != null) {
                     webBook.getContent(this@AudioPlayService, book, chapter)
-                            .onSuccess { content ->
-                                if (content.isEmpty()) {
-                                    withContext(Main) {
-                                        toastOnUi("未获取到资源链接")
-                                    }
-                                } else {
-                                    contentLoadFinish(chapter, content)
+                        .onSuccess { content ->
+                            if (content.isEmpty()) {
+                                withContext(Main) {
+                                    toastOnUi("未获取到资源链接")
                                 }
-                            }.onError {
-                                contentLoadFinish(chapter, it.localizedMessage ?: toString())
-                            }.onFinally {
-                                removeLoading(chapter.index)
+                            } else {
+                                contentLoadFinish(chapter, content)
                             }
+                        }.onError {
+                            contentLoadFinish(chapter, it.localizedMessage ?: toString())
+                        }.onFinally {
+                            removeLoading(chapter.index)
+                        }
                 } else {
                     removeLoading(chapter.index)
                     toastOnUi("book or source is null")
@@ -348,10 +348,10 @@ class AudioPlayService : BaseService(),
      */
     private fun upMediaSessionPlaybackState(state: Int) {
         mediaSessionCompat?.setPlaybackState(
-                PlaybackStateCompat.Builder()
-                        .setActions(MediaHelp.MEDIA_SESSION_ACTIONS)
-                        .setState(state, position.toLong(), 1f)
-                        .build()
+            PlaybackStateCompat.Builder()
+                .setActions(MediaHelp.MEDIA_SESSION_ACTIONS)
+                .setState(state, position.toLong(), 1f)
+                .build()
         )
     }
 
@@ -366,16 +366,16 @@ class AudioPlayService : BaseService(),
             }
         })
         mediaSessionCompat?.setMediaButtonReceiver(
-                PendingIntent.getBroadcast(
-                        this, 0,
-                        Intent(
-                                Intent.ACTION_MEDIA_BUTTON,
-                                null,
-                                appCtx,
-                                MediaButtonReceiver::class.java
-                        ),
-                        PendingIntent.FLAG_CANCEL_CURRENT
-                )
+            PendingIntent.getBroadcast(
+                this, 0,
+                Intent(
+                    Intent.ACTION_MEDIA_BUTTON,
+                    null,
+                    appCtx,
+                    MediaButtonReceiver::class.java
+                ),
+                PendingIntent.FLAG_CANCEL_CURRENT
+            )
         )
         mediaSessionCompat?.isActive = true
     }
@@ -424,8 +424,8 @@ class AudioPlayService : BaseService(),
         var nTitle: String = when {
             pause -> getString(R.string.audio_pause)
             timeMinute in 1..60 -> getString(
-                    R.string.playing_timer,
-                    timeMinute
+                R.string.playing_timer,
+                timeMinute
             )
             else -> getString(R.string.audio_play_t)
         }
@@ -435,40 +435,40 @@ class AudioPlayService : BaseService(),
             nSubtitle = getString(R.string.audio_play_s)
         }
         val builder = NotificationCompat.Builder(this, AppConst.channelIdReadAloud)
-                .setSmallIcon(R.drawable.ic_volume_up)
-                .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_read_book))
-                .setOngoing(true)
-                .setContentTitle(nTitle)
-                .setContentText(nSubtitle)
-                .setContentIntent(
-                        IntentHelp.activityPendingIntent<AudioPlayActivity>(this, "activity")
-                )
+            .setSmallIcon(R.drawable.ic_volume_up)
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_read_book))
+            .setOngoing(true)
+            .setContentTitle(nTitle)
+            .setContentText(nSubtitle)
+            .setContentIntent(
+                IntentHelp.activityPendingIntent<AudioPlayActivity>(this, "activity")
+            )
         if (pause) {
             builder.addAction(
-                    R.drawable.ic_play_24dp,
-                    getString(R.string.resume),
-                    thisPendingIntent(IntentAction.resume)
+                R.drawable.ic_play_24dp,
+                getString(R.string.resume),
+                thisPendingIntent(IntentAction.resume)
             )
         } else {
             builder.addAction(
-                    R.drawable.ic_pause_24dp,
-                    getString(R.string.pause),
-                    thisPendingIntent(IntentAction.pause)
+                R.drawable.ic_pause_24dp,
+                getString(R.string.pause),
+                thisPendingIntent(IntentAction.pause)
             )
         }
         builder.addAction(
-                R.drawable.ic_stop_black_24dp,
-                getString(R.string.stop),
-                thisPendingIntent(IntentAction.stop)
+            R.drawable.ic_stop_black_24dp,
+            getString(R.string.stop),
+            thisPendingIntent(IntentAction.stop)
         )
         builder.addAction(
-                R.drawable.ic_time_add_24dp,
-                getString(R.string.set_timer),
-                thisPendingIntent(IntentAction.addTimer)
+            R.drawable.ic_time_add_24dp,
+            getString(R.string.set_timer),
+            thisPendingIntent(IntentAction.addTimer)
         )
         builder.setStyle(
-                androidx.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(0, 1, 2)
+            androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(0, 1, 2)
         )
         builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         val notification = builder.build()

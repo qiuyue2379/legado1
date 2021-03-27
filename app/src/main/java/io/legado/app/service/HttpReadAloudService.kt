@@ -82,7 +82,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                 contentList.forEachIndexed { index, item ->
                     if (isActive) {
                         val fileName =
-                                md5SpeakFileName(it.url, AppConfig.ttsSpeechRate.toString(), item)
+                            md5SpeakFileName(it.url, AppConfig.ttsSpeechRate.toString(), item)
 
                         if (hasSpeakFile(fileName)) { //已经下载好的语音缓存
                             if (index == nowSpeak) {

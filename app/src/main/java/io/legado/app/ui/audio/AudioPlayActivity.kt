@@ -36,8 +36,8 @@ import java.util.*
  * 音频播放
  */
 class AudioPlayActivity :
-        VMBaseActivity<ActivityAudioPlayBinding, AudioPlayViewModel>(toolBarTheme = Theme.Dark),
-        ChangeSourceDialog.CallBack {
+    VMBaseActivity<ActivityAudioPlayBinding, AudioPlayViewModel>(toolBarTheme = Theme.Dark),
+    ChangeSourceDialog.CallBack {
 
     override val viewModel: AudioPlayViewModel
             by viewModels()
@@ -129,19 +129,19 @@ class AudioPlayActivity :
 
     private fun upCover(path: String?) {
         ImageLoader.load(this, path)
-                .placeholder(CoverImageView.defaultDrawable)
-                .error(CoverImageView.defaultDrawable)
-                .into(binding.ivCover)
+            .placeholder(CoverImageView.defaultDrawable)
+            .error(CoverImageView.defaultDrawable)
+            .into(binding.ivCover)
         ImageLoader.load(this, path)
-                .transition(DrawableTransitionOptions.withCrossFade(1500))
-                .thumbnail(defaultCover())
-                .apply(bitmapTransform(BlurTransformation(this, 25)))
-                .into(binding.ivBg)
+            .transition(DrawableTransitionOptions.withCrossFade(1500))
+            .thumbnail(defaultCover())
+            .apply(bitmapTransform(BlurTransformation(this, 25)))
+            .into(binding.ivBg)
     }
 
     private fun defaultCover(): RequestBuilder<Drawable> {
         return ImageLoader.load(this, CoverImageView.defaultDrawable)
-                .apply(bitmapTransform(BlurTransformation(this, 25)))
+            .apply(bitmapTransform(BlurTransformation(this, 25)))
     }
 
     private fun playButton() {

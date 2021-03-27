@@ -11,7 +11,7 @@
     <string name="menu_import_old">Import Legado data</string>
     <string name="mkdirs">Create a subfolder</string>
     <string name="mkdirs_description">Create a folder named Legado as the backup folder.</string>
-    <string name="webdav_cache_backup">Offline cache book backup</string>
+    <string name="webdav_cache_backup">Offline cache epubBook backup</string>
     <string name="webdav_cache_backup_s">Export to local and back up to the exports directory under the legado folder</string>
     <string name="backup_path">Backup to</string>
     <string name="select_backup_path">Please select a backup path.</string>
@@ -48,7 +48,7 @@
     <string name="recent_reading">Recent reading</string>
     <string name="last_read">Last reading</string>
     <string name="update_log">What\'s new</string>
-    <string name="bookshelf_empty">The bookshelf is still empty. Search for books or add them from discovery! \n if you use it for the first time, please pay attention to the public account [开源阅读] to get the book source!</string>
+    <string name="bookshelf_empty">The bookshelf is still empty. Search for books or add them from discovery! \n if you use it for the first time, please pay attention to the public account [开源阅读] to get the epubBook source!</string>
     <string name="action_search">Search</string>
     <string name="action_download">Download</string>
     <string name="layout_list">List</string>
@@ -85,8 +85,8 @@
     <string name="is_loading">Loading…</string>
     <string name="retry">Retry</string>
     <string name="web_service">Web service</string>
-    <string name="web_service_desc">Web edit source and read book</string>
-    <string name="web_edit_source">Edit book sources on the web</string>
+    <string name="web_service_desc">Web edit source and read epubBook</string>
+    <string name="web_edit_source">Edit epubBook sources on the web</string>
     <string name="http_ip">http://%1$s:%2$d</string>
     <string name="offline_cache">Offline cache</string>
     <string name="offline_cache_t">Offline cache</string>
@@ -100,7 +100,7 @@
     </string>
     <string name="version_name">Version %s</string>
     <string name="pt_background_verification">Background-verification</string>
-    <string name="ps_background_verification">you can operate freely when verifying the book source</string>
+    <string name="ps_background_verification">you can operate freely when verifying the epubBook source</string>
     <string name="pt_auto_refresh">Auto-refresh</string>
     <string name="ps_auto_refresh">Update books automatically when opening the software</string>
     <string name="pt_auto_download">Auto-download</string>
@@ -164,7 +164,7 @@
     <string name="can_not_share">Share failed</string>
     <string name="no_chapter">No chapters</string>
     <string name="add_url">Add url</string>
-    <string name="add_book_url">Add book url</string>
+    <string name="add_book_url">Add epubBook url</string>
     <string name="background">Background</string>
     <string name="author">Author</string>
     <string name="author_show">Author: %s</string>
@@ -190,7 +190,7 @@
     <string name="share_app">Share to</string>
     <string name="flow_sys">Follow system</string>
     <string name="add">Add</string>
-    <string name="import_book_source">Import book sources</string>
+    <string name="import_book_source">Import epubBook sources</string>
     <string name="import_book_source_local">Import local sources</string>
     <string name="import_book_source_on_line">Import online sources</string>
     <string name="replace_rule_title">Replacement</string>
@@ -198,11 +198,11 @@
     <string name="replace_rule">Pattern</string>
     <string name="replace_to">Replacement</string>
     <string name="img_cover">Cover</string>
-    <string name="book">Book</string>
+    <string name="epubBook">Book</string>
     <string name="volume_key_page">Volume keys to turn page</string>
     <string name="click_turn_page">Tap screen to turn page</string>
     <string name="page_anim">Flip animation</string>
-    <string name="book_page_anim">Flip animation (book)</string>
+    <string name="book_page_anim">Flip animation (epubBook)</string>
     <string name="keep_light">Keep screen awake</string>
     <string name="back">Back</string>
     <string name="menu">Menu</string>
@@ -222,7 +222,7 @@
     <string name="download_cancel">Download cancel</string>
     <string name="no_download">No download</string>
     <string name="download_count">Downloaded %1$d/%2$d</string>
-    <string name="import_select_book">Import selected book(s)</string>
+    <string name="import_select_book">Import selected epubBook(s)</string>
     <string name="threads_num_title">Number of concurrent tasks</string>
     <string name="change_icon">Change icon</string>
     <string name="remove_from_bookshelf">Remove</string>
@@ -232,14 +232,14 @@
     <string name="book_intro">Book description</string>
     <string name="intro_show">Description:%s</string>
     <string name="intro_show_null">Description: no introduction</string>
-    <string name="open_from_other">Open external book</string>
+    <string name="open_from_other">Open external epubBook</string>
     <string name="origin_show">Origin: %s</string>
     <string name="import_replace_rule">Import local rules</string>
     <string name="import_replace_rule_on_line">Import online rules</string>
     <string name="check_update_interval">Check interval for updates</string>
     <string name="bookshelf_px_0">By recent list</string>
     <string name="bookshelf_px_1">By update time</string>
-    <string name="bookshelf_px_2">By book title</string>
+    <string name="bookshelf_px_2">By epubBook title</string>
     <string name="bookshelf_px_3">By sort manually</string>
     <string name="read_type">Reading strategy</string>
     <string name="compose_type">Typesetting</string>
@@ -252,7 +252,7 @@
     <string name="del_all">Delete all</string>
     <string name="searchHistory">Search history</string>
     <string name="clear">Clear</string>
-    <string name="showTitle">Display book title on text</string>
+    <string name="showTitle">Display epubBook title on text</string>
     <string name="refresh_default">Book Sources sync</string>
     <string name="no_last_chapter">No latest chapter.</string>
     <string name="showTimeBattery">Display time and battery</string>
@@ -278,7 +278,7 @@
     <string name="copy_complete">Copied successfully</string>
     <string name="arrange_bookshelf">Bookshelf arrangement</string>
     <string name="clear_bookshelf_s">It will delete all books. Be careful,please.</string>
-    <string name="search_book_source">Search book sources</string>
+    <string name="search_book_source">Search epubBook sources</string>
     <string name="search_rss_source">Search subscription sources</string>
     <string name="search_book_source_num">Search( %d sources in total)</string>
     <string name="chapter_list_size">Chapters(%d)</string>
@@ -295,7 +295,7 @@
     <string name="padding_bottom">Padding bottom</string>
     <string name="padding_left">Padding left</string>
     <string name="padding_right">Padding right</string>
-    <string name="check_book_source">Check book sources</string>
+    <string name="check_book_source">Check epubBook sources</string>
     <string name="check_select_source">Check the selected source</string>
     <string name="progress_show">%1$s      Progress %2$d/%3$d</string>
     <string name="tts_fix">Please install and select Chinese TTS!</string>
@@ -326,7 +326,7 @@
     <string name="auto_next_page_stop">Stop Auto scroll</string>
     <string name="auto_next_page_speed">Auto scroll speed</string>
     <string name="book_info">Book information</string>
-    <string name="book_info_edit">Edit book information</string>
+    <string name="book_info_edit">Edit epubBook information</string>
     <string name="ps_default_read">Use Bookshelf as start page</string>
     <string name="pt_default_read">Auto jump to Recent list</string>
     <string name="use_to">Replacement object. Book name or source url is available</string>
@@ -340,7 +340,7 @@
     <string name="allow_update">Enable update</string>
     <string name="disable_update">Disable update</string>
     <string name="revert_selection">Inverse</string>
-    <string name="search_book_key">Search book name/author</string>
+    <string name="search_book_key">Search epubBook name/author</string>
     <string name="debug_hint">Book name,Author,URL</string>
     <string name="faq">FAQ</string>
     <string name="pt_show_all_find">Display all Discovery</string>
@@ -375,7 +375,7 @@
     <string name="page_anim_simulation">Simulation</string>
     <string name="page_anim_scroll">Scroll</string>
     <string name="page_anim_none">None</string>
-    <string name="donate_s">This book source uses advanced features, please go to the Donations and tap the Alipay red envelope search code to receive the red envelope,then you can use it.</string>
+    <string name="donate_s">This epubBook source uses advanced features, please go to the Donations and tap the Alipay red envelope search code to receive the red envelope,then you can use it.</string>
     <string name="up_change_source_last_chapter_t">Update the latest chapter after changed origin in the background</string>
     <string name="up_change_source_last_chapter_s">if enabled,the update will start 1 minute later when the software is run</string>
     <string name="behavior_main_t">Auto hide ToolBar</string>
@@ -442,7 +442,7 @@
 
     <!--error string start-->
     <string name="error_no_source">No source</string>
-    <string name="error_get_book_info">Failed to obtain book information</string>
+    <string name="error_get_book_info">Failed to obtain epubBook information</string>
     <string name="error_get_content">Failed to obtain content</string>
     <string name="error_get_chapter_list">Failed to obtain chapters list</string>
     <string name="error_get_web_content">Failed to access website:%s</string>
@@ -465,7 +465,7 @@
     <string name="theme_mode_desc">Select a theme you want</string>
     <string name="join_qq_group">Join QQ group</string>
     <string name="bg_image_per">Set the background image requires storage permission</string>
-    <string name="input_book_source_url">Input book source address</string>
+    <string name="input_book_source_url">Input epubBook source address</string>
     <string name="del_file">Delete file</string>
     <string name="del_file_success">Deleted file</string>
     <string name="sure_del_file">Are you sure to delete this file?</string>
@@ -477,7 +477,7 @@
     <string name="night_theme">Night Theme</string>
     <string name="eink_theme">E-Ink</string>
     <string name="eink_theme_desc">Optimization for E-ink devices</string>
-    <string name="get_storage_per">This software requires storage permission to store the book information to be backed up</string>
+    <string name="get_storage_per">This software requires storage permission to store the epubBook information to be backed up</string>
     <string name="double_click_exit">Tap again to exit the program</string>
     <string name="import_book_per">Import local books requires storage permission</string>
     <string name="network_connection_unavailable">Network connection is not available</string>
@@ -487,7 +487,7 @@
     <string name="sure_del">Are you sure to delete it?</string>
     <string name="sure_del_any">Are you sure to delete %s?</string>
     <string name="sure_del_all_book">Are you sure to delete all books？</string>
-    <string name="sure_del_download_book">Do you want to delete the downloaded book chapters at the same time?</string>
+    <string name="sure_del_download_book">Do you want to delete the downloaded epubBook chapters at the same time?</string>
     <string name="qr_per">Scan QR code requires Camera permissions</string>
     <string name="aloud_can_not_auto_page">Speech is running, cannot turn pages automatically</string>
     <string name="input_charset">Input encoding</string>
@@ -581,7 +581,7 @@
     <string name="export_selection">Export selected</string>
     <string name="export">Export</string>
     <string name="load_toc">Load chapters</string>
-    <string name="load_info">Load book detail</string>
+    <string name="load_info">Load epubBook detail</string>
     <string name="tts">TTS</string>
     <string name="web_dav_pw">WebDav password</string>
     <string name="web_dav_pw_s">Input you WebDav authorized password</string>
@@ -611,7 +611,7 @@
     <string name="custom_page_key">Set page-turning buttons</string>
     <string name="prev_page_key">Page up button</string>
     <string name="next_page_key">Page down button</string>
-    <string name="after_add_bookshelf">Add this book to Bookshelf first</string>
+    <string name="after_add_bookshelf">Add this epubBook to Bookshelf first</string>
     <string name="no_group">Ungrouped</string>
     <string name="prev_sentence">Prior sentence</string>
     <string name="next_sentence">Next sentence</string>
@@ -722,7 +722,7 @@
     <string name="disabled">Disabled</string>
 
     <string name="starting_download">Starting download</string>
-    <string name="already_in_download">This book is already in Download list</string>
+    <string name="already_in_download">This epubBook is already in Download list</string>
     <string name="click_to_open">click to open</string>
     <string name="follow_public_account_summary">Follow [开源阅读] to support me by clicking on ads</string>
     <string name="weChat_appreciation_code">WeChat Tipping Code</string>

@@ -13,19 +13,19 @@ object HtmlFormatter {
     fun format(html: String?): String {
         html ?: return ""
         return html.replace(wrapHtmlRegex, "\n")
-                .replace(otherHtmlRegex, "")
-                .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
-                .replace("^[\\n\\s]+".toRegex(), "　　")
-                .replace("[\\n\\s]+$".toRegex(), "")
+            .replace(otherHtmlRegex, "")
+            .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
+            .replace("^[\\n\\s]+".toRegex(), "　　")
+            .replace("[\\n\\s]+$".toRegex(), "")
     }
 
     fun formatKeepImg(html: String?): String {
         html ?: return ""
         return html.replace(wrapHtmlRegex, "\n")
-                .replace(notImgHtmlRegex, "")
-                .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
-                .replace("^[\\n\\s]+".toRegex(), "　　")
-                .replace("[\\n\\s]+$".toRegex(), "")
+            .replace(notImgHtmlRegex, "")
+            .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
+            .replace("^[\\n\\s]+".toRegex(), "　　")
+            .replace("[\\n\\s]+$".toRegex(), "")
     }
 
     fun formatKeepImg(html: String?, redirectUrl: URL?): String {
@@ -47,10 +47,10 @@ object HtmlFormatter {
             sb.append(html.substring(appendPos, html.length))
         }
         return sb.replace(wrapHtmlRegex, "\n")
-                .replace(notImgHtmlRegex, "")
-                .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
-                .replace("^[\\n\\s]+".toRegex(), "　　")
-                .replace("[\\n\\s]+$".toRegex(), "")
+            .replace(notImgHtmlRegex, "")
+            .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
+            .replace("^[\\n\\s]+".toRegex(), "　　")
+            .replace("[\\n\\s]+$".toRegex(), "")
     }
 
 }

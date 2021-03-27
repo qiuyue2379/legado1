@@ -114,14 +114,14 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
         val lineBase = textLine.lineBase + relativeOffset
         val lineBottom = textLine.lineBottom + relativeOffset
         drawChars(
-                canvas,
-                textLine.textChars,
-                lineTop,
-                lineBase,
-                lineBottom,
-                textLine.isTitle,
-                textLine.isReadAloud,
-                textLine.isImage
+            canvas,
+            textLine.textChars,
+            lineTop,
+            lineBase,
+            lineBottom,
+            textLine.isTitle,
+            textLine.isReadAloud,
+            textLine.isImage
         )
     }
 
@@ -169,17 +169,17 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
     ) {
         ReadBook.book?.let { book ->
             ImageProvider.getImage(book, textPage.chapterIndex, textChar.charData, true)
-                    ?.let {
-                        val rectF = if (isImageLine) {
-                            RectF(textChar.start, lineTop, textChar.end, lineBottom)
-                        } else {
-                            /*以宽度为基准保持图片的原始比例叠加，当div为负数时，允许高度比字符更高*/
-                            val h = (textChar.end - textChar.start) / it.width * it.height
-                            val div = (lineBottom - lineTop - h) / 2
-                            RectF(textChar.start, lineTop + div, textChar.end, lineBottom - div)
-                        }
-                        canvas.drawBitmap(it, null, rectF, null)
+                ?.let {
+                    val rectF = if (isImageLine) {
+                        RectF(textChar.start, lineTop, textChar.end, lineBottom)
+                    } else {
+                        /*以宽度为基准保持图片的原始比例叠加，当div为负数时，允许高度比字符更高*/
+                        val h = (textChar.end - textChar.start) / it.width * it.height
+                        val div = (lineBottom - lineTop - h) / 2
+                        RectF(textChar.start, lineTop + div, textChar.end, lineBottom - div)
                     }
+                    canvas.drawBitmap(it, null, rectF, null)
+                }
         }
     }
 

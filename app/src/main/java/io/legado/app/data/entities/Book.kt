@@ -164,7 +164,7 @@ data class Book(
 
     fun setDelTag(tag: Long) {
         config().delTag =
-                if ((config().delTag and tag) == tag) config().delTag and tag.inv() else config().delTag or tag
+            if ((config().delTag and tag) == tag) config().delTag and tag.inv() else config().delTag or tag
     }
 
     fun getDelTag(tag: Long): Boolean {

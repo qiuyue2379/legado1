@@ -33,7 +33,7 @@ http代理
 java 变量-当前类
 baseUrl 变量-当前url,String
 result 变量-上一步的结果
-book 变量-书籍类,方法见 io.legado.app.data.entities.Book
+epubBook 变量-书籍类,方法见 io.legado.app.data.entities.Book
 cookie 变量-cookie操作类,方法见 io.legado.app.help.http.CookieStore
 cache 变量-缓存操作类,方法见 io.legado.app.help.CacheManager
 chapter 变量-当前目录类,方法见 io.legado.app.data.entities.BookChapter
@@ -45,7 +45,7 @@ src 内容,源码
 上述js变量与函数中，一些js的对象属性用的频率较高，在此列举。方便写源的时候快速翻阅。
 
 ### book对象的可用属性
-> 使用方法: 在js中或{{}}中使用book.属性的方式即可获取.如在正文内容后加上 ##{{book.name+"正文卷"+title}} 可以净化 书名+正文卷+章节名称（如 我是大明星正问卷第二章我爸是豪门总裁） 这一类的字符.
+> 使用方法: 在js中或{{}}中使用book.属性的方式即可获取.如在正文内容后加上 ##{{epubBook.name+"正文卷"+title}} 可以净化 书名+正文卷+章节名称（如 我是大明星正问卷第二章我爸是豪门总裁） 这一类的字符.
 ```
 bookUrl // 详情页Url(本地书源存储完整文件路径)
 tocUrl // 目录页Url (toc=table of Contents)

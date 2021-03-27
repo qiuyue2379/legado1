@@ -98,15 +98,15 @@ class AnalyzeByJSoup(doc: Any) {
             val results = ArrayList<List<String>>()
             for (ruleStrX in ruleStrS) {
                 val temp: List<String>? =
-                        if (sourceRule.isCss) {
-                            val lastIndex = ruleStrX.lastIndexOf('@')
-                            getResultLast(
-                                    element.select(ruleStrX.substring(0, lastIndex)),
-                                    ruleStrX.substring(lastIndex + 1)
-                            )
-                        } else {
-                            getResultList(ruleStrX)
-                        }
+                    if (sourceRule.isCss) {
+                        val lastIndex = ruleStrX.lastIndexOf('@')
+                        getResultLast(
+                            element.select(ruleStrX.substring(0, lastIndex)),
+                            ruleStrX.substring(lastIndex + 1)
+                        )
+                    } else {
+                        getResultList(ruleStrX)
+                    }
                 if (!temp.isNullOrEmpty()) {
                     results.add(temp)
                     if (results.isNotEmpty() && elementsType == "|") {

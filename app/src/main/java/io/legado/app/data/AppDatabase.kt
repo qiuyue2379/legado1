@@ -23,7 +23,7 @@ val appDb by lazy {
         RssSource::class, Bookmark::class, RssArticle::class, RssReadRecord::class,
         RssStar::class, TxtTocRule::class, ReadRecord::class, HttpTTS::class, Cache::class,
         RuleSub::class, EpubChapter::class],
-        version = 31,
+    version = 31,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -268,7 +268,7 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE chapters ADD `startFragmentId` TEXT")
                 database.execSQL("ALTER TABLE chapters ADD `endFragmentId` TEXT")
                 database.execSQL(
-                        """
+                    """
                     CREATE TABLE IF NOT EXISTS `epubChapters` 
                     (`bookUrl` TEXT NOT NULL, `href` TEXT NOT NULL, `parentHref` TEXT, 
                     PRIMARY KEY(`bookUrl`, `href`), FOREIGN KEY(`bookUrl`) REFERENCES `books`(`bookUrl`) ON UPDATE NO ACTION ON DELETE CASCADE )
@@ -283,7 +283,7 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE readRecord RENAME TO readRecord1")
                 database.execSQL(
-                        """
+                    """
                     CREATE TABLE IF NOT EXISTS `readRecord` (`deviceId` TEXT NOT NULL, `bookName` TEXT NOT NULL, `readTime` INTEGER NOT NULL, PRIMARY KEY(`deviceId`, `bookName`))
                 """
                 )

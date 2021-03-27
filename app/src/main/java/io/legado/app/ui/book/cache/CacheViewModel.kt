@@ -52,7 +52,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             if (AppConfig.exportToWebDav) {
                 // 导出到webdav
                 val byteArray =
-                        stringBuilder.toString().toByteArray(Charset.forName(AppConfig.exportCharset))
+                    stringBuilder.toString().toByteArray(Charset.forName(AppConfig.exportCharset))
                 BookWebDav.exportWebDav(byteArray, filename)
             }
         }
@@ -79,7 +79,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
         }
         if (AppConfig.exportToWebDav) {
             val byteArray =
-                    stringBuilder.toString().toByteArray(Charset.forName(AppConfig.exportCharset))
+                stringBuilder.toString().toByteArray(Charset.forName(AppConfig.exportCharset))
             BookWebDav.exportWebDav(byteArray, filename) // 导出到webdav
         }
         getSrcList(book).forEach {

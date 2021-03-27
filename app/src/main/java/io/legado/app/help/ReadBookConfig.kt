@@ -498,7 +498,7 @@ object ReadBookConfig {
                         BitmapDrawable(
                             resources,
                             BitmapUtils.decodeAssetsBitmap(
-                                 appCtx,
+                                appCtx,
                                 "bg" + File.separator + curBgStr(),
                                 width,
                                 height

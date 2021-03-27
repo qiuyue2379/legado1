@@ -58,17 +58,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ReadBookActivity : ReadBookBaseActivity(),
-        View.OnTouchListener,
-        ReadView.CallBack,
-        TextActionMenu.CallBack,
-        ContentTextView.CallBack,
-        ReadMenu.CallBack,
-        ReadAloudDialog.CallBack,
-        ChangeSourceDialog.CallBack,
-        ReadBook.CallBack,
-        AutoReadDialog.CallBack,
-        TocRegexDialog.CallBack,
-        ColorPickerDialogListener {
+    View.OnTouchListener,
+    ReadView.CallBack,
+    TextActionMenu.CallBack,
+    ContentTextView.CallBack,
+    ReadMenu.CallBack,
+    ReadAloudDialog.CallBack,
+    ChangeSourceDialog.CallBack,
+    ReadBook.CallBack,
+    AutoReadDialog.CallBack,
+    TocRegexDialog.CallBack,
+    ColorPickerDialogListener {
 
     private val tocActivity =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -238,12 +238,12 @@ class ReadBookActivity : ReadBookBaseActivity(),
                 val page = ReadBook.curTextChapter?.page(ReadBook.durPageIndex())
                 if (book != null && page != null) {
                     val bookmark = Bookmark(
-                            bookUrl = book.bookUrl,
-                            bookName = book.name,
-                            chapterIndex = ReadBook.durChapterIndex,
-                            chapterPos = ReadBook.durChapterPos,
-                            chapterName = page.title,
-                            bookText = page.text.trim()
+                        bookUrl = book.bookUrl,
+                        bookName = book.name,
+                        chapterIndex = ReadBook.durChapterIndex,
+                        chapterPos = ReadBook.durChapterPos,
+                        chapterName = page.title,
+                        bookText = page.text.trim()
                     )
                     showBookMark(bookmark)
                 }
@@ -273,8 +273,8 @@ class ReadBookActivity : ReadBookBaseActivity(),
                 }
             }
             R.id.menu_toc_regex -> TocRegexDialog.show(
-                    supportFragmentManager,
-                    ReadBook.book?.tocUrl
+                supportFragmentManager,
+                ReadBook.book?.tocUrl
             )
             R.id.menu_reverse_content -> ReadBook.book?.let {
                 viewModel.reverseContent(it)
@@ -282,10 +282,10 @@ class ReadBookActivity : ReadBookBaseActivity(),
             R.id.menu_set_charset -> showCharsetConfig()
             R.id.menu_image_style -> {
                 val imgStyles =
-                        arrayListOf(Book.imgStyleDefault, Book.imgStyleFull, Book.imgStyleText)
+                    arrayListOf(Book.imgStyleDefault, Book.imgStyleFull, Book.imgStyleText)
                 selector(
-                        R.string.image_style,
-                        imgStyles
+                    R.string.image_style,
+                    imgStyles
                 ) { _, index ->
                     ReadBook.book?.setImageStyle(imgStyles[index])
                     ReadBook.loadContent(false)
@@ -391,8 +391,8 @@ class ReadBookActivity : ReadBookBaseActivity(),
             KeyEvent.KEYCODE_BACK -> {
                 event?.let {
                     if ((event.flags and KeyEvent.FLAG_CANCELED_LONG_PRESS == 0)
-                            && event.isTracking
-                            && !event.isCanceled
+                        && event.isTracking
+                        && !event.isCanceled
                     ) {
                         if (BaseReadAloudService.isPlay()) {
                             ReadAloud.pause(this)
@@ -420,12 +420,12 @@ class ReadBookActivity : ReadBookBaseActivity(),
             MotionEvent.ACTION_MOVE -> {
                 when (v.id) {
                     R.id.cursor_left -> readView.curPage.selectStartMove(
-                            event.rawX + cursorLeft.width,
-                            event.rawY - cursorLeft.height
+                        event.rawX + cursorLeft.width,
+                        event.rawY - cursorLeft.height
                     )
                     R.id.cursor_right -> readView.curPage.selectEndMove(
-                            event.rawX - cursorRight.width,
-                            event.rawY - cursorRight.height
+                        event.rawX - cursorRight.width,
+                        event.rawY - cursorRight.height
                     )
                 }
             }
@@ -468,8 +468,8 @@ class ReadBookActivity : ReadBookBaseActivity(),
      */
     override fun showTextActionMenu() = with(binding) {
         textActionMenu.contentView.measure(
-                View.MeasureSpec.UNSPECIFIED,
-                View.MeasureSpec.UNSPECIFIED
+            View.MeasureSpec.UNSPECIFIED,
+            View.MeasureSpec.UNSPECIFIED
         )
         val popupHeight = textActionMenu.contentView.measuredHeight
         val x = textMenuPosition.x.toInt()
@@ -482,7 +482,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         }
         if (!textActionMenu.isShowing) {
             textActionMenu.showAtLocation(
-                    textMenuPosition, Gravity.TOP or Gravity.START, x, y
+                textMenuPosition, Gravity.TOP or Gravity.START, x, y
             )
         } else {
             textActionMenu.update(x, y, WRAP_CONTENT, WRAP_CONTENT)
@@ -550,7 +550,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         if (!binding.readMenu.isVisible) {
             if (getPrefBoolean("volumeKeyPage", true)) {
                 if (getPrefBoolean("volumeKeyPageOnPlay")
-                        || BaseReadAloudService.pause
+                    || BaseReadAloudService.pause
                 ) {
                     binding.readView.pageDelegate?.isCancel = false
                     binding.readView.pageDelegate?.keyTurnPage(direction)
@@ -581,9 +581,9 @@ class ReadBookActivity : ReadBookBaseActivity(),
      * 更新内容
      */
     override fun upContent(
-            relativePosition: Int,
-            resetPageOffset: Boolean,
-            success: (() -> Unit)?
+        relativePosition: Int,
+        resetPageOffset: Boolean,
+        success: (() -> Unit)?
     ) {
         launch {
             autoPageProgress = 0
@@ -837,9 +837,9 @@ class ReadBookActivity : ReadBookBaseActivity(),
         viewModel.openChapter(index) {
             val pages = ReadBook.curTextChapter?.pages ?: return@openChapter
             val positions = ReadBook.searchResultPositions(
-                    pages,
-                    indexWithinChapter,
-                    viewModel.searchContentQuery
+                pages,
+                indexWithinChapter,
+                viewModel.searchContentQuery
             )
             ReadBook.skipToPage(positions[0]) {
                 launch {
@@ -847,18 +847,18 @@ class ReadBookActivity : ReadBookBaseActivity(),
                     delay(20L)
                     when (positions[3]) {
                         0 -> binding.readView.curPage.selectEndMoveIndex(
-                                0,
-                                positions[1],
-                                positions[2] + viewModel.searchContentQuery.length - 1
+                            0,
+                            positions[1],
+                            positions[2] + viewModel.searchContentQuery.length - 1
                         )
                         1 -> binding.readView.curPage.selectEndMoveIndex(
-                                0,
-                                positions[1] + 1,
-                                positions[4]
+                            0,
+                            positions[1] + 1,
+                            positions[4]
                         )
                         //consider change page, jump to scroll position
                         -1 -> binding.readView.curPage
-                                .selectEndMoveIndex(1, 0, positions[4])
+                            .selectEndMoveIndex(1, 0, positions[4])
                     }
                     binding.readView.isTextSelected = true
                     delay(100L)
@@ -937,7 +937,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
                     ReadBook.curTextChapter?.let { textChapter ->
                         val pageStart = chapterStart - ReadBook.durChapterPos
                         textChapter.getPageByReadPos(ReadBook.durChapterPos)
-                                ?.upPageAloudSpan(pageStart)
+                            ?.upPageAloudSpan(pageStart)
                         upContent()
                     }
                 }

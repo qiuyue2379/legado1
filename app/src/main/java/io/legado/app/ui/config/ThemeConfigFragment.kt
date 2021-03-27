@@ -22,8 +22,8 @@ import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.help.LauncherIconHelp
 import io.legado.app.help.ThemeConfig
-import io.legado.app.help.permission.Permissions
-import io.legado.app.help.permission.PermissionsCompat
+import io.legado.app.lib.permission.Permissions
+import io.legado.app.lib.permission.PermissionsCompat
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.ATH
@@ -198,14 +198,14 @@ class ThemeConfigFragment : BasePreferenceFragment(),
                 }
             }
             PreferKey.bgImageN -> if (getPrefString(PreferKey.bgImageN).isNullOrEmpty()) {
-                selectImage(requestCodeBgImage)
+                selectImage(requestCodeBgImageN)
             } else {
                 selector(items = arrayListOf("删除图片", "选择图片")) { _, i ->
                     if (i == 0) {
                         removePref(PreferKey.bgImageN)
                         upTheme(true)
                     } else {
-                        selectImage(requestCodeBgImage)
+                        selectImage(requestCodeBgImageN)
                     }
                 }
             }

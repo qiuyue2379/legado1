@@ -28,8 +28,8 @@ import kotlin.math.abs
 
 
 class ReadView(context: Context, attrs: AttributeSet) :
-        FrameLayout(context, attrs),
-        DataSource {
+    FrameLayout(context, attrs),
+    DataSource {
 
     val callBack: CallBack get() = activity as CallBack
     var pageFactory: TextPageFactory = TextPageFactory(this)
@@ -126,11 +126,11 @@ class ReadView(context: Context, attrs: AttributeSet) :
                 autoPageRect.set(0, 0, width, bottom)
                 canvas.drawBitmap(it, autoPageRect, autoPageRect, null)
                 canvas.drawRect(
-                        0f,
-                        bottom.toFloat() - 1,
-                        width.toFloat(),
-                        bottom.toFloat(),
-                        autoPagePint
+                    0f,
+                    bottom.toFloat() - 1,
+                    width.toFloat(),
+                    bottom.toFloat(),
+                    autoPagePint
                 )
             }
         }
@@ -170,7 +170,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
             MotionEvent.ACTION_MOVE -> {
                 if (!isMove) {
                     isMove =
-                            abs(startX - event.x) > slopSquare || abs(startY - event.y) > slopSquare
+                        abs(startX - event.x) > slopSquare || abs(startY - event.y) > slopSquare
                 }
                 if (isMove) {
                     longPressed = false

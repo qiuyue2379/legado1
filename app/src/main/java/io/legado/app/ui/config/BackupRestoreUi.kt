@@ -9,8 +9,8 @@ import io.legado.app.R
 import io.legado.app.constant.PreferKey
 import io.legado.app.help.AppConfig
 import io.legado.app.help.coroutine.Coroutine
-import io.legado.app.help.permission.Permissions
-import io.legado.app.help.permission.PermissionsCompat
+import io.legado.app.lib.permission.Permissions
+import io.legado.app.lib.permission.PermissionsCompat
 import io.legado.app.help.storage.Backup
 import io.legado.app.help.storage.BookWebDav
 import io.legado.app.help.storage.ImportOldData

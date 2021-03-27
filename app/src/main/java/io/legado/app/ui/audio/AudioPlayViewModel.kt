@@ -49,37 +49,37 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
     }
 
     private fun loadBookInfo(
-            book: Book,
-            changeDruChapterIndex: ((chapters: List<BookChapter>) -> Unit)? = null
+        book: Book,
+        changeDruChapterIndex: ((chapters: List<BookChapter>) -> Unit)? = null
     ) {
         execute {
             AudioPlay.webBook?.getBookInfo(this, book)
-                    ?.onSuccess {
-                        loadChapterList(book, changeDruChapterIndex)
-                    }
+                ?.onSuccess {
+                    loadChapterList(book, changeDruChapterIndex)
+                }
         }
     }
 
     private fun loadChapterList(
-            book: Book,
-            changeDruChapterIndex: ((chapters: List<BookChapter>) -> Unit)? = null
+        book: Book,
+        changeDruChapterIndex: ((chapters: List<BookChapter>) -> Unit)? = null
     ) {
         execute {
             AudioPlay.webBook?.getChapterList(this, book)
-                    ?.onSuccess(Dispatchers.IO) { cList ->
-                        if (cList.isNotEmpty()) {
-                            if (changeDruChapterIndex == null) {
-                                appDb.bookChapterDao.insert(*cList.toTypedArray())
-                            } else {
-                                changeDruChapterIndex(cList)
-                            }
-                            AudioPlay.upDurChapter(book)
+                ?.onSuccess(Dispatchers.IO) { cList ->
+                    if (cList.isNotEmpty()) {
+                        if (changeDruChapterIndex == null) {
+                            appDb.bookChapterDao.insert(*cList.toTypedArray())
                         } else {
-                            toastOnUi(R.string.error_load_toc)
+                            changeDruChapterIndex(cList)
                         }
-                    }?.onError {
+                        AudioPlay.upDurChapter(book)
+                    } else {
                         toastOnUi(R.string.error_load_toc)
                     }
+                }?.onError {
+                    toastOnUi(R.string.error_load_toc)
+                }
         }
     }
 
@@ -105,16 +105,16 @@ class AudioPlayViewModel(application: Application) : BaseViewModel(application) 
     }
 
     private fun upChangeDurChapterIndex(
-            book: Book,
-            oldTocSize: Int,
-            chapters: List<BookChapter>
+        book: Book,
+        oldTocSize: Int,
+        chapters: List<BookChapter>
     ) {
         execute {
             AudioPlay.durChapterIndex = BookHelp.getDurChapter(
-                    book.durChapterIndex,
-                    oldTocSize,
-                    book.durChapterTitle,
-                    chapters
+                book.durChapterIndex,
+                oldTocSize,
+                book.durChapterTitle,
+                chapters
             )
             book.durChapterIndex = AudioPlay.durChapterIndex
             book.durChapterTitle = chapters[AudioPlay.durChapterIndex].title

@@ -20,8 +20,8 @@ import io.legado.app.constant.PreferKey
 import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.help.BookHelp
-import io.legado.app.help.permission.Permissions
-import io.legado.app.help.permission.PermissionsCompat
+import io.legado.app.lib.permission.Permissions
+import io.legado.app.lib.permission.PermissionsCompat
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.ATH
@@ -242,7 +242,7 @@ class OtherConfigFragment : BasePreferenceFragment(),
                         }
                     }
                 }
-                    .request()
+                .request()
         }
     }
 

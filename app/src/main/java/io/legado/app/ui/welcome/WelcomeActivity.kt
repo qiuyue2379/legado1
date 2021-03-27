@@ -40,8 +40,8 @@ open class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             books.forEach { book ->
                 BookWebDav.getBookProgress(book)?.let { bookProgress ->
                     if (bookProgress.durChapterIndex > book.durChapterIndex ||
-                            (bookProgress.durChapterIndex == book.durChapterIndex &&
-                                    bookProgress.durChapterPos > book.durChapterPos)
+                        (bookProgress.durChapterIndex == book.durChapterIndex &&
+                                bookProgress.durChapterPos > book.durChapterPos)
                     ) {
                         book.durChapterIndex = bookProgress.durChapterIndex
                         book.durChapterPos = bookProgress.durChapterPos
@@ -57,7 +57,7 @@ open class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             //清除过期数据
             if (getPrefBoolean(PreferKey.autoClearExpired, true)) {
                 appDb.searchBookDao
-                        .clearExpired(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))
+                    .clearExpired(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))
             }
             //初始化简繁转换引擎
             when (AppConfig.chineseConverterType) {

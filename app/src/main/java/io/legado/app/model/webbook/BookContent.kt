@@ -45,7 +45,7 @@ object BookContent {
         analyzeRule.setRedirectUrl(baseUrl)
         analyzeRule.nextChapterUrl = mNextChapterUrl
         var contentData = analyzeContent(
-                book, baseUrl, redirectUrl, body, contentRule, bookChapter, bookSource, mNextChapterUrl
+            book, baseUrl, redirectUrl, body, contentRule, bookChapter, bookSource, mNextChapterUrl
         )
         content.append(contentData.content).append("\n")
 
@@ -54,7 +54,7 @@ object BookContent {
             while (nextUrl.isNotEmpty() && !nextUrlList.contains(nextUrl)) {
                 if (!mNextChapterUrl.isNullOrEmpty()
                     && NetworkUtils.getAbsoluteURL(baseUrl, nextUrl)
-                        == NetworkUtils.getAbsoluteURL(baseUrl, mNextChapterUrl)
+                    == NetworkUtils.getAbsoluteURL(baseUrl, mNextChapterUrl)
                 ) break
                 nextUrlList.add(nextUrl)
                 val res = AnalyzeUrl(
@@ -64,8 +64,8 @@ object BookContent {
                 ).getStrResponse(bookSource.bookSourceUrl)
                 res.body?.let { nextBody ->
                     contentData = analyzeContent(
-                            book, nextUrl, res.url, nextBody, contentRule,
-                            bookChapter, bookSource, mNextChapterUrl, false
+                        book, nextUrl, res.url, nextBody, contentRule,
+                        bookChapter, bookSource, mNextChapterUrl, false
                     )
                     nextUrl =
                         if (contentData.nextUrl.isNotEmpty()) contentData.nextUrl[0] else ""
@@ -88,8 +88,8 @@ object BookContent {
                     ).getStrResponse(bookSource.bookSourceUrl)
                     res.body?.let { nextBody ->
                         contentData = analyzeContent(
-                                book, item.nextUrl, res.url, nextBody, contentRule,
-                                bookChapter, bookSource, mNextChapterUrl, false
+                            book, item.nextUrl, res.url, nextBody, contentRule,
+                            bookChapter, bookSource, mNextChapterUrl, false
                         )
                         item.content = contentData.content
                     }

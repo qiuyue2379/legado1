@@ -29,7 +29,7 @@ object BookChapterList {
     ): List<BookChapter> {
         val chapterList = ArrayList<BookChapter>()
         body ?: throw Exception(
-                appCtx.getString(R.string.error_get_web_content, baseUrl)
+            appCtx.getString(R.string.error_get_web_content, baseUrl)
         )
         Debug.log(bookSource.bookSourceUrl, "≡获取成功:${baseUrl}")
 
@@ -45,10 +45,10 @@ object BookChapterList {
             listRule = listRule.substring(1)
         }
         var chapterData =
-                analyzeChapterList(
-                        scope, book, baseUrl, redirectUrl, body,
-                        tocRule, listRule, bookSource, log = true
-                )
+            analyzeChapterList(
+                scope, book, baseUrl, redirectUrl, body,
+                tocRule, listRule, bookSource, log = true
+            )
         chapterData.chapterList?.let {
             chapterList.addAll(it)
         }
@@ -59,13 +59,13 @@ object BookChapterList {
                 while (nextUrl.isNotEmpty() && !nextUrlList.contains(nextUrl)) {
                     nextUrlList.add(nextUrl)
                     AnalyzeUrl(
-                            ruleUrl = nextUrl,
-                            book = book,
-                            headerMapF = bookSource.getHeaderMap()
+                        ruleUrl = nextUrl,
+                        book = book,
+                        headerMapF = bookSource.getHeaderMap()
                     ).getStrResponse(bookSource.bookSourceUrl).body?.let { nextBody ->
                         chapterData = analyzeChapterList(
-                                scope, book, nextUrl, nextUrl,
-                                nextBody, tocRule, listRule, bookSource
+                            scope, book, nextUrl, nextUrl,
+                            nextBody, tocRule, listRule, bookSource
                         )
                         nextUrl = chapterData.nextUrl.firstOrNull() ?: ""
                         chapterData.chapterList?.let {
@@ -82,14 +82,14 @@ object BookChapterList {
                         async(IO) {
                             val urlStr = chapterData.nextUrl[it]
                             val analyzeUrl = AnalyzeUrl(
-                                    ruleUrl = urlStr,
-                                    book = book,
-                                    headerMapF = bookSource.getHeaderMap()
+                                ruleUrl = urlStr,
+                                book = book,
+                                headerMapF = bookSource.getHeaderMap()
                             )
                             val res = analyzeUrl.getStrResponse(bookSource.bookSourceUrl)
                             analyzeChapterList(
-                                    this, book, urlStr, res.url,
-                                    res.body!!, tocRule, listRule, bookSource, false
+                                this, book, urlStr, res.url,
+                                res.body!!, tocRule, listRule, bookSource, false
                             ).chapterList
                         }
                     }
@@ -156,9 +156,9 @@ object BookChapterList {
                 }
             }
             Debug.log(
-                    bookSource.bookSourceUrl,
-                    "└" + TextUtils.join("，\n", nextUrlList),
-                    log
+                bookSource.bookSourceUrl,
+                "└" + TextUtils.join("，\n", nextUrlList),
+                log
             )
         }
         scope.ensureActive()

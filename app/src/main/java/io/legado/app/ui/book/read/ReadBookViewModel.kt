@@ -298,10 +298,10 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
     fun reverseContent(book: Book) {
         execute {
             appDb.bookChapterDao.getChapter(book.bookUrl, ReadBook.durChapterIndex)
-                    ?.let { chapter ->
-                        BookHelp.reverseContent(book, chapter)
-                        ReadBook.loadContent(ReadBook.durChapterIndex, resetPageOffset = false)
-                    }
+                ?.let { chapter ->
+                    BookHelp.reverseContent(book, chapter)
+                    ReadBook.loadContent(ReadBook.durChapterIndex, resetPageOffset = false)
+                }
         }
     }
 

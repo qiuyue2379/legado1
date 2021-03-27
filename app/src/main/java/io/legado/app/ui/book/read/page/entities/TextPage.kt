@@ -73,9 +73,9 @@ data class TextPage(
                     val cw = StaticLayout.getDesiredWidth(char, ChapterProvider.contentPaint)
                     val x1 = x + cw
                     textLine.textChars.add(
-                            TextChar(
-                                    char, start = x, end = x1
-                            )
+                        TextChar(
+                            char, start = x, end = x1
+                        )
                     )
                     x = x1
                 }

@@ -106,7 +106,7 @@ data class BookSource(
             if (a.isNotBlank()) {
                 kotlin.runCatching {
                     if (urlRule.startsWith("<js>", false)
-                            || urlRule.startsWith("@js", false)
+                        || urlRule.startsWith("@js", false)
                     ) {
                         val aCache = ACache.get(appCtx, "explore")
                         a = aCache.getAsString(bookSourceUrl) ?: ""

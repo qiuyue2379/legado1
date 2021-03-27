@@ -195,7 +195,7 @@
     <string name="replace_rule">取代規則</string>
     <string name="replace_to">取代為</string>
     <string name="img_cover">封面</string>
-    <string name="book">書</string>
+    <string name="epubBook">書</string>
     <string name="volume_key_page">音量鍵翻頁</string>
     <string name="click_turn_page">點擊翻頁</string>
     <string name="page_anim">翻頁動畫</string>

@@ -13,9 +13,9 @@ import kotlin.math.max
  * */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 class ZhLayout(
-        text: String,
-        textPaint: TextPaint,
-        width: Int
+    text: String,
+    textPaint: TextPaint,
+    width: Int
 ) : Layout(text, textPaint, width, Alignment.ALIGN_NORMAL, 0f, 0f) {
     private val defaultCapacity = 10
     var lineStart = IntArray(defaultCapacity)
@@ -68,16 +68,16 @@ class ZhLayout(
                 var reCheck = false
                 var breakIndex = 0
                 if (breakMod == BreakMod.CPS_1 &&
-                        (inCompressible(words[index]) || inCompressible(words[index - 1]))
+                    (inCompressible(words[index]) || inCompressible(words[index - 1]))
                 ) reCheck = true
                 if (breakMod == BreakMod.CPS_2 &&
-                        (inCompressible(words[index - 1]) || inCompressible(words[index - 2]))
+                    (inCompressible(words[index - 1]) || inCompressible(words[index - 2]))
                 ) reCheck = true
                 if (breakMod == BreakMod.CPS_3 &&
-                        (inCompressible(words[index]) || inCompressible(words[index - 2]))
+                    (inCompressible(words[index]) || inCompressible(words[index - 2]))
                 ) reCheck = true
                 if (breakMod > BreakMod.BREAK_MORE_CHAR
-                        && index < words.lastIndex && isPostPanc(words[index + 1])
+                    && index < words.lastIndex && isPostPanc(words[index + 1])
                 ) reCheck = true
 
                 /*特殊标点使用难保证显示效果，所以不考虑间隔，直接查找到能满足条件的分割字*/
@@ -174,8 +174,8 @@ class ZhLayout(
 
     private fun isPostPanc(string: String): Boolean {
         val panc = arrayOf(
-                "，", "。", "：", "？", "！", "、", "”", "’", "）", "》", "}",
-                "】", ")", ">", "]", "}", ",", ".", "?", "!", ":", "」", "；", ";"
+            "，", "。", "：", "？", "！", "、", "”", "’", "）", "》", "}",
+            "】", ")", ">", "]", "}", ",", ".", "?", "!", ":", "」", "；", ";"
         )
         panc.forEach {
             if (it == string) return true

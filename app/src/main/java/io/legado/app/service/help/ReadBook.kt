@@ -416,7 +416,7 @@ object ReadBook {
                     durChapterIndex -> {
                         curTextChapter =
                             ChapterProvider.getTextChapter(
-                                    book, chapter, contents, chapterSize
+                                book, chapter, contents, chapterSize
                             )
                         if (upContent) callBack?.upContent(resetPageOffset = resetPageOffset)
                         callBack?.upView()
@@ -426,14 +426,14 @@ object ReadBook {
                     durChapterIndex - 1 -> {
                         prevTextChapter =
                             ChapterProvider.getTextChapter(
-                                    book, chapter, contents, chapterSize
+                                book, chapter, contents, chapterSize
                             )
                         if (upContent) callBack?.upContent(-1, resetPageOffset)
                     }
                     durChapterIndex + 1 -> {
                         nextTextChapter =
                             ChapterProvider.getTextChapter(
-                                    book, chapter, contents, chapterSize
+                                book, chapter, contents, chapterSize
                             )
                         if (upContent) callBack?.upContent(1, resetPageOffset)
                     }

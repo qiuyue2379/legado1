@@ -133,7 +133,7 @@ Method = delete
 
 #### 插入书籍
 ```
-URL = content://providerHost/book/insert
+URL = content://providerHost/epubBook/insert
 Method = insert
 ```
 
@@ -151,7 +151,7 @@ Method = query
 
 #### 获取书籍章节列表
 ```
-URL = content://providerHost/book/chapter/query?url=xxx
+URL = content://providerHost/epubBook/chapter/query?url=xxx
 Method = query
 ```
 
@@ -161,7 +161,7 @@ Method = query
 #### 获取书籍内容
 
 ```
-URL = content://providerHost/book/content/query?url=xxx&index=1
+URL = content://providerHost/epubBook/content/query?url=xxx&index=1
 Method = query
 ```
 
