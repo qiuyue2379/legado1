@@ -35,9 +35,9 @@ import io.legado.app.utils.toastOnUi
 
 
 class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
-    BottomNavigationView.OnNavigationItemSelectedListener,
-    BottomNavigationView.OnNavigationItemReselectedListener,
-    ViewPager.OnPageChangeListener by ViewPager.SimpleOnPageChangeListener() {
+        BottomNavigationView.OnNavigationItemSelectedListener,
+        BottomNavigationView.OnNavigationItemReselectedListener,
+        ViewPager.OnPageChangeListener by ViewPager.SimpleOnPageChangeListener() {
     override val viewModel: MainViewModel by viewModels()
     private var exitTime: Long = 0
     private var bookshelfReselected: Long = 0
@@ -56,7 +56,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         viewPagerMain.adapter = TabFragmentPageAdapter(supportFragmentManager)
         viewPagerMain.addOnPageChangeListener(this@MainActivity)
         bottomNavigationView.elevation =
-            if (AppConfig.elevation < 0) elevation else AppConfig.elevation.toFloat()
+                if (AppConfig.elevation < 0) elevation else AppConfig.elevation.toFloat()
         bottomNavigationView.setOnNavigationItemSelectedListener(this@MainActivity)
         bottomNavigationView.setOnNavigationItemReselectedListener(this@MainActivity)
         bottomNavigationView.menu.findItem(R.id.menu_rss).isVisible = AppConfig.isShowRSS
@@ -175,7 +175,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         }
         observeEvent<String>(EventBus.SHOW_RSS) {
             binding.bottomNavigationView.menu.findItem(R.id.menu_rss).isVisible =
-                AppConfig.isShowRSS
+                    AppConfig.isShowRSS
             binding.viewPagerMain.adapter?.notifyDataSetChanged()
             if (AppConfig.isShowRSS) {
                 binding.viewPagerMain.setCurrentItem(3, false)
@@ -187,7 +187,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     }
 
     private inner class TabFragmentPageAdapter(fm: FragmentManager) :
-        FragmentStatePagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+            FragmentStatePagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         private fun getId(position: Int): Int {
             return when (position) {
