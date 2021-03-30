@@ -42,7 +42,7 @@ internal object RequestManager : OnPermissionsResultCallback {
             }
 
             if (!it.empty() && isCurrentRequestInvalid) {
-                RequestManager.request = it.pop()
+                this.request = it.pop()
                 handler.post(requestRunnable)
             }
         }

@@ -26,7 +26,7 @@ import io.legado.app.ui.association.ImportBookSourceActivity
 import io.legado.app.ui.association.ImportReplaceRuleActivity
 import io.legado.app.ui.association.ImportRssSourceActivity
 import io.legado.app.ui.filepicker.FilePicker
-import io.legado.app.ui.filepicker.FilePickerDialog
+import io.legado.app.ui.filepicker.FilePickerParam
 import io.legado.app.utils.*
 import kotlinx.coroutines.launch
 import org.apache.commons.text.StringEscapeUtils
@@ -35,7 +35,6 @@ import splitties.systemservices.downloadManager
 
 
 class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>(false),
-    FilePickerDialog.CallBack,
     ReadRssViewModel.CallBack {
 
     override val viewModel: ReadRssViewModel
@@ -46,6 +45,10 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private var ttsMenuItem: MenuItem? = null
     private var customWebViewCallback: IX5WebChromeClient.CustomViewCallback? = null
     private var webPic: String? = null
+    private val saveImage = registerForActivityResult(FilePicker()) {
+        ACache.get(this).put(imagePathKey, it.toString())
+        viewModel.saveImage(webPic, it.toString())
+    }
 
     override fun getViewBinding(): ActivityRssReadBinding {
         return ActivityRssReadBinding.inflate(layoutInflater)
@@ -160,14 +163,11 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         if (!path.isNullOrEmpty()) {
             default.add(path)
         }
-        FilePicker.selectFolder(
-            this,
-            savePathRequestCode,
-            getString(R.string.save_image),
-            default
-        ) {
-            viewModel.saveImage(webPic, it)
-        }
+        saveImage.launch(
+                FilePickerParam(
+                        otherActions = default.toTypedArray()
+                )
+        )
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -270,16 +270,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
                     .replace("^\"|\"$".toRegex(), "")
                 Jsoup.parse(html).text()
                 viewModel.readAloud(Jsoup.parse(html).textArray())
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            savePathRequestCode -> data?.data?.let {
-                ACache.get(this).put(imagePathKey, it.toString())
-                viewModel.saveImage(webPic, it.toString())
             }
         }
     }
