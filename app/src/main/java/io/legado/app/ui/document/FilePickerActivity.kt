@@ -1,4 +1,4 @@
-package io.legado.app.ui.filepicker
+package io.legado.app.ui.document
 
 import android.content.Intent
 import android.net.Uri
@@ -128,7 +128,9 @@ class FilePickerActivity :
     }
 
     override fun onResult(data: Intent) {
-        setResult(RESULT_OK, data)
+        if (data.data != null) {
+            setResult(RESULT_OK, data)
+        }
         finish()
     }
 

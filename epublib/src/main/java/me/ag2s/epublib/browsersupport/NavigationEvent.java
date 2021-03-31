@@ -2,7 +2,7 @@ package me.ag2s.epublib.browsersupport;
 
 import java.util.EventObject;
 
-import me.ag2s.epublib.domain.Book;
+import me.ag2s.epublib.domain.EpubBook;
 import me.ag2s.epublib.domain.Resource;
 import me.ag2s.epublib.util.StringUtil;
 
@@ -21,7 +21,7 @@ public class NavigationEvent extends EventObject {
   private Resource oldResource;
   private int oldSpinePos;
   private Navigator navigator;
-  private Book oldBook;
+  private EpubBook oldBook;
   private int oldSectionPos;
   private String oldFragmentId;
 
@@ -61,7 +61,7 @@ public class NavigationEvent extends EventObject {
     this.oldFragmentId = oldFragmentId;
   }
 
-  public Book getOldBook() {
+  public EpubBook getOldBook() {
     return oldBook;
   }
 
@@ -124,11 +124,11 @@ public class NavigationEvent extends EventObject {
   }
 
 
-  public void setOldBook(Book oldBook) {
+  public void setOldBook(EpubBook oldBook) {
     this.oldBook = oldBook;
   }
 
-  public Book getCurrentBook() {
+  public EpubBook getCurrentBook() {
     return getNavigator().getBook();
   }
 
@@ -139,16 +139,16 @@ public class NavigationEvent extends EventObject {
   @SuppressWarnings("NullableProblems")
   public String toString() {
     return StringUtil.toString(
-        "oldSectionPos", oldSectionPos,
-        "oldResource", oldResource,
-        "oldBook", oldBook,
-        "oldFragmentId", oldFragmentId,
-        "oldSpinePos", oldSpinePos,
-        "currentPagePos", getCurrentSectionPos(),
-        "currentResource", getCurrentResource(),
-        "currentBook", getCurrentBook(),
-        "currentFragmentId", getCurrentFragmentId(),
-        "currentSpinePos", getCurrentSpinePos()
+            "oldSectionPos", oldSectionPos,
+            "oldResource", oldResource,
+            "oldBook", oldBook,
+            "oldFragmentId", oldFragmentId,
+            "oldSpinePos", oldSpinePos,
+            "currentPagePos", getCurrentSectionPos(),
+            "currentResource", getCurrentResource(),
+            "currentBook", getCurrentBook(),
+            "currentFragmentId", getCurrentFragmentId(),
+            "currentSpinePos", getCurrentSpinePos()
     );
   }
 
