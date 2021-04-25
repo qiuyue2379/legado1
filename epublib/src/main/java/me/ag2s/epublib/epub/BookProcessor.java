@@ -16,5 +16,5 @@ public interface BookProcessor {
    */
   BookProcessor IDENTITY_BOOKPROCESSOR = book -> book;
 
-  EpubBook processBook(EpubBook book);
+    EpubBook processBook(EpubBook book);
 }

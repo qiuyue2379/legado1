@@ -1,13 +1,13 @@
 package me.ag2s.epublib.epub;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import android.util.Log;
 
 import me.ag2s.epublib.Constants;
 import me.ag2s.epublib.domain.EpubBook;
@@ -134,10 +134,10 @@ public class PackageDocumentWriter extends PackageDocumentBase {
     /**
      * Writes a resources as an item element
      *
-     * @param resource g
+     * @param resource   g
      * @param serializer g
-     * @throws IOException g
-     * @throws IllegalStateException g
+     * @throws IOException              g
+     * @throws IllegalStateException    g
      * @throws IllegalArgumentException 1@throws XMLStreamException
      */
     private static void writeItem(EpubBook book, Resource resource,

@@ -36,19 +36,18 @@ import me.ag2s.epublib.util.StringUtil;
  * Reads the opf package document as defined by namespace http://www.idpf.org/2007/opf
  *
  * @author paul
- *
  */
 public class PackageDocumentReader extends PackageDocumentBase {
 
-  private static final String TAG= PackageDocumentReader.class.getName();
+  private static final String TAG = PackageDocumentReader.class.getName();
   private static final String[] POSSIBLE_NCX_ITEM_IDS = new String[]{"toc",
-      "ncx", "ncxtoc","htmltoc"};
+          "ncx", "ncxtoc", "htmltoc"};
 
 
   public static void read(
           Resource packageResource, EpubReader epubReader, EpubBook book,
           Resources resources)
-      throws SAXException, IOException {
+          throws SAXException, IOException {
     Document packageDocument = ResourceUtil.getAsDocument(packageResource);
     String packageHref = packageResource.getHref();
     resources = fixHrefs(packageHref, resources);
@@ -56,15 +55,15 @@ public class PackageDocumentReader extends PackageDocumentBase {
 
     // Books sometimes use non-identifier ids. We map these here to legal ones
     Map<String, String> idMapping = new HashMap<>();
-    String version=DOMUtil.getAttribute(packageDocument.getDocumentElement(),PREFIX_OPF,PackageDocumentBase.version);
+    String version = DOMUtil.getAttribute(packageDocument.getDocumentElement(), PREFIX_OPF, PackageDocumentBase.version);
 
     resources = readManifest(packageDocument, packageHref, epubReader,
-        resources, idMapping);
+            resources, idMapping);
     book.setResources(resources);
     book.setVersion(version);
     readCover(packageDocument, book);
     book.setMetadata(
-        PackageDocumentMetadataReader.readMetadata(packageDocument));
+            PackageDocumentMetadataReader.readMetadata(packageDocument));
     book.setSpine(readSpine(packageDocument, book.getResources(), idMapping));
 
     // if we did not find a cover page then we make the first page of the book the cover page
@@ -87,50 +86,50 @@ public class PackageDocumentReader extends PackageDocumentBase {
    * Reads the manifest containing the resource ids, hrefs and mediatypes.
    *
    * @param packageDocument e
-   * @param packageHref e
-   * @param epubReader e
-   * @param resources e
-   * @param idMapping e
+   * @param packageHref     e
+   * @param epubReader      e
+   * @param resources       e
+   * @param idMapping       e
    * @return a Map with resources, with their id's as key.
    */
   @SuppressWarnings("unused")
   private static Resources readManifest(Document packageDocument,
-      String packageHref,
-      EpubReader epubReader, Resources resources,
-      Map<String, String> idMapping) {
+                                        String packageHref,
+                                        EpubReader epubReader, Resources resources,
+                                        Map<String, String> idMapping) {
     Element manifestElement = DOMUtil
-        .getFirstElementByTagNameNS(packageDocument.getDocumentElement(),
-            NAMESPACE_OPF, OPFTags.manifest);
+            .getFirstElementByTagNameNS(packageDocument.getDocumentElement(),
+                    NAMESPACE_OPF, OPFTags.manifest);
     Resources result = new Resources();
     if (manifestElement == null) {
       Log.e(TAG,
-          "Package document does not contain element " + OPFTags.manifest);
+              "Package document does not contain element " + OPFTags.manifest);
       return result;
     }
     NodeList itemElements = manifestElement
-        .getElementsByTagNameNS(NAMESPACE_OPF, OPFTags.item);
+            .getElementsByTagNameNS(NAMESPACE_OPF, OPFTags.item);
     for (int i = 0; i < itemElements.getLength(); i++) {
       Element itemElement = (Element) itemElements.item(i);
       String id = DOMUtil
-          .getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.id);
+              .getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.id);
       String href = DOMUtil
-          .getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.href);
+              .getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.href);
 
       try {
         href = URLDecoder.decode(href, Constants.CHARACTER_ENCODING);
       } catch (UnsupportedEncodingException e) {
-        Log.e(TAG,e.getMessage());
+        Log.e(TAG, e.getMessage());
       }
       String mediaTypeName = DOMUtil
-          .getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.media_type);
+              .getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.media_type);
       Resource resource = resources.remove(href);
       if (resource == null) {
-        Log.e(TAG,"resource with href '" + href + "' not found");
+        Log.e(TAG, "resource with href '" + href + "' not found");
         continue;
       }
       resource.setId(id);
       //for epub3
-      String properties=DOMUtil.getAttribute(itemElement,NAMESPACE_OPF,OPFAttributes.properties);
+      String properties = DOMUtil.getAttribute(itemElement, NAMESPACE_OPF, OPFAttributes.properties);
       resource.setProperties(properties);
 
       MediaType mediaType = MediaTypes.getMediaTypeByName(mediaTypeName);
@@ -149,9 +148,9 @@ public class PackageDocumentReader extends PackageDocumentBase {
    * Here some more attempts are made at finding the cover page.
    *
    * @param packageDocument r
-   * @param epubReader  r
-   * @param book r
-   * @param resources g
+   * @param epubReader      r
+   * @param book            r
+   * @param resources       g
    */
   @SuppressWarnings("unused")
   private static void readGuide(Document packageDocument,
@@ -168,32 +167,32 @@ public class PackageDocumentReader extends PackageDocumentBase {
     for (int i = 0; i < guideReferences.getLength(); i++) {
       Element referenceElement = (Element) guideReferences.item(i);
       String resourceHref = DOMUtil
-          .getAttribute(referenceElement, NAMESPACE_OPF, OPFAttributes.href);
+              .getAttribute(referenceElement, NAMESPACE_OPF, OPFAttributes.href);
       if (StringUtil.isBlank(resourceHref)) {
         continue;
       }
       Resource resource = resources.getByHref(StringUtil
-          .substringBefore(resourceHref, Constants.FRAGMENT_SEPARATOR_CHAR));
+              .substringBefore(resourceHref, Constants.FRAGMENT_SEPARATOR_CHAR));
       if (resource == null) {
-        Log.e(TAG,"Guide is referencing resource with href " + resourceHref
-            + " which could not be found");
+        Log.e(TAG, "Guide is referencing resource with href " + resourceHref
+                + " which could not be found");
         continue;
       }
       String type = DOMUtil
-          .getAttribute(referenceElement, NAMESPACE_OPF, OPFAttributes.type);
+              .getAttribute(referenceElement, NAMESPACE_OPF, OPFAttributes.type);
       if (StringUtil.isBlank(type)) {
-        Log.e(TAG,"Guide is referencing resource with href " + resourceHref
-            + " which is missing the 'type' attribute");
+        Log.e(TAG, "Guide is referencing resource with href " + resourceHref
+                + " which is missing the 'type' attribute");
         continue;
       }
       String title = DOMUtil
-          .getAttribute(referenceElement, NAMESPACE_OPF, OPFAttributes.title);
+              .getAttribute(referenceElement, NAMESPACE_OPF, OPFAttributes.title);
       if (GuideReference.COVER.equalsIgnoreCase(type)) {
         continue; // cover is handled elsewhere
       }
       GuideReference reference = new GuideReference(resource, type, title,
-          StringUtil
-              .substringAfter(resourceHref, Constants.FRAGMENT_SEPARATOR_CHAR));
+              StringUtil
+                      .substringAfter(resourceHref, Constants.FRAGMENT_SEPARATOR_CHAR));
       guide.addReference(reference);
     }
   }
@@ -201,16 +200,16 @@ public class PackageDocumentReader extends PackageDocumentBase {
 
   /**
    * Strips off the package prefixes up to the href of the packageHref.
-   *
+   * <p>
    * Example:
    * If the packageHref is "OEBPS/content.opf" then a resource href like "OEBPS/foo/bar.html" will be turned into "foo/bar.html"
    *
-   * @param packageHref f
+   * @param packageHref     f
    * @param resourcesByHref g
    * @return The stripped package href
    */
   static Resources fixHrefs(String packageHref,
-      Resources resourcesByHref) {
+                            Resources resourcesByHref) {
     int lastSlashPos = packageHref.lastIndexOf('/');
     if (lastSlashPos < 0) {
       return resourcesByHref;
@@ -218,7 +217,7 @@ public class PackageDocumentReader extends PackageDocumentBase {
     Resources result = new Resources();
     for (Resource resource : resourcesByHref.getAll()) {
       if (StringUtil.isNotBlank(resource.getHref())
-          && resource.getHref().length() > lastSlashPos) {
+              && resource.getHref().length() > lastSlashPos) {
         resource.setHref(resource.getHref().substring(lastSlashPos + 1));
       }
       result.add(resource);
@@ -230,42 +229,43 @@ public class PackageDocumentReader extends PackageDocumentBase {
    * Reads the document's spine, containing all sections in reading order.
    *
    * @param packageDocument b
-   * @param resources b
-   * @param idMapping b
+   * @param resources       b
+   * @param idMapping       b
    * @return the document's spine, containing all sections in reading order.
    */
   private static Spine readSpine(Document packageDocument, Resources resources,
-      Map<String, String> idMapping) {
+                                 Map<String, String> idMapping) {
 
     Element spineElement = DOMUtil
-        .getFirstElementByTagNameNS(packageDocument.getDocumentElement(),
-            NAMESPACE_OPF, OPFTags.spine);
+            .getFirstElementByTagNameNS(packageDocument.getDocumentElement(),
+                    NAMESPACE_OPF, OPFTags.spine);
     if (spineElement == null) {
-      Log.e(TAG,"Element " + OPFTags.spine
-          + " not found in package document, generating one automatically");
+      Log.e(TAG, "Element " + OPFTags.spine
+              + " not found in package document, generating one automatically");
       return generateSpineFromResources(resources);
     }
     Spine result = new Spine();
-    String tocResourceId = DOMUtil
-        .getAttribute(spineElement, NAMESPACE_OPF, OPFAttributes.toc);
-    result
-        .setTocResource(findTableOfContentsResource(tocResourceId, resources));
-    NodeList spineNodes = packageDocument
-        .getElementsByTagNameNS(NAMESPACE_OPF, OPFTags.itemref);
-    List<SpineReference> spineReferences = new ArrayList<>(
-            spineNodes.getLength());
+    String tocResourceId = DOMUtil.getAttribute(spineElement, NAMESPACE_OPF, OPFAttributes.toc);
+    Log.v(TAG,tocResourceId);
+    result.setTocResource(findTableOfContentsResource(tocResourceId, resources));
+    NodeList spineNodes = DOMUtil.getElementsByTagNameNS(packageDocument, NAMESPACE_OPF, OPFTags.itemref);
+    if(spineNodes==null){
+      Log.e(TAG,"spineNodes is null");
+      return result;
+    }
+    List<SpineReference> spineReferences = new ArrayList<>(spineNodes.getLength());
     for (int i = 0; i < spineNodes.getLength(); i++) {
       Element spineItem = (Element) spineNodes.item(i);
-      String itemref = DOMUtil
-          .getAttribute(spineItem, NAMESPACE_OPF, OPFAttributes.idref);
+      String itemref = DOMUtil.getAttribute(spineItem, NAMESPACE_OPF, OPFAttributes.idref);
       if (StringUtil.isBlank(itemref)) {
-        Log.e(TAG,"itemref with missing or empty idref"); // XXX
+        Log.e(TAG, "itemref with missing or empty idref"); // XXX
         continue;
       }
       String id = idMapping.get(itemref);
       if (id == null) {
         id = itemref;
       }
+
       Resource resource = resources.getByIdOrHref(id);
       if (resource == null) {
         Log.e(TAG, "resource with id '" + id + "' not found");
@@ -274,7 +274,7 @@ public class PackageDocumentReader extends PackageDocumentBase {
 
       SpineReference spineReference = new SpineReference(resource);
       if (OPFValues.no.equalsIgnoreCase(DOMUtil
-          .getAttribute(spineItem, NAMESPACE_OPF, OPFAttributes.linear))) {
+              .getAttribute(spineItem, NAMESPACE_OPF, OPFAttributes.linear))) {
         spineReference.setLinear(false);
       }
       spineReferences.add(spineReference);
@@ -308,17 +308,23 @@ public class PackageDocumentReader extends PackageDocumentBase {
 
   /**
    * The spine tag should contain a 'toc' attribute with as value the resource id of the table of contents resource.
-   *
+   * <p>
    * Here we try several ways of finding this table of contents resource.
    * We try the given attribute value, some often-used ones and finally look through all resources for the first resource with the table of contents mimetype.
    *
    * @param tocResourceId g
-   * @param resources g
+   * @param resources     g
    * @return the Resource containing the table of contents
    */
   static Resource findTableOfContentsResource(String tocResourceId,
-      Resources resources) {
-    Resource tocResource = null;
+                                              Resources resources) {
+    Resource tocResource;
+    //一些epub3的文件为了兼容epub2,保留的epub2的目录文件，这里优先选择epub3的xml目录
+    tocResource = resources.getByProperties("nav");
+    if (tocResource != null) {
+      return tocResource;
+    }
+
     if (StringUtil.isNotBlank(tocResourceId)) {
       tocResource = resources.getByIdOrHref(tocResourceId);
     }
@@ -343,17 +349,14 @@ public class PackageDocumentReader extends PackageDocumentBase {
         }
       }
     }
-    //For EPUB3
-    if (tocResource==null){
-       tocResource=resources.getByProperties("nav");
-    }
+
 
     if (tocResource == null) {
       Log.e(TAG,
-          "Could not find table of contents resource. Tried resource with id '"
-              + tocResourceId + "', " + Constants.DEFAULT_TOC_ID + ", "
-              + Constants.DEFAULT_TOC_ID.toUpperCase()
-              + " and any NCX resource.");
+              "Could not find table of contents resource. Tried resource with id '"
+                      + tocResourceId + "', " + Constants.DEFAULT_TOC_ID + ", "
+                      + Constants.DEFAULT_TOC_ID.toUpperCase()
+                      + " and any NCX resource.");
     }
     return tocResource;
   }
@@ -373,27 +376,27 @@ public class PackageDocumentReader extends PackageDocumentBase {
 
     // try and find a meta tag with name = 'cover' and a non-blank id
     String coverResourceId = DOMUtil
-        .getFindAttributeValue(packageDocument, NAMESPACE_OPF,
-            OPFTags.meta, OPFAttributes.name, OPFValues.meta_cover,
-            OPFAttributes.content);
+            .getFindAttributeValue(packageDocument, NAMESPACE_OPF,
+                    OPFTags.meta, OPFAttributes.name, OPFValues.meta_cover,
+                    OPFAttributes.content);
 
     if (StringUtil.isNotBlank(coverResourceId)) {
       String coverHref = DOMUtil
-          .getFindAttributeValue(packageDocument, NAMESPACE_OPF,
-              OPFTags.item, OPFAttributes.id, coverResourceId,
-              OPFAttributes.href);
+              .getFindAttributeValue(packageDocument, NAMESPACE_OPF,
+                      OPFTags.item, OPFAttributes.id, coverResourceId,
+                      OPFAttributes.href);
       if (StringUtil.isNotBlank(coverHref)) {
         result.add(coverHref);
       } else {
         result.add(
-            coverResourceId); // maybe there was a cover href put in the cover id attribute
+                coverResourceId); // maybe there was a cover href put in the cover id attribute
       }
     }
     // try and find a reference tag with type is 'cover' and reference is not blank
     String coverHref = DOMUtil
-        .getFindAttributeValue(packageDocument, NAMESPACE_OPF,
-            OPFTags.reference, OPFAttributes.type, OPFValues.reference_cover,
-            OPFAttributes.href);
+            .getFindAttributeValue(packageDocument, NAMESPACE_OPF,
+                    OPFTags.reference, OPFAttributes.type, OPFValues.reference_cover,
+                    OPFAttributes.href);
     if (StringUtil.isNotBlank(coverHref)) {
       result.add(coverHref);
     }
@@ -418,6 +421,8 @@ public class PackageDocumentReader extends PackageDocumentBase {
       }
       if (resource.getMediaType() == MediaTypes.XHTML) {
         book.setCoverPage(resource);
+      } else if (MediaTypes.isBitmapImage(resource.getMediaType())) {
+        book.setCoverImage(resource);
       }
     }
   }

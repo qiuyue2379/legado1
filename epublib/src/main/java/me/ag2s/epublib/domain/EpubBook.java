@@ -319,5 +319,5 @@ public class EpubBook implements Serializable {
     public Resource getNcxResource() {
         return ncxResource;
     }
-
 }
+

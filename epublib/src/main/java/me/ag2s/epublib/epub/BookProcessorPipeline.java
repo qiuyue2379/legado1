@@ -66,7 +66,7 @@ public class BookProcessorPipeline implements BookProcessor {
 
 
   public void setBookProcessingPipeline(
-          List<BookProcessor> bookProcessingPipeline) {
+      List<BookProcessor> bookProcessingPipeline) {
     this.bookProcessors = bookProcessingPipeline;
   }
 

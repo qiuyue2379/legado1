@@ -20,9 +20,9 @@ public class NavigationEvent extends EventObject {
 
   private Resource oldResource;
   private int oldSpinePos;
-  private Navigator navigator;
-  private EpubBook oldBook;
-  private int oldSectionPos;
+    private Navigator navigator;
+    private EpubBook oldBook;
+    private int oldSectionPos;
   private String oldFragmentId;
 
   public NavigationEvent(Object source) {
@@ -61,9 +61,9 @@ public class NavigationEvent extends EventObject {
     this.oldFragmentId = oldFragmentId;
   }
 
-  public EpubBook getOldBook() {
-    return oldBook;
-  }
+    public EpubBook getOldBook() {
+        return oldBook;
+    }
 
   // package
   void setOldPagePos(int oldPagePos) {
@@ -124,13 +124,13 @@ public class NavigationEvent extends EventObject {
   }
 
 
-  public void setOldBook(EpubBook oldBook) {
-    this.oldBook = oldBook;
-  }
+    public void setOldBook(EpubBook oldBook) {
+        this.oldBook = oldBook;
+    }
 
-  public EpubBook getCurrentBook() {
-    return getNavigator().getBook();
-  }
+    public EpubBook getCurrentBook() {
+        return getNavigator().getBook();
+    }
 
   public boolean isResourceChanged() {
     return oldResource != getCurrentResource();
@@ -139,16 +139,16 @@ public class NavigationEvent extends EventObject {
   @SuppressWarnings("NullableProblems")
   public String toString() {
     return StringUtil.toString(
-            "oldSectionPos", oldSectionPos,
-            "oldResource", oldResource,
-            "oldBook", oldBook,
-            "oldFragmentId", oldFragmentId,
-            "oldSpinePos", oldSpinePos,
-            "currentPagePos", getCurrentSectionPos(),
-            "currentResource", getCurrentResource(),
-            "currentBook", getCurrentBook(),
-            "currentFragmentId", getCurrentFragmentId(),
-            "currentSpinePos", getCurrentSpinePos()
+        "oldSectionPos", oldSectionPos,
+        "oldResource", oldResource,
+        "oldBook", oldBook,
+        "oldFragmentId", oldFragmentId,
+        "oldSpinePos", oldSpinePos,
+        "currentPagePos", getCurrentSectionPos(),
+        "currentResource", getCurrentResource(),
+        "currentBook", getCurrentBook(),
+        "currentFragmentId", getCurrentFragmentId(),
+        "currentSpinePos", getCurrentSpinePos()
     );
   }
 
