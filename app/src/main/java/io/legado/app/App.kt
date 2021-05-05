@@ -9,7 +9,6 @@ import androidx.multidex.MultiDexApplication
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.tencent.smtt.sdk.QbSdk
 import com.tencent.smtt.sdk.QbSdk.PreInitCallback
-import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.channelIdDownload
 import io.legado.app.constant.AppConst.channelIdReadAloud
 import io.legado.app.constant.AppConst.channelIdWeb
@@ -17,10 +16,8 @@ import io.legado.app.help.ActivityHelp
 import io.legado.app.help.AppConfig
 import io.legado.app.help.CrashHandler
 import io.legado.app.help.ThemeConfig.applyDayNight
-import io.legado.app.help.http.HttpHelper
 import io.legado.app.utils.LanguageUtils
 import io.legado.app.utils.defaultSharedPreferences
-import rxhttp.wrapper.param.RxHttp
 
 
 class App : MultiDexApplication() {
@@ -29,10 +26,6 @@ class App : MultiDexApplication() {
         super.onCreate()
         CrashHandler(this)
         LanguageUtils.setConfiguration(this)
-        RxHttp.init(HttpHelper.client, BuildConfig.DEBUG)
-        RxHttp.setOnParamAssembly {
-            it.addHeader(AppConst.UA_NAME, AppConfig.userAgent)
-        }
         createNotificationChannels()
         applyDayNight(this)
         LiveEventBus.config()
