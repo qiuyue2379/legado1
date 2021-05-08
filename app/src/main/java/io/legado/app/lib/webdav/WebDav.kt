@@ -1,5 +1,6 @@
 package io.legado.app.lib.webdav
 
+import io.legado.app.help.http.mkCol
 import io.legado.app.help.http.newCall
 import io.legado.app.help.http.okHttpClient
 import io.legado.app.help.http.text
@@ -9,7 +10,6 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.Jsoup
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 import java.net.MalformedURLException
 import java.net.URL
@@ -58,12 +58,7 @@ class WebDav(urlStr: String) {
      * @return 远程文件是否存在
      */
     suspend fun indexFileInfo(): Boolean {
-        propFindResponse(ArrayList())?.let {
-            if (it.text().isNotEmpty()) {
-                return true
-            }
-        }
-        return false
+        return !propFindResponse(ArrayList()).isNullOrEmpty()
     }
 
     /**
@@ -73,13 +68,13 @@ class WebDav(urlStr: String) {
      * @return 文件列表
      */
     suspend fun listFiles(propsList: ArrayList<String> = ArrayList()): List<WebDav> {
-        propFindResponse(propsList)?.text()?.let { body ->
+        propFindResponse(propsList)?.let { body ->
             return parseDir(body)
         }
         return ArrayList()
     }
 
-    private suspend fun propFindResponse(propsList: ArrayList<String>): ResponseBody? {
+    private suspend fun propFindResponse(propsList: ArrayList<String>): String? {
         val requestProps = StringBuilder()
         for (p in propsList) {
             requestProps.append("<a:").append(p).append("/>\n")
@@ -100,7 +95,7 @@ class WebDav(urlStr: String) {
                     // 注意：尽量手动指定需要返回的属性。若返回全部属性，可能后由于Prop.java里没有该属性名，而崩溃。
                     val requestBody = requestPropsStr.toRequestBody("text/plain".toMediaType())
                     method("PROPFIND", requestBody)
-                }
+                }.text()
             }.onFailure {
                 it.printStackTrace()
             }.getOrNull()
@@ -144,19 +139,20 @@ class WebDav(urlStr: String) {
 
     /**
      * 根据自己的URL，在远程处创建对应的文件夹
-     *
      * @return 是否创建成功
      */
     suspend fun makeAsDir(): Boolean {
         val url = httpUrl
         val auth = HttpAuth.auth
         if (url != null && auth != null) {
-            okHttpClient.newCall {
-                url(url)
-                method("MKCOL", null)
-                addHeader("Authorization", Credentials.basic(auth.user, auth.pass))
-            }
-            return true
+            //防止报错
+            return kotlin.runCatching {
+                okHttpClient.newCall {
+                    url(url)
+                    mkCol()
+                    addHeader("Authorization", Credentials.basic(auth.user, auth.pass))
+                }.close()
+            }.isSuccess
         }
         return false
     }
@@ -197,7 +193,7 @@ class WebDav(urlStr: String) {
                 url(url)
                 put(fileBody)
                 addHeader("Authorization", Credentials.basic(auth.user, auth.pass))
-            }
+            }.close()
             return true
         }
         return false
@@ -213,13 +209,12 @@ class WebDav(urlStr: String) {
                 url(url)
                 put(fileBody)
                 addHeader("Authorization", Credentials.basic(auth.user, auth.pass))
-            }
+            }.close()
             return true
         }
         return false
     }
 
-    @Throws(IOException::class)
     private suspend fun getInputStream(): InputStream? {
         val url = httpUrl
         val auth = HttpAuth.auth
