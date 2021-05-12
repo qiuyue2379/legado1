@@ -46,29 +46,31 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         return ActivityMainBinding.inflate(layoutInflater)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) = with(binding) {
-        ATH.applyEdgeEffectColor(viewPagerMain)
-        ATH.applyBottomNavigationColor(bottomNavigationView)
-        viewPagerMain.offscreenPageLimit = 3
-        viewPagerMain.adapter = TabFragmentPageAdapter()
-        viewPagerMain.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                pagePosition = position
-                when (position) {
-                    0, 1, 3 -> bottomNavigationView.menu.getItem(position).isChecked = true
-                    2 -> if (AppConfig.isShowRSS) {
-                        bottomNavigationView.menu.getItem(position).isChecked = true
-                    } else {
-                        bottomNavigationView.menu.getItem(3).isChecked = true
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        binding.apply {
+            ATH.applyEdgeEffectColor(viewPagerMain)
+            ATH.applyBottomNavigationColor(bottomNavigationView)
+            viewPagerMain.offscreenPageLimit = 3
+            viewPagerMain.adapter = TabFragmentPageAdapter()
+            viewPagerMain.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    pagePosition = position
+                    when (position) {
+                        0, 1, 3 -> bottomNavigationView.menu.getItem(position).isChecked = true
+                        2 -> if (AppConfig.isShowRSS) {
+                            bottomNavigationView.menu.getItem(position).isChecked = true
+                        } else {
+                            bottomNavigationView.menu.getItem(3).isChecked = true
+                        }
                     }
                 }
-            }
-        })
-        bottomNavigationView.elevation =
-            if (AppConfig.elevation < 0) elevation else AppConfig.elevation.toFloat()
-        bottomNavigationView.setOnNavigationItemSelectedListener(this@MainActivity)
-        bottomNavigationView.setOnNavigationItemReselectedListener(this@MainActivity)
-        bottomNavigationView.menu.findItem(R.id.menu_rss).isVisible = AppConfig.isShowRSS
+            })
+            bottomNavigationView.elevation =
+                if (AppConfig.elevation < 0) elevation else AppConfig.elevation.toFloat()
+            bottomNavigationView.setOnNavigationItemSelectedListener(this@MainActivity)
+            bottomNavigationView.setOnNavigationItemReselectedListener(this@MainActivity)
+            bottomNavigationView.menu.findItem(R.id.menu_rss).isVisible = AppConfig.isShowRSS
+        }
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
