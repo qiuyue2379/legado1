@@ -1,4 +1,4 @@
-package io.legado.app.ui.main.bookshelf1
+package io.legado.app.ui.main.bookshelf.style2
 
 import android.content.Context
 import android.os.Bundle
@@ -13,8 +13,8 @@ import io.legado.app.help.AppConfig
 import io.legado.app.utils.invisible
 import splitties.views.onLongClick
 
-class BooksAdapterGrid(context: Context, private val callBack: CallBack) :
-    BaseBooksAdapter<BooksAdapterGrid.ItemViewHolder>(context) {
+class BooksAdapterGrid(context: Context, callBack: CallBack) :
+    BaseBooksAdapter<BooksAdapterGrid.ItemViewHolder>(context, callBack) {
 
     override fun getItemCount(): Int {
         return callBack.getItemCount()
