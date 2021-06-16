@@ -498,11 +498,11 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
         val page = relativePage(selectStart[0])
         page.getTextChapter()?.let { chapter ->
             ReadBook.book?.let { book ->
-                    return book.createBookMark().apply {
-                        chapterIndex = page.chapterIndex
-                        chapterPos = chapter.getReadLength(page.index) +
-                                page.getSelectStartLength(selectStart[1], selectStart[2])
-                        chapterName = chapter.title
+                return book.createBookMark().apply {
+                    chapterIndex = page.chapterIndex
+                    chapterPos = chapter.getReadLength(page.index) +
+                            page.getSelectStartLength(selectStart[1], selectStart[2])
+                    chapterName = chapter.title
                     bookText = selectedText
                 }
             }

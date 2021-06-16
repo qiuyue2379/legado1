@@ -261,7 +261,7 @@
         <!-- RSS阅读 -->
         <activity
             android:name=".ui.rss.read.ReadRssActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize"
             android:hardwareAccelerated="true"
             android:launchMode="singleTop" />
         <!-- 导入书籍 -->

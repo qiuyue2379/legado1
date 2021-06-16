@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:453392274790:android:c4eac14b1410eec5f624a7",
         "android_client_info": {
-          "package_name": "io.legado.qiuyue.debug"
+          "package_name": "io.legado.app.debug"
         }
       },
       "oauth_client": [
@@ -39,7 +39,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:453392274790:android:c1481c1c3d3f51eff624a7",
         "android_client_info": {
-          "package_name": "io.legado.qiuyue.release"
+          "package_name": "io.legado.app.release"
         }
       },
       "oauth_client": [

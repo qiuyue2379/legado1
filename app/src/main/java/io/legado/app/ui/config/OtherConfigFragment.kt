@@ -153,9 +153,9 @@ class OtherConfigFragment : BasePreferenceFragment(),
     private fun upPreferenceSummary(preferenceKey: String, value: String?) {
         val preference = findPreference<Preference>(preferenceKey) ?: return
         when (preferenceKey) {
-            PreferKey.threadCount -> preference.summary = getString(R.string.threads_num, value)
             PreferKey.preDownloadNum -> preference.summary =
                 getString(R.string.pre_download_s, value)
+            PreferKey.threadCount -> preference.summary = getString(R.string.threads_num, value)
             PreferKey.webPort -> preference.summary = getString(R.string.web_port_summary, value)
             PreferKey.defaultCover -> preference.summary = if (value.isNullOrBlank()) {
                 getString(R.string.select_image)

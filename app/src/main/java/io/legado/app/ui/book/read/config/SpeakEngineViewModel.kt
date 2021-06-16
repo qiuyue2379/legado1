@@ -69,5 +69,4 @@ class SpeakEngineViewModel(application: Application) : BaseViewModel(application
             uri.writeBytes(context, "httpTts.json", GSON.toJson(httpTTS).toByteArray())
         }
     }
-
 }

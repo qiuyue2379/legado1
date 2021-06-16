@@ -51,9 +51,9 @@ fun Uri.writeText(context: Context, text: String): Boolean {
 }
 
 fun Uri.writeBytes(
-        context: Context,
-        fileName: String,
-        byteArray: ByteArray
+    context: Context,
+    fileName: String,
+    byteArray: ByteArray
 ): Boolean {
     if (this.isContentScheme()) {
         DocumentFile.fromTreeUri(context, this)?.let { pDoc ->
@@ -63,7 +63,7 @@ fun Uri.writeBytes(
         }
     } else {
         FileUtils.createFileWithReplace(path + File.separatorChar + fileName)
-                .writeBytes(byteArray)
+            .writeBytes(byteArray)
         return true
     }
     return false

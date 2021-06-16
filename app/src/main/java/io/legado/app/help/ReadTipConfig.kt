@@ -78,6 +78,7 @@ object ReadTipConfig {
         set(value) {
             ReadBookConfig.config.tipColor = value
         }
+
     fun getHeaderModes(context: Context): LinkedHashMap<Int, String> {
         return linkedMapOf(
             Pair(0, context.getString(R.string.hide_when_status_bar_show)),

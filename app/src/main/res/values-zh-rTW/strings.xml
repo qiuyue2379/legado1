@@ -694,7 +694,7 @@
     <string name="switchLayout">切換布局</string>
     <string name="text_font_weight_converter">文章字重轉換</string>
     <string name="full_screen_gestures_support">全面屏手勢最佳化</string>
-
+  
     <!--color-->
     <string name="primary">主色調</string>
     <string name="accent">強調色</string>
@@ -784,7 +784,6 @@
     <string name="import_file_name">導入文件名</string>
     <string name="copy_book_url">複製書籍URL</string>
     <string name="copy_toc_url">複製目錄URL</string>
-    <string name="copy_url">複製URL</string>
     <string name="no_book">沒有書籍</string>
     <string name="keep_original_name">保留原名</string>
     <string name="click_regional_config">點擊區域設定</string>
@@ -844,5 +843,6 @@
     <string name="style">样式</string>
     <string name="group_style">分组样式</string>
     <string name="export_file_name">导出文件名</string>
+    <string name="reset">重置</string>
 
 </resources>

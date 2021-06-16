@@ -216,7 +216,7 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
             searchView.setQuery(it, true)
         } ?: let {
             searchView.findViewById<TextView>(androidx.appcompat.R.id.search_src_text)
-            .requestFocus()
+                .requestFocus()
         }
     }
 

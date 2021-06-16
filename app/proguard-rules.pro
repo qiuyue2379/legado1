@@ -68,7 +68,6 @@
 -keep public class * extends android.preference.Preference
 -keep public class * extends android.view.View
 
-
 # 保留androidx下的所有类及其内部类
 -keep class androidx.** {*;}
 
@@ -222,15 +221,4 @@
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
-}
-
--dontwarn dalvik.**
--dontwarn com.tencent.smtt.**
-
--keep class com.tencent.smtt.** {
-    *;
-}
-
--keep class com.tencent.tbs.** {
-    *;
 }

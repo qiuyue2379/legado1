@@ -80,7 +80,7 @@ class ChapterListFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_chapt
             initDoc()
             durChapterIndex = book.durChapterIndex
             binding.tvCurrentChapterInfo.text =
-                    "${book.durChapterTitle}(${book.durChapterIndex + 1}/${book.totalChapterNum})"
+                "${book.durChapterTitle}(${book.durChapterIndex + 1}/${book.totalChapterNum})"
             initCacheFileNames(book)
         }
     }

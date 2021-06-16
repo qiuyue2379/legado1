@@ -51,10 +51,10 @@ object EncoderUtils {
      * @return the Base64-encode bytes of AES encryption
      */
     fun encryptAES2Base64(
-            data: ByteArray?,
-            key: ByteArray?,
-            transformation: String?,
-            iv: ByteArray?
+        data: ByteArray?,
+        key: ByteArray?,
+        transformation: String?,
+        iv: ByteArray?
     ): ByteArray? {
         return Base64.encode(encryptAES(data, key, transformation, iv), Base64.NO_WRAP)
     }
@@ -70,10 +70,10 @@ object EncoderUtils {
      * @return the bytes of AES encryption
      */
     fun encryptAES(
-            data: ByteArray?,
-            key: ByteArray?,
-            transformation: String?,
-            iv: ByteArray?
+        data: ByteArray?,
+        key: ByteArray?,
+        transformation: String?,
+        iv: ByteArray?
     ): ByteArray? {
         return symmetricTemplate(data, key, "AES", transformation!!, iv, true)
     }
@@ -90,10 +90,10 @@ object EncoderUtils {
      * @return the bytes of AES decryption for Base64-encode bytes
      */
     fun decryptBase64AES(
-            data: ByteArray?,
-            key: ByteArray?,
-            transformation: String?,
-            iv: ByteArray?
+        data: ByteArray?,
+        key: ByteArray?,
+        transformation: String?,
+        iv: ByteArray?
     ): ByteArray? {
         return decryptAES(Base64.decode(data, Base64.NO_WRAP), key, transformation, iv)
     }
@@ -109,10 +109,10 @@ object EncoderUtils {
      * @return the bytes of AES decryption
      */
     fun decryptAES(
-            data: ByteArray?,
-            key: ByteArray?,
-            transformation: String?,
-            iv: ByteArray?
+        data: ByteArray?,
+        key: ByteArray?,
+        transformation: String?,
+        iv: ByteArray?
     ): ByteArray? {
         return symmetricTemplate(data, key, "AES", transformation!!, iv, false)
     }
@@ -130,12 +130,12 @@ object EncoderUtils {
      */
 
     private fun symmetricTemplate(
-            data: ByteArray?,
-            key: ByteArray?,
-            algorithm: String,
-            transformation: String,
-            iv: ByteArray?,
-            isEncrypt: Boolean
+        data: ByteArray?,
+        key: ByteArray?,
+        algorithm: String,
+        transformation: String,
+        iv: ByteArray?,
+        isEncrypt: Boolean
     ): ByteArray? {
         return if (data == null || data.isEmpty() || key == null || key.isEmpty()) null else try {
             val keySpec = SecretKeySpec(key, algorithm)
@@ -145,9 +145,9 @@ object EncoderUtils {
             } else {
                 val params: AlgorithmParameterSpec = IvParameterSpec(iv)
                 cipher.init(
-                        if (isEncrypt) Cipher.ENCRYPT_MODE else Cipher.DECRYPT_MODE,
-                        keySpec,
-                        params
+                    if (isEncrypt) Cipher.ENCRYPT_MODE else Cipher.DECRYPT_MODE,
+                    keySpec,
+                    params
                 )
             }
             cipher.doFinal(data)

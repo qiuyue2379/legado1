@@ -33,7 +33,7 @@ http代理
 java 变量-当前类
 baseUrl 变量-当前url,String
 result 变量-上一步的结果
-epubBook 变量-书籍类,方法见 io.legado.app.data.entities.Book
+book 变量-书籍类,方法见 io.legado.app.data.entities.Book
 cookie 变量-cookie操作类,方法见 io.legado.app.help.http.CookieStore
 cache 变量-缓存操作类,方法见 io.legado.app.help.CacheManager
 chapter 变量-当前目录类,方法见 io.legado.app.data.entities.BookChapter
@@ -45,7 +45,7 @@ src 内容,源码
 上述js变量与函数中，一些js的对象属性用的频率较高，在此列举。方便写源的时候快速翻阅。
 
 ### book对象的可用属性
-> 使用方法: 在js中或{{}}中使用book.属性的方式即可获取.如在正文内容后加上 ##{{epubBook.name+"正文卷"+title}} 可以净化 书名+正文卷+章节名称（如 我是大明星正问卷第二章我爸是豪门总裁） 这一类的字符.
+> 使用方法: 在js中或{{}}中使用book.属性的方式即可获取.如在正文内容后加上 ##{{book.name+"正文卷"+title}} 可以净化 书名+正文卷+章节名称（如 我是大明星正文卷第二章我爸是豪门总裁） 这一类的字符.
 ```
 bookUrl // 详情页Url(本地书源存储完整文件路径)
 tocUrl // 目录页Url (toc=table of Contents)
@@ -78,8 +78,7 @@ variable // 自定义书籍变量信息(用于书源规则检索书籍信息)
  ```
 
 ### chapter对象的可用属性
-
- > 使用方法: 在js中或{{}}中使用chapter.属性的方式即可获取.如在正文内容后加上 ##{{chapter.title+chapter.index}} 可以净化 章节标题+序号(如 第二章 天仙下凡2) 这一类的字符.
+> 使用方法: 在js中或{{}}中使用chapter.属性的方式即可获取.如在正文内容后加上 ##{{chapter.title+chapter.index}} 可以净化 章节标题+序号(如 第二章 天仙下凡2) 这一类的字符.
  ```
  url // 章节地址
  title // 章节标题
@@ -92,4 +91,18 @@ variable // 自定义书籍变量信息(用于书源规则检索书籍信息)
  end // 章节终止位置
  variable //变量
  ```
+
+### 字体解析使用
+> 使用方法,在正文替换规则中使用,原理根据f1字体的字形数据到f2中查找字形对应的编码
+```
+@js:
+var b64=String(src).match(/ttf;base64,([^\)]+)/);
+if (b64) {
+    var f1 = java.queryBase64TTF(b64[1])
+    var f2 = java.queryTTF("/storage/emulated/0/Fonts/Source Han Sans CN Regular.ttf")
+    java.replaceFont(result, f1, f2)
+}else{
+    result
+}
+```
 

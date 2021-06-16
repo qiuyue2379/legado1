@@ -73,6 +73,7 @@ public class TitledResourceReference extends ResourceReference
         if(this.resource!=null&&this.title!=null){
             resource.setTitle(title);
         }
+
         return resource;
     }
 

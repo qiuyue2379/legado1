@@ -115,10 +115,10 @@ class SpeakEngineDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
             R.id.menu_add -> editHttpTTS()
             R.id.menu_default -> viewModel.importDefault()
             R.id.menu_import_local -> importDocResult.launch(
-                    FilePickerParam(
-                            mode = FilePicker.FILE,
-                            allowExtensions = arrayOf("txt", "json")
-                    )
+                FilePickerParam(
+                    mode = FilePicker.FILE,
+                    allowExtensions = arrayOf("txt", "json")
+                )
             )
             R.id.menu_import_onLine -> importAlert()
             R.id.menu_export -> exportDirResult.launch(null)
@@ -129,9 +129,9 @@ class SpeakEngineDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
     private fun importAlert() {
         val aCache = ACache.get(requireContext(), cacheDir = false)
         val cacheUrls: MutableList<String> = aCache
-                .getAsString(ttsUrlKey)
-                ?.splitNotBlank(",")
-                ?.toMutableList() ?: mutableListOf()
+            .getAsString(ttsUrlKey)
+            ?.splitNotBlank(",")
+            ?.toMutableList() ?: mutableListOf()
         alert(R.string.import_on_line) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.setFilterValues(cacheUrls)

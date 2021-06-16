@@ -219,8 +219,8 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
         //set css
         epubBook.resources.add(
             Resource(
-                    "body,div{background:white;outline:none;width:100%;}h2{color:#005a9c;text-align:left;}p{text-indent:2em;text-align:justify;}img{display:inline-block;width:100%;height:auto;max-width: 100%;max-height:100%;}".encodeToByteArray(),
-                    "css/style.css"
+                "body,div{background:white;outline:none;width:100%;}h2{color:#005a9c;text-align:left;}p{text-indent:2em;text-align:justify;}img{display:inline-block;width:100%;height:auto;max-width: 100%;max-height:100%;}".encodeToByteArray(),
+                "css/style.css"
             )
         )
     }
@@ -255,8 +255,8 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             BookHelp.getContent(book, chapter).let { content ->
                 var content1 = fixPic(epubBook, book, content ?: "null", chapter)
                 content1 = contentProcessor
-                        .getContent(book, "", content1, false, useReplace)
-                        .joinToString("\n")
+                    .getContent(book, "", content1, false, useReplace)
+                    .joinToString("\n")
                 epubBook.addSection(
                     chapter.title,
                     ResourceUtil.createHTMLResource(chapter.title, content1)
@@ -277,10 +277,10 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
     }
 
     private fun fixPic(
-            epubBook: EpubBook,
-            book: Book,
-            content: String,
-            chapter: BookChapter
+        epubBook: EpubBook,
+        book: Book,
+        content: String,
+        chapter: BookChapter
     ): String {
         val data = StringBuilder("")
         content.split("\n").forEach { text ->

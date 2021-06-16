@@ -40,9 +40,9 @@ import java.io.File
  * 订阅源管理
  */
 class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceViewModel>(),
-        PopupMenu.OnMenuItemClickListener,
-        SelectActionBar.CallBack,
-        RssSourceAdapter.CallBack {
+    PopupMenu.OnMenuItemClickListener,
+    SelectActionBar.CallBack,
+    RssSourceAdapter.CallBack {
 
     override val viewModel: RssSourceViewModel
             by viewModels()
@@ -109,15 +109,15 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
         when (item.itemId) {
             R.id.menu_add -> startActivity<RssSourceEditActivity>()
             R.id.menu_import_local -> importDoc.launch(
-                    FilePickerParam(
-                            mode = FilePicker.FILE,
-                            allowExtensions = arrayOf("txt", "json")
-                    )
+                FilePickerParam(
+                    mode = FilePicker.FILE,
+                    allowExtensions = arrayOf("txt", "json")
+                )
             )
             R.id.menu_import_onLine -> showImportDialog()
             R.id.menu_import_qr -> qrCodeResult.launch(null)
             R.id.menu_group_manage -> GroupManageDialog()
-                    .show(supportFragmentManager, "rssGroupManage")
+                .show(supportFragmentManager, "rssGroupManage")
             R.id.menu_share_source -> viewModel.shareSelection(adapter.getSelection()) {
                 startActivity(Intent.createChooser(it, getString(R.string.share_selected_source)))
             }
@@ -125,7 +125,7 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
             R.id.menu_help -> showHelp()
             else -> if (item.groupId == R.id.source_group) {
                 binding.titleBar.findViewById<SearchView>(R.id.search_view)
-                        .setQuery("group:${item.title}", true)
+                    .setQuery("group:${item.title}", true)
             }
         }
         return super.onCompatOptionsItemSelected(item)
@@ -150,7 +150,7 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
         binding.recyclerView.adapter = adapter
         // When this page is opened, it is in selection mode
         val dragSelectTouchHelper: DragSelectTouchHelper =
-                DragSelectTouchHelper(adapter.dragSelectCallback).setSlideArea(16, 50)
+            DragSelectTouchHelper(adapter.dragSelectCallback).setSlideArea(16, 50)
         dragSelectTouchHelper.attachToRecyclerView(binding.recyclerView)
         dragSelectTouchHelper.activeSlideSelect()
         // Note: need judge selection first, so add ItemTouchHelper after it.
@@ -254,8 +254,8 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
 
     override fun upCountView() {
         binding.selectActionBar.upCountView(
-                adapter.getSelection().size,
-                adapter.itemCount
+            adapter.getSelection().size,
+            adapter.itemCount
         )
     }
 
@@ -263,9 +263,9 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
     private fun showImportDialog() {
         val aCache = ACache.get(this, cacheDir = false)
         val cacheUrls: MutableList<String> = aCache
-                .getAsString(importRecordKey)
-                ?.splitNotBlank(",")
-                ?.toMutableList() ?: mutableListOf()
+            .getAsString(importRecordKey)
+            ?.splitNotBlank(",")
+            ?.toMutableList() ?: mutableListOf()
         alert(titleResource = R.string.import_on_line) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.setFilterValues(cacheUrls)

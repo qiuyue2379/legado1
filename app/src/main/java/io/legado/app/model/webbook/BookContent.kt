@@ -85,14 +85,14 @@ object BookContent {
                     async(IO) {
                         val urlStr = contentData.nextUrl[it]
                         val analyzeUrl = AnalyzeUrl(
-                                ruleUrl = urlStr,
-                                book = book,
-                                headerMapF = bookSource.getHeaderMap()
+                            ruleUrl = urlStr,
+                            book = book,
+                            headerMapF = bookSource.getHeaderMap()
                         )
                         val res = analyzeUrl.getStrResponse(bookSource.bookSourceUrl)
                         analyzeContent(
-                                book, urlStr, res.url, res.body!!, contentRule,
-                                bookChapter, bookSource, mNextChapterUrl, false
+                            book, urlStr, res.url, res.body!!, contentRule,
+                            bookChapter, bookSource, mNextChapterUrl, false
                         ).content
                     }
                 }

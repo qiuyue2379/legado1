@@ -9,11 +9,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
+import android.webkit.*
 import androidx.activity.viewModels
 import androidx.core.view.size
-import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
-import com.tencent.smtt.export.external.interfaces.WebResourceRequest
-import com.tencent.smtt.sdk.*
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
@@ -39,11 +37,10 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
 
     override val viewModel: ReadRssViewModel
             by viewModels()
-    private val savePathRequestCode = 132
     private val imagePathKey = ""
     private var starMenuItem: MenuItem? = null
     private var ttsMenuItem: MenuItem? = null
-    private var customWebViewCallback: IX5WebChromeClient.CustomViewCallback? = null
+    private var customWebViewCallback: WebChromeClient.CustomViewCallback? = null
     private var webPic: String? = null
     private val saveImage = registerForActivityResult(FilePicker()) {
         ACache.get(this).put(imagePathKey, it.toString())
@@ -57,7 +54,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         viewModel.callBack = this
         binding.titleBar.title = intent.getStringExtra("title")
-
         initWebView()
         initLiveData()
         viewModel.initData(intent)
@@ -107,11 +103,10 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         binding.webView.webChromeClient = RssWebChromeClient()
         binding.webView.webViewClient = RssWebViewClient()
         binding.webView.settings.apply {
-            mixedContentMode = WebSettings.LOAD_NORMAL
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             domStorageEnabled = true
             allowContentAccess = true
             //javaScriptEnabled = true
-            mediaPlaybackRequiresUserGesture = false
         }
         upWebViewTheme()
         binding.webView.setOnLongClickListener {
@@ -164,9 +159,9 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             default.add(path)
         }
         saveImage.launch(
-                FilePickerParam(
-                        otherActions = default.toTypedArray()
-                )
+            FilePickerParam(
+                otherActions = default.toTypedArray()
+            )
         )
     }
 
@@ -181,7 +176,8 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
                     binding.webView
                         .loadDataWithBaseURL(url, html, "text/html", "utf-8", url)//不想用baseUrl进else
                 } else {
-                    binding.webView.loadDataWithBaseURL( null, html, "text/html;charset=utf-8", "utf-8", url)
+                    binding.webView
+                        .loadDataWithBaseURL(null, html, "text/html;charset=utf-8", "utf-8", url)
                 }
             }
         }
@@ -195,14 +191,13 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private fun upJavaScriptEnable() {
         if (viewModel.rssSource?.enableJs == true) {
             binding.webView.settings.javaScriptEnabled = true
-            binding.webView.settings.mediaPlaybackRequiresUserGesture = false
         }
     }
 
     private fun upWebViewTheme() {
         if (AppConfig.isNightTheme) {
             binding.webView
-                    .evaluateJavascript(AppConst.darkWebViewJs, null)
+                .evaluateJavascript(AppConst.darkWebViewJs, null)
         }
     }
 
@@ -264,7 +259,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             upTtsMenu(false)
         } else {
             binding.webView.settings.javaScriptEnabled = true
-            binding.webView.settings.mediaPlaybackRequiresUserGesture = false
             binding.webView.evaluateJavascript("document.documentElement.outerHTML") {
                 val html = StringEscapeUtils.unescapeJson(it)
                     .replace("^\"|\"$".toRegex(), "")
@@ -280,7 +274,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     }
 
     inner class RssWebChromeClient : WebChromeClient() {
-        override fun onShowCustomView(view: View?, callback: IX5WebChromeClient.CustomViewCallback?) {
+        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             binding.llView.invisible()
             binding.customWebView.addView(view)
@@ -296,8 +290,8 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
 
     inner class RssWebViewClient : WebViewClient() {
         override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
+            view: WebView?,
+            request: WebResourceRequest?
         ): Boolean {
             request?.let {
                 return shouldOverrideUrlLoading(it.url)
@@ -325,24 +319,24 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
                 when (url.host) {
                     "booksource" -> {
                         val intent = Intent(
-                                this@ReadRssActivity,
-                                ImportBookSourceActivity::class.java
+                            this@ReadRssActivity,
+                            ImportBookSourceActivity::class.java
                         )
                         intent.data = url
                         startActivity(intent)
                     }
                     "rsssource" -> {
                         val intent = Intent(
-                                this@ReadRssActivity,
-                                ImportRssSourceActivity::class.java
+                            this@ReadRssActivity,
+                            ImportRssSourceActivity::class.java
                         )
                         intent.data = url
                         startActivity(intent)
                     }
                     "replace" -> {
                         val intent = Intent(
-                                this@ReadRssActivity,
-                                ImportReplaceRuleActivity::class.java
+                            this@ReadRssActivity,
+                            ImportReplaceRuleActivity::class.java
                         )
                         intent.data = url
                         startActivity(intent)

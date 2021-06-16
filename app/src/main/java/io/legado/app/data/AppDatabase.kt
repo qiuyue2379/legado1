@@ -91,7 +91,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 if (AppConfig.isGooglePlay) {
                     db.execSQL(
-                            """
+                        """
                         delete from rssSources where sourceUrl = 'https://github.com/gedoor/legado/releases'
                     """
                     )

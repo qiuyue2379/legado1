@@ -27,9 +27,9 @@ import io.legado.app.utils.*
 import kotlin.math.abs
 
 class RssSourceEditActivity :
-        VMBaseActivity<ActivityRssSourceEditBinding, RssSourceEditViewModel>(false),
-        ViewTreeObserver.OnGlobalLayoutListener,
-        KeyboardToolPop.CallBack {
+    VMBaseActivity<ActivityRssSourceEditBinding, RssSourceEditViewModel>(false),
+    ViewTreeObserver.OnGlobalLayoutListener,
+    KeyboardToolPop.CallBack {
 
     private var mSoftKeyboardTool: PopupWindow? = null
     private var mIsSoftKeyBoardShowing = false
@@ -116,8 +116,8 @@ class RssSourceEditActivity :
             R.id.menu_paste_source -> viewModel.pasteSource { upRecyclerView(it) }
             R.id.menu_share_str -> share(GSON.toJson(getRssSource()))
             R.id.menu_share_qr -> shareWithQr(
-                    GSON.toJson(getRssSource()),
-                    getString(R.string.share_rss_source)
+                GSON.toJson(getRssSource()),
+                getString(R.string.share_rss_source)
             )
             R.id.menu_help -> showRuleHelp()
         }

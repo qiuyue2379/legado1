@@ -10,7 +10,7 @@
 ```
 * 调试详情页>>输入详情页URL，如：
 ```
-https://m.qidian.com/epubBook/1015609210
+https://m.qidian.com/book/1015609210
 ```
 * 调试目录页>>输入目录页URL，如：
 ```

@@ -51,9 +51,9 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.dialog_toc_regex, container)
     }
@@ -128,10 +128,10 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
         val aCache = ACache.get(requireContext(), cacheDir = false)
         val defaultUrl = "https://gitee.com/fisher52/YueDuJson/raw/master/myTxtChapterRule.json"
         val cacheUrls: MutableList<String> = aCache
-                .getAsString(importTocRuleKey)
-                ?.splitNotBlank(",")
-                ?.toMutableList()
-                ?: mutableListOf()
+            .getAsString(importTocRuleKey)
+            ?.splitNotBlank(",")
+            ?.toMutableList()
+            ?: mutableListOf()
         if (!cacheUrls.contains(defaultUrl)) {
             cacheUrls.add(0, defaultUrl)
         }
@@ -153,7 +153,7 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
                         aCache.put(importTocRuleKey, cacheUrls.joinToString(","))
                     }
                     Snackbar.make(binding.toolBar, R.string.importing, Snackbar.LENGTH_INDEFINITE)
-                            .show()
+                        .show()
                     viewModel.importOnLine(it) { msg ->
                         binding.toolBar.snackbar(msg)
                     }
@@ -185,18 +185,18 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
     }
 
     inner class TocRegexAdapter(context: Context) :
-            RecyclerAdapter<TxtTocRule, ItemTocRegexBinding>(context),
-            ItemTouchCallback.Callback {
+        RecyclerAdapter<TxtTocRule, ItemTocRegexBinding>(context),
+        ItemTouchCallback.Callback {
 
         override fun getViewBinding(parent: ViewGroup): ItemTocRegexBinding {
             return ItemTocRegexBinding.inflate(inflater, parent, false)
         }
 
         override fun convert(
-                holder: ItemViewHolder,
-                binding: ItemTocRegexBinding,
-                item: TxtTocRule,
-                payloads: MutableList<Any>
+            holder: ItemViewHolder,
+            binding: ItemTocRegexBinding,
+            item: TxtTocRule,
+            payloads: MutableList<Any>
         ) {
             binding.apply {
                 if (payloads.isEmpty()) {

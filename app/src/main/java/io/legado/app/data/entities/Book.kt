@@ -275,5 +275,4 @@ data class Book(
         @TypeConverter
         fun stringToReadConfig(json: String?) = GSON.fromJsonObject<ReadConfig>(json)
     }
-
 }
