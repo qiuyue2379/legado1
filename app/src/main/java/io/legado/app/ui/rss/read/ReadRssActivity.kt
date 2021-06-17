@@ -9,9 +9,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
-import android.webkit.*
 import androidx.activity.viewModels
 import androidx.core.view.size
+import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest
+import com.tencent.smtt.sdk.*
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
@@ -40,7 +42,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private val imagePathKey = ""
     private var starMenuItem: MenuItem? = null
     private var ttsMenuItem: MenuItem? = null
-    private var customWebViewCallback: WebChromeClient.CustomViewCallback? = null
+    private var customWebViewCallback: IX5WebChromeClient.CustomViewCallback? = null
     private var webPic: String? = null
     private val saveImage = registerForActivityResult(FilePicker()) {
         ACache.get(this).put(imagePathKey, it.toString())
@@ -103,10 +105,11 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         binding.webView.webChromeClient = RssWebChromeClient()
         binding.webView.webViewClient = RssWebViewClient()
         binding.webView.settings.apply {
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            mixedContentMode = WebSettings.LOAD_NORMAL
             domStorageEnabled = true
             allowContentAccess = true
             //javaScriptEnabled = true
+            mediaPlaybackRequiresUserGesture = false
         }
         upWebViewTheme()
         binding.webView.setOnLongClickListener {
@@ -191,6 +194,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private fun upJavaScriptEnable() {
         if (viewModel.rssSource?.enableJs == true) {
             binding.webView.settings.javaScriptEnabled = true
+            binding.webView.settings.mediaPlaybackRequiresUserGesture = false
         }
     }
 
@@ -274,7 +278,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     }
 
     inner class RssWebChromeClient : WebChromeClient() {
-        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+        override fun onShowCustomView(view: View?, callback: IX5WebChromeClient.CustomViewCallback?) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             binding.llView.invisible()
             binding.customWebView.addView(view)

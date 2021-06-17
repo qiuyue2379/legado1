@@ -3,7 +3,7 @@ package io.legado.app.ui.rss.read
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.webkit.WebView
+import com.tencent.smtt.sdk.WebView
 
 class VisibleWebView(
     context: Context,
