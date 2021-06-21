@@ -28,6 +28,7 @@ import io.legado.app.ui.association.ImportRssSourceActivity
 import io.legado.app.ui.document.FilePicker
 import io.legado.app.ui.document.FilePickerParam
 import io.legado.app.utils.*
+import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.launch
 import org.apache.commons.text.StringEscapeUtils
 import org.jsoup.Jsoup
@@ -37,8 +38,8 @@ import splitties.systemservices.downloadManager
 class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>(false),
     ReadRssViewModel.CallBack {
 
-    override val viewModel: ReadRssViewModel
-            by viewModels()
+    override val binding by viewBinding(ActivityRssReadBinding::inflate)
+    override val viewModel: ReadRssViewModel by viewModels()
     private val imagePathKey = ""
     private var starMenuItem: MenuItem? = null
     private var ttsMenuItem: MenuItem? = null
@@ -47,10 +48,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private val saveImage = registerForActivityResult(FilePicker()) {
         ACache.get(this).put(imagePathKey, it.toString())
         viewModel.saveImage(webPic, it.toString())
-    }
-
-    override fun getViewBinding(): ActivityRssReadBinding {
-        return ActivityRssReadBinding.inflate(layoutInflater)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

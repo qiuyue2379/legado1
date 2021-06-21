@@ -10,6 +10,7 @@ import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.PopupWindow
 import androidx.activity.viewModels
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
@@ -24,6 +25,7 @@ import io.legado.app.ui.rss.source.debug.RssSourceDebugActivity
 import io.legado.app.ui.widget.KeyboardToolPop
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.*
+import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlin.math.abs
 
 class RssSourceEditActivity :
@@ -31,6 +33,7 @@ class RssSourceEditActivity :
     ViewTreeObserver.OnGlobalLayoutListener,
     KeyboardToolPop.CallBack {
 
+    override val binding by viewBinding(ActivityRssSourceEditBinding::inflate)
     private var mSoftKeyboardTool: PopupWindow? = null
     private var mIsSoftKeyBoardShowing = false
     private val adapter = RssSourceEditAdapter()
@@ -41,10 +44,6 @@ class RssSourceEditActivity :
                 upRecyclerView(source)
             }
         }
-    }
-
-    override fun getViewBinding(): ActivityRssSourceEditBinding {
-        return ActivityRssSourceEditBinding.inflate(layoutInflater)
     }
 
     override val viewModel: RssSourceEditViewModel
@@ -117,7 +116,8 @@ class RssSourceEditActivity :
             R.id.menu_share_str -> share(GSON.toJson(getRssSource()))
             R.id.menu_share_qr -> shareWithQr(
                 GSON.toJson(getRssSource()),
-                getString(R.string.share_rss_source)
+                getString(R.string.share_rss_source),
+                ErrorCorrectionLevel.L
             )
             R.id.menu_help -> showRuleHelp()
         }
