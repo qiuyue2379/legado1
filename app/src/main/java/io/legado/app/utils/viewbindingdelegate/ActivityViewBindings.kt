@@ -6,8 +6,17 @@ import android.view.LayoutInflater
 import androidx.core.app.ComponentActivity
 import androidx.viewbinding.ViewBinding
 
-inline fun <T : ViewBinding> ComponentActivity.viewBinding(crossinline bindingInflater: (LayoutInflater) -> T) =
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        val invoke = bindingInflater.invoke(layoutInflater)
-        invoke
+/**
+ * Create new [ViewBinding] associated with the [ComponentActivity]
+ */
+@JvmName("viewBindingActivity")
+inline fun <T : ViewBinding> ComponentActivity.viewBinding(
+    crossinline bindingInflater: (LayoutInflater) -> T,
+    setContentView: Boolean = false
+) = lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    val binding = bindingInflater.invoke(layoutInflater)
+    if (setContentView) {
+        setContentView(binding.root)
     }
+    binding
+}
