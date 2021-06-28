@@ -9,11 +9,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
+import android.webkit.*
 import androidx.activity.viewModels
 import androidx.core.view.size
-import com.tencent.smtt.export.external.interfaces.IX5WebChromeClient
-import com.tencent.smtt.export.external.interfaces.WebResourceRequest
-import com.tencent.smtt.sdk.*
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
@@ -43,7 +43,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private val imagePathKey = ""
     private var starMenuItem: MenuItem? = null
     private var ttsMenuItem: MenuItem? = null
-    private var customWebViewCallback: IX5WebChromeClient.CustomViewCallback? = null
+    private var customWebViewCallback: WebChromeClient.CustomViewCallback? = null
     private var webPic: String? = null
     private val saveImage = registerForActivityResult(FilePicker()) {
         ACache.get(this).put(imagePathKey, it.toString())
@@ -91,10 +91,15 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             R.id.menu_rss_star -> viewModel.favorite()
             R.id.menu_share_it -> viewModel.rssArticle?.let {
                 share(it.link)
-            }
+            } ?: toastOnUi(R.string.null_url)
             R.id.menu_aloud -> readAloud()
         }
         return super.onCompatOptionsItemSelected(item)
+    }
+
+    @JavascriptInterface
+    fun isNightTheme(): Boolean {
+        return AppConfig.isNightTheme(this)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -102,12 +107,12 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         binding.webView.webChromeClient = RssWebChromeClient()
         binding.webView.webViewClient = RssWebViewClient()
         binding.webView.settings.apply {
-            mixedContentMode = WebSettings.LOAD_NORMAL
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             domStorageEnabled = true
             allowContentAccess = true
             //javaScriptEnabled = true
-            mediaPlaybackRequiresUserGesture = false
         }
+        binding.webView.addJavascriptInterface(this, "app")
         upWebViewTheme()
         binding.webView.setOnLongClickListener {
             val hitTestResult = binding.webView.hitTestResult
@@ -191,14 +196,26 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private fun upJavaScriptEnable() {
         if (viewModel.rssSource?.enableJs == true) {
             binding.webView.settings.javaScriptEnabled = true
-            binding.webView.settings.mediaPlaybackRequiresUserGesture = false
         }
     }
 
     private fun upWebViewTheme() {
         if (AppConfig.isNightTheme) {
-            binding.webView
-                .evaluateJavascript(AppConst.darkWebViewJs, null)
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+                WebSettingsCompat.setForceDarkStrategy(
+                    binding.webView.settings,
+                    WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+                )
+            }
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                WebSettingsCompat.setForceDark(
+                    binding.webView.settings,
+                    WebSettingsCompat.FORCE_DARK_ON
+                )
+            } else {
+                binding.webView
+                    .evaluateJavascript(AppConst.darkWebViewJs, null)
+            }
         }
     }
 
@@ -275,7 +292,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     }
 
     inner class RssWebChromeClient : WebChromeClient() {
-        override fun onShowCustomView(view: View?, callback: IX5WebChromeClient.CustomViewCallback?) {
+        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             binding.llView.invisible()
             binding.customWebView.addView(view)
