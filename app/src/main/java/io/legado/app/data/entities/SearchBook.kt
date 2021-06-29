@@ -1,7 +1,9 @@
 package io.legado.app.data.entities
 
+import android.content.Context
 import android.os.Parcelable
 import androidx.room.*
+import io.legado.app.R
 import io.legado.app.utils.GSON
 import io.legado.app.utils.fromJsonObject
 import kotlinx.parcelize.IgnoredOnParcel
@@ -83,7 +85,16 @@ data class SearchBook(
         }
         return "无最新章节"
     }
-    
+
+    fun trimIntro(context: Context): String {
+        val trimIntro = intro?.trim()
+        return if (trimIntro.isNullOrEmpty()) {
+            context.getString(R.string.intro_show_null)
+        } else {
+            context.getString(R.string.intro_show, trimIntro)
+        }
+    }
+
     fun toBook() = Book(
         name = name,
         author = author,
