@@ -13,9 +13,9 @@ object HtmlFormatter {
         html ?: return ""
         return html.replace(wrapHtmlRegex, "\n")
             .replace(otherRegex, "")
+            .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
             .replace("^[\\n\\s]+".toRegex(), "　　")
             .replace("[\\n\\s]+$".toRegex(), "")
-            .replace("\\s*\\n+\\s*".toRegex(), "\n　　")
     }
 
     fun formatKeepImg(html: String?) = format(html, notImgHtmlRegex)

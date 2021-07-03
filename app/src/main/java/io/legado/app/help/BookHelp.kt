@@ -190,7 +190,7 @@ object BookHelp {
     }
 
     fun getContent(book: Book, bookChapter: BookChapter): String? {
-        if (book.isLocalTxt()) {
+        if (book.isLocalTxt()||book.isUmd()) {
             return LocalBook.getContext(book, bookChapter)
         } else if (book.isEpub() && !hasContent(book, bookChapter)) {
             val string = LocalBook.getContext(book, bookChapter)
