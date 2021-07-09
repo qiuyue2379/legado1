@@ -76,7 +76,7 @@ data class SearchBook(
     fun addOrigin(origin: String) {
         origins.add(origin)
     }
-    
+
     fun getDisplayLastChapterTitle(): String {
         latestChapterTitle?.let {
             if (it.isNotEmpty()) {

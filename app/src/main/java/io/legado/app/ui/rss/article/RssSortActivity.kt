@@ -15,8 +15,8 @@ import io.legado.app.base.VMBaseActivity
 import io.legado.app.databinding.ActivityRssArtivlesBinding
 import io.legado.app.ui.rss.source.edit.RssSourceEditActivity
 import io.legado.app.utils.gone
-import io.legado.app.utils.visible
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import io.legado.app.utils.visible
 
 class RssSortActivity : VMBaseActivity<ActivityRssArtivlesBinding, RssSortViewModel>() {
 

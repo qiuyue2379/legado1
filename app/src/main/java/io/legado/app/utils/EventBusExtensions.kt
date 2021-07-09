@@ -68,3 +68,4 @@ inline fun <reified EVENT> Fragment.observeEventSticky(
         eventObservable<EVENT>(it).observeSticky(this, o)
     }
 }
+

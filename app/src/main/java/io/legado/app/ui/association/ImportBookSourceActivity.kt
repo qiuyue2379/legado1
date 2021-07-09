@@ -19,7 +19,6 @@ class ImportBookSourceActivity :
     ) {
 
     override val binding by viewBinding(ActivityTranslucenceBinding::inflate)
-
     override val viewModel by viewModels<ImportBookSourceViewModel>()
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

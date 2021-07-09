@@ -110,7 +110,7 @@ class UmdFile(var book: Book) {
         }
     }
     private fun getContent(chapter: BookChapter): String? {
-        return umdBook?.chapters?.getContentString(chapter.index)
+       return umdBook?.chapters?.getContentString(chapter.index)
     }
 
     private fun getChapterList(): ArrayList<BookChapter> {

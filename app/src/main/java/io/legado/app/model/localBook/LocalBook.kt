@@ -95,7 +95,7 @@ object LocalBook {
 
                     //在用户脚本后添加捕获author、name的代码，只要脚本中author、name有值就会被捕获
                     AppConfig.bookImportFileName + "\nJSON.stringify({author:author,name:name})",
-
+                    
                     //将文件名注入到脚步的src变量中
                     SimpleBindings().also{ it["src"] = tempFileName }
                 ).toString()

@@ -46,6 +46,7 @@ import io.legado.app.ui.book.read.page.provider.TextPageFactory
 import io.legado.app.ui.book.searchContent.SearchContentActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.book.toc.TocActivityResult
+import io.legado.app.ui.dict.DictDialog
 import io.legado.app.ui.login.SourceLoginActivity
 import io.legado.app.ui.replace.ReplaceRuleActivity
 import io.legado.app.ui.replace.edit.ReplaceEditActivity
@@ -104,7 +105,12 @@ class ReadBookActivity : ReadBookBaseActivity(),
         }
     private var menu: Menu? = null
     private val textActionMenu: TextActionMenu by lazy {
-        TextActionMenu(this, this)
+        TextActionMenu(this, this).apply {
+            contentView.measure(
+                View.MeasureSpec.UNSPECIFIED,
+                View.MeasureSpec.UNSPECIFIED
+            )
+        }
     }
 
     override val scope: CoroutineScope get() = this
@@ -415,7 +421,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
      * view触摸,文字选择
      */
     @SuppressLint("ClickableViewAccessibility")
-    override fun onTouch(v: View, event: MotionEvent): Boolean = with(binding) {
+    override fun onTouch(v: View, event: MotionEvent): Boolean = binding.run {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> textActionMenu.dismiss()
             MotionEvent.ACTION_MOVE -> {
@@ -438,7 +444,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     /**
      * 更新文字选择开始位置
      */
-    override fun upSelectedStart(x: Float, y: Float, top: Float) = with(binding) {
+    override fun upSelectedStart(x: Float, y: Float, top: Float) = binding.run {
         cursorLeft.x = x - cursorLeft.width
         cursorLeft.y = y
         cursorLeft.visible(true)
@@ -449,7 +455,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     /**
      * 更新文字选择结束位置
      */
-    override fun upSelectedEnd(x: Float, y: Float) = with(binding) {
+    override fun upSelectedEnd(x: Float, y: Float) = binding.run {
         cursorRight.x = x
         cursorRight.y = y
         cursorRight.visible(true)
@@ -458,7 +464,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     /**
      * 取消文字选择
      */
-    override fun onCancelSelect() = with(binding) {
+    override fun onCancelSelect() = binding.run {
         cursorLeft.invisible()
         cursorRight.invisible()
         textActionMenu.dismiss()
@@ -467,11 +473,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     /**
      * 显示文本操作菜单
      */
-    override fun showTextActionMenu() = with(binding) {
-        textActionMenu.contentView.measure(
-            View.MeasureSpec.UNSPECIFIED,
-            View.MeasureSpec.UNSPECIFIED
-        )
+    override fun showTextActionMenu() = binding.run {
         val popupHeight = textActionMenu.contentView.measuredHeight
         val x = textMenuPosition.x.toInt()
         var y = textMenuPosition.y.toInt() - popupHeight
@@ -531,6 +533,10 @@ class ReadBookActivity : ReadBookBaseActivity(),
                 openSearchActivity(selectedText)
                 return true
             }
+            R.id.menu_dict -> {
+                DictDialog.dict(supportFragmentManager, selectedText)
+                return true
+            }
         }
         return false
     }
@@ -538,7 +544,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     /**
      * 文本选择菜单操作完成
      */
-    override fun onMenuActionFinally() = with(binding) {
+    override fun onMenuActionFinally() = binding.run {
         textActionMenu.dismiss()
         readView.curPage.cancelSelect()
         readView.isTextSelected = false
@@ -791,7 +797,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     /**
      * colorSelectDialog
      */
-    override fun onColorSelected(dialogId: Int, color: Int) = with(ReadBookConfig.durConfig) {
+    override fun onColorSelected(dialogId: Int, color: Int) = ReadBookConfig.durConfig.run {
         when (dialogId) {
             TEXT_COLOR -> {
                 setCurTextColor(color)
@@ -894,7 +900,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         }
     }
 
-    override fun observeLiveBus() = with(binding) {
+    override fun observeLiveBus() = binding.run {
         super.observeLiveBus()
         observeEvent<String>(EventBus.TIME_CHANGED) { readView.upTime() }
         observeEvent<Int>(EventBus.BATTERY_CHANGED) { readView.upBattery(it) }
