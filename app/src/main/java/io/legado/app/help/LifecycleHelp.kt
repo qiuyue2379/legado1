@@ -56,7 +56,7 @@ object LifecycleHelp : Application.ActivityLifecycleCallbacks {
         this.appFinishedListener = appFinishedListener
     }
 
-   override fun onActivityPaused(activity: Activity) {
+    override fun onActivityPaused(activity: Activity) {
     }
 
     override fun onActivityResumed(activity: Activity) {

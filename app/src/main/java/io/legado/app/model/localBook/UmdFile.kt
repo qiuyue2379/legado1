@@ -4,17 +4,16 @@ import android.net.Uri
 import android.util.Log
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
-
 import io.legado.app.utils.FileUtils
 import io.legado.app.utils.MD5Utils
-import io.legado.app.utils.externalFilesDir
+import io.legado.app.utils.externalFiles
 import io.legado.app.utils.isContentScheme
 import me.ag2s.umdlib.domain.UmdBook
 import me.ag2s.umdlib.umd.UmdReader
 import splitties.init.appCtx
 import java.io.File
 import java.io.InputStream
-import java.util.ArrayList
+import java.util.*
 
 class UmdFile(var book: Book) {
     companion object {
@@ -57,7 +56,6 @@ class UmdFile(var book: Book) {
     }
 
 
-
     private var umdBook: UmdBook? = null
         get() {
             if (field != null) {
@@ -68,19 +66,18 @@ class UmdFile(var book: Book) {
         }
 
 
-
     init {
         try {
             umdBook?.let {
                 if (book.coverUrl.isNullOrEmpty()) {
                     book.coverUrl = FileUtils.getPath(
-                        appCtx.externalFilesDir,
+                        appCtx.externalFiles,
                         "covers",
                         "${MD5Utils.md5Encode16(book.bookUrl)}.jpg"
                     )
                 }
                 if (!File(book.coverUrl!!).exists()) {
-                    FileUtils.writeBytes(book.coverUrl!!,it.cover.coverData)
+                    FileUtils.writeBytes(book.coverUrl!!, it.cover.coverData)
 
                 }
             }
@@ -88,8 +85,9 @@ class UmdFile(var book: Book) {
             e.printStackTrace()
         }
     }
+
     private fun readUmd(): UmdBook? {
-        val input= if (book.bookUrl.isContentScheme()) {
+        val input = if (book.bookUrl.isContentScheme()) {
             val uri = Uri.parse(book.bookUrl)
             appCtx.contentResolver.openInputStream(uri)
         } else {
@@ -99,18 +97,19 @@ class UmdFile(var book: Book) {
     }
 
     private fun upBookInfo() {
-        if(umdBook==null){
+        if (umdBook == null) {
             uFile = null
             book.intro = "书籍导入异常"
-        }else{
-            val hd= umdBook!!.header
-            book.name=hd.title;
-            book.author=hd.author;
-            book.kind=hd.bookType;
+        } else {
+            val hd = umdBook!!.header
+            book.name = hd.title
+            book.author = hd.author
+            book.kind = hd.bookType
         }
     }
+
     private fun getContent(chapter: BookChapter): String? {
-       return umdBook?.chapters?.getContentString(chapter.index)
+        return umdBook?.chapters?.getContentString(chapter.index)
     }
 
     private fun getChapterList(): ArrayList<BookChapter> {
@@ -118,11 +117,11 @@ class UmdFile(var book: Book) {
         umdBook?.chapters?.titles?.forEachIndexed { index, _ ->
             val title = umdBook!!.chapters.getTitle(index)
             val chapter = BookChapter()
-            chapter.title=title;
+            chapter.title = title
             chapter.index = index
             chapter.bookUrl = book.bookUrl
-            chapter.url = index.toString();
-            Log.d("UMD",chapter.url)
+            chapter.url = index.toString()
+            Log.d("UMD", chapter.url)
             chapterList.add(chapter)
         }
         book.latestChapterTitle = chapterList.lastOrNull()?.title

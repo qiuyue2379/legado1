@@ -9,7 +9,7 @@ import io.legado.app.help.BookHelp
 import io.legado.app.utils.FileUtils
 import io.legado.app.utils.HtmlFormatter
 import io.legado.app.utils.MD5Utils
-import io.legado.app.utils.externalFilesDir
+import io.legado.app.utils.externalFiles
 import me.ag2s.epublib.domain.EpubBook
 import me.ag2s.epublib.epub.EpubReader
 import org.jsoup.Jsoup
@@ -80,7 +80,7 @@ class EpubFile(var book: Book) {
             epubBook?.let {
                 if (book.coverUrl.isNullOrEmpty()) {
                     book.coverUrl = FileUtils.getPath(
-                        appCtx.externalFilesDir,
+                        appCtx.externalFiles,
                         "covers",
                         "${MD5Utils.md5Encode16(book.bookUrl)}.jpg"
                     )
@@ -139,19 +139,19 @@ class EpubFile(var book: Book) {
             /*选择去除正文中的H标签，部分书籍标题与阅读标题重复待优化*/
             var tag = Book.hTag
             if (book.getDelTag(tag)) {
-                body.getElementsByTag("h1")?.remove()
-                body.getElementsByTag("h2")?.remove()
-                body.getElementsByTag("h3")?.remove()
-                body.getElementsByTag("h4")?.remove()
-                body.getElementsByTag("h5")?.remove()
-                body.getElementsByTag("h6")?.remove()
+                body.getElementsByTag("h1").remove()
+                body.getElementsByTag("h2").remove()
+                body.getElementsByTag("h3").remove()
+                body.getElementsByTag("h4").remove()
+                body.getElementsByTag("h5").remove()
+                body.getElementsByTag("h6").remove()
                 //body.getElementsMatchingOwnText(chapter.title)?.remove()
             }
 
             /*选择去除正文中的img标签，目前图片支持效果待优化*/
             tag = Book.imgTag
             if (book.getDelTag(tag)) {
-                body.getElementsByTag("img")?.remove()
+                body.getElementsByTag("img").remove()
             }
 
             val elements = body.children()
@@ -204,7 +204,7 @@ class EpubFile(var book: Book) {
                     val doc =
                         Jsoup.parse(String(resource.data, mCharset))
                     val elements = doc.getElementsByTag("title")
-                    if (elements != null && elements.size > 0) {
+                    if (elements.size > 0) {
                         title = elements[0].text()
                     }
                 } catch (e: IOException) {
