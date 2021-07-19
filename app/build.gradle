@@ -35,6 +35,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         project.ext.set("archivesBaseName", name + "_" + version)
         multiDexEnabled true
+
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += [
@@ -88,6 +89,9 @@ android {
             dimension "mode"
             applicationId "io.legado.cronet"
             manifestPlaceholders = [APP_CHANNEL_VALUE: "cronet"]
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
         }
     }
     compileOptions {
