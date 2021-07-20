@@ -64,6 +64,5 @@ fun buildRequest(request: Request, callback: UrlRequest.Callback): UrlRequest {
     }
 
     return requestBuilder.build()
-
 }
 
