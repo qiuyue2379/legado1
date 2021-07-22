@@ -11,6 +11,7 @@ import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookProgress
 import io.legado.app.help.AppConfig
 import io.legado.app.help.BookHelp
+import io.legado.app.help.ContentProcessor
 import io.legado.app.help.storage.BookWebDav
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.webBook.PreciseSearch
@@ -19,6 +20,7 @@ import io.legado.app.service.BaseReadAloudService
 import io.legado.app.service.help.ReadAloud
 import io.legado.app.service.help.ReadBook
 import io.legado.app.utils.msg
+import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.withContext
@@ -220,7 +222,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         }.onStart {
             ReadBook.upMsg(context.getString(R.string.source_auto_changing))
         }.onError {
-            toastOnUi(it.msg)
+            context.toastOnUi(it.msg)
         }.onFinally {
             ReadBook.upMsg(null)
         }
@@ -302,8 +304,10 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
      */
     fun replaceRuleChanged() {
         execute {
-            ReadBook.contentProcessor?.upReplaceRules()
-            ReadBook.loadContent(resetPageOffset = false)
+            ReadBook.book?.let {
+                ContentProcessor.get(it.name, it.origin).upReplaceRules()
+                ReadBook.loadContent(resetPageOffset = false)
+            }
         }
     }
 

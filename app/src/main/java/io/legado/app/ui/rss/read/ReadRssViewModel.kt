@@ -21,10 +21,7 @@ import io.legado.app.help.http.newCall
 import io.legado.app.help.http.okHttpClient
 import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.rss.Rss
-import io.legado.app.utils.DocumentUtils
-import io.legado.app.utils.FileUtils
-import io.legado.app.utils.isContentScheme
-import io.legado.app.utils.writeBytes
+import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
 import java.io.File
 import java.util.*
@@ -139,9 +136,9 @@ class ReadRssViewModel(application: Application) : BaseViewModel(application),
                 }
             } ?: throw Throwable("NULL")
         }.onError {
-            toastOnUi("保存图片失败:${it.localizedMessage}")
+            context.toastOnUi("保存图片失败:${it.localizedMessage}")
         }.onSuccess {
-            toastOnUi("保存成功")
+            context.toastOnUi("保存成功")
         }
     }
 
@@ -189,7 +186,7 @@ class ReadRssViewModel(application: Application) : BaseViewModel(application),
             ttsInitFinish = true
             play()
         } else {
-            toastOnUi(R.string.tts_init_failed)
+            context.toastOnUi(R.string.tts_init_failed)
         }
     }
 
