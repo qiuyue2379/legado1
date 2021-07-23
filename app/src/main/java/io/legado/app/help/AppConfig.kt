@@ -79,6 +79,20 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
             appCtx.putPrefBoolean(PreferKey.showUnread, value)
         }
 
+    var readBrightness: Int
+        get() = if (isNightTheme) {
+            appCtx.getPrefInt(PreferKey.nightBrightness, 100)
+        } else {
+            appCtx.getPrefInt(PreferKey.brightness, 100)
+        }
+        set(value) {
+            if (isNightTheme) {
+                appCtx.putPrefInt(PreferKey.nightBrightness, value)
+            } else {
+                appCtx.putPrefInt(PreferKey.brightness, value)
+            }
+        }
+
     val useDefaultCover: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.useDefaultCover, false)
 
