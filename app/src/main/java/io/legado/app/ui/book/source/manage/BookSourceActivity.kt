@@ -381,7 +381,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             okButton {
                 alertBinding.editView.text?.toString()?.let {
                     if (it.isNotEmpty()) {
-                        viewModel.selectionRemoveFromGroups(adapter.getSelection(), it)
+                        viewModel.selectionRemoveFromGroups(adapter.selection, it)
                     }
                 }
             }
