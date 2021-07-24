@@ -9,7 +9,8 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
@@ -23,13 +24,11 @@ import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.help.AppConfig
+import io.legado.app.help.IntentDataHelp
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.ui.widget.dialog.WaitDialog
-import io.legado.app.utils.dp
-import io.legado.app.utils.putPrefBoolean
-import io.legado.app.utils.splitNotBlank
+import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import io.legado.app.utils.visible
 
 
 /**
@@ -37,10 +36,26 @@ import io.legado.app.utils.visible
  */
 class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
-    private val binding by viewBinding(DialogRecyclerViewBinding::bind)
+    companion object {
 
-    val viewModel: ImportBookSourceViewModel by activityViewModels()
-    lateinit var adapter: SourcesAdapter
+        fun start(
+            fragmentManager: FragmentManager,
+            source: String,
+            finishOnDismiss: Boolean = false
+        ) {
+            ImportBookSourceDialog().apply {
+                arguments = Bundle().apply {
+                    putString("source", source)
+                    putBoolean("finishOnDismiss", finishOnDismiss)
+                }
+            }.show(fragmentManager, "importBookSource")
+        }
+
+    }
+
+    private val binding by viewBinding(DialogRecyclerViewBinding::bind)
+    private val viewModel by viewModels<ImportBookSourceViewModel>()
+    private lateinit var adapter: SourcesAdapter
 
     override fun onStart() {
         super.onStart()
@@ -58,13 +73,20 @@ class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
         return inflater.inflate(R.layout.dialog_recycler_view, container)
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        if (arguments?.getBoolean("finishOnDismiss") == true) {
+            activity?.finish()
+        }
+    }
+
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
         binding.toolBar.setTitle(R.string.import_book_source)
+        binding.rotateLoading.show()
         initMenu()
         adapter = SourcesAdapter(requireContext())
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
-        adapter.setItems(viewModel.allSources)
         binding.tvCancel.visible()
         binding.tvCancel.setOnClickListener {
             dismissAllowingStateLoss()
@@ -89,6 +111,37 @@ class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
             }
             adapter.notifyDataSetChanged()
             upSelectText()
+        }
+        viewModel.errorLiveData.observe(this, {
+            binding.rotateLoading.hide()
+            binding.tvMsg.apply {
+                text = it
+                visible()
+            }
+        })
+        viewModel.successLiveData.observe(this, {
+            binding.rotateLoading.hide()
+            if (it > 0) {
+                adapter.setItems(viewModel.allSources)
+            } else {
+                binding.tvMsg.apply {
+                    setText(R.string.wrong_format)
+                    visible()
+                }
+            }
+        })
+        val source = arguments?.getString("source")
+        if (source.isNullOrEmpty()) {
+            dismiss()
+            return
+        }
+        if (source.isAbsUrl()) {
+            viewModel.importSource(source)
+        } else {
+            IntentDataHelp.getData<String>(source)?.let {
+                viewModel.importSource(it)
+                return
+            }
         }
     }
 
@@ -146,11 +199,6 @@ class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
             }
         }
         return false
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        activity?.finish()
     }
 
     inner class SourcesAdapter(context: Context) :

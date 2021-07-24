@@ -13,11 +13,10 @@ import io.legado.app.data.entities.RuleSub
 import io.legado.app.databinding.ActivityRuleSubBinding
 import io.legado.app.databinding.DialogRuleSubEditBinding
 import io.legado.app.lib.dialogs.alert
-import io.legado.app.ui.association.ImportBookSourceActivity
-import io.legado.app.ui.association.ImportReplaceRuleActivity
-import io.legado.app.ui.association.ImportRssSourceActivity
+import io.legado.app.ui.association.ImportBookSourceDialog
+import io.legado.app.ui.association.ImportReplaceRuleDialog
+import io.legado.app.ui.association.ImportRssSourceDialog
 import io.legado.app.ui.widget.recycler.ItemTouchCallback
-import io.legado.app.utils.startActivity
 import io.legado.app.utils.toastOnUi
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
@@ -74,19 +73,13 @@ class RuleSubActivity : BaseActivity<ActivityRuleSubBinding>(),
     override fun openSubscription(ruleSub: RuleSub) {
         when (ruleSub.type) {
             0 -> {
-                startActivity<ImportBookSourceActivity> {
-                    putExtra("source", ruleSub.url)
-                }
+                ImportBookSourceDialog.start(supportFragmentManager, ruleSub.url)
             }
             1 -> {
-                startActivity<ImportRssSourceActivity> {
-                    putExtra("source", ruleSub.url)
-                }
+                ImportRssSourceDialog.start(supportFragmentManager, ruleSub.url)
             }
             2 -> {
-                startActivity<ImportReplaceRuleActivity> {
-                    putExtra("source", ruleSub.url)
-                }
+                ImportReplaceRuleDialog.start(supportFragmentManager, ruleSub.url)
             }
         }
     }

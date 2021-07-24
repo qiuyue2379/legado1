@@ -53,7 +53,6 @@ import io.legado.app.ui.replace.ReplaceRuleActivity
 import io.legado.app.ui.replace.edit.ReplaceEditActivity
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -105,11 +104,10 @@ class ReadBookActivity : ReadBookBaseActivity(),
             }
         }
     private var menu: Menu? = null
-    private val textActionMenu: TextActionMenu by lazy {
+    val textActionMenu: TextActionMenu by lazy {
         TextActionMenu(this, this)
     }
 
-    override val scope: CoroutineScope get() = lifecycleScope
     override val isInitFinish: Boolean get() = viewModel.isInitFinish
     override val isScroll: Boolean get() = binding.readView.isScroll
     private val mHandler = Handler(Looper.getMainLooper())

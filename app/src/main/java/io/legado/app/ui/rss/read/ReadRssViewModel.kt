@@ -144,6 +144,7 @@ class ReadRssViewModel(application: Application) : BaseViewModel(application),
 
     private suspend fun webData2bitmap(data: String): ByteArray? {
         return if (URLUtil.isValidUrl(data)) {
+            @Suppress("BlockingMethodInNonBlockingContext")
             okHttpClient.newCall {
                 url(data)
             }.bytes()
