@@ -318,7 +318,7 @@
     <string name="paragraph_size">Paragraph spacing</string>
     <string name="to_top">To Top</string>
     <string name="selection_to_top">Selection To Top</string>
-    <string name="to_bottom">Debajo</string>
+    <string name="to_bottom">To Bottom</string>
     <string name="selection_to_bottom">Selection To Bottom</string>
     <string name="auto_expand_find">Auto expand Discovery</string>
     <string name="default_expand_first">Default expand the first Discovery.</string>
@@ -849,4 +849,5 @@
     <string name="reset">重置</string>
     <string name="null_url">url为空</string>
     <string name="dict">字典</string>
+    <string name="unknown_error">未知错误</string>
 </resources>
