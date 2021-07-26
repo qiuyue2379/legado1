@@ -16,6 +16,7 @@ import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemSourceImportBinding
+import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import io.legado.app.utils.visible
@@ -65,12 +66,12 @@ class ImportReplaceRuleDialog : BaseDialogFragment() {
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
+        binding.toolBar.setBackgroundColor(primaryColor)
         binding.toolBar.setTitle(R.string.import_replace_rule)
         binding.rotateLoading.show()
         adapter = SourcesAdapter(requireContext())
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
-        adapter.setItems(viewModel.allRules)
         binding.tvCancel.visible()
         binding.tvCancel.setOnClickListener {
             dismissAllowingStateLoss()
@@ -84,7 +85,6 @@ class ImportReplaceRuleDialog : BaseDialogFragment() {
                 dismissAllowingStateLoss()
             }
         }
-        upSelectText()
         binding.tvFooterLeft.visible()
         binding.tvFooterLeft.setOnClickListener {
             val selectAll = viewModel.isSelectAll()
@@ -107,6 +107,7 @@ class ImportReplaceRuleDialog : BaseDialogFragment() {
             binding.rotateLoading.hide()
             if (it > 0) {
                 adapter.setItems(viewModel.allRules)
+                upSelectText()
             } else {
                 binding.tvMsg.apply {
                     setText(R.string.wrong_format)

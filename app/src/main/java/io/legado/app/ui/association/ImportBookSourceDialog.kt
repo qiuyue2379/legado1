@@ -25,6 +25,7 @@ import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.dp
 import io.legado.app.utils.putPrefBoolean
@@ -83,6 +84,7 @@ class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
+        binding.toolBar.setBackgroundColor(primaryColor)
         binding.toolBar.setTitle(R.string.import_book_source)
         binding.rotateLoading.show()
         initMenu()
@@ -102,7 +104,6 @@ class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
                 dismissAllowingStateLoss()
             }
         }
-        upSelectText()
         binding.tvFooterLeft.visible()
         binding.tvFooterLeft.setOnClickListener {
             val selectAll = viewModel.isSelectAll()
@@ -125,6 +126,7 @@ class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickList
             binding.rotateLoading.hide()
             if (it > 0) {
                 adapter.setItems(viewModel.allSources)
+                upSelectText()
             } else {
                 binding.tvMsg.apply {
                     setText(R.string.wrong_format)

@@ -25,6 +25,7 @@ import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.dp
 import io.legado.app.utils.putPrefBoolean
@@ -80,13 +81,13 @@ class ImportRssSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListe
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
+        binding.toolBar.setBackgroundColor(primaryColor)
         binding.toolBar.setTitle(R.string.import_rss_source)
         binding.rotateLoading.show()
         initMenu()
         adapter = SourcesAdapter(requireContext())
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
-        adapter.setItems(viewModel.allSources)
         binding.tvCancel.visible()
         binding.tvCancel.setOnClickListener {
             dismissAllowingStateLoss()
@@ -100,7 +101,6 @@ class ImportRssSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListe
                 dismissAllowingStateLoss()
             }
         }
-        upSelectText()
         binding.tvFooterLeft.visible()
         binding.tvFooterLeft.setOnClickListener {
             val selectAll = viewModel.isSelectAll()
@@ -123,6 +123,7 @@ class ImportRssSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListe
             binding.rotateLoading.hide()
             if (it > 0) {
                 adapter.setItems(viewModel.allSources)
+                upSelectText()
             } else {
                 binding.tvMsg.apply {
                     setText(R.string.wrong_format)

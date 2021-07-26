@@ -5,12 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Bookmark
 import io.legado.app.databinding.DialogBookmarkBinding
+import io.legado.app.lib.theme.primaryColor
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
@@ -49,6 +49,7 @@ class BookmarkDialog : BaseDialogFragment() {
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
+        binding.toolBar.setBackgroundColor(primaryColor)
         val bookmark = arguments?.getParcelable<Bookmark>("bookmark")
         bookmark ?: let {
             dismiss()
@@ -64,7 +65,7 @@ class BookmarkDialog : BaseDialogFragment() {
             tvOk.setOnClickListener {
                 bookmark.bookText = editBookText.text?.toString() ?: ""
                 bookmark.content = editContent.text?.toString() ?: ""
-                lifecycleScope.launch {
+                launch {
                     withContext(IO) {
                         appDb.bookmarkDao.insert(bookmark)
                     }
@@ -72,7 +73,7 @@ class BookmarkDialog : BaseDialogFragment() {
                 }
             }
             tvFooterLeft.setOnClickListener {
-                lifecycleScope.launch {
+                launch {
                     withContext(IO) {
                         appDb.bookmarkDao.delete(bookmark)
                     }
