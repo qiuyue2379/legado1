@@ -37,7 +37,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
 
     override val binding by viewBinding(ActivityRssReadBinding::inflate)
     override val viewModel by viewModels<ReadRssViewModel>()
-    private val imagePathKey = ""
+    private val imagePathKey = "imagePath"
     private var starMenuItem: MenuItem? = null
     private var ttsMenuItem: MenuItem? = null
     private var customWebViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -107,7 +107,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             domStorageEnabled = true
             allowContentAccess = true
-            //javaScriptEnabled = true
         }
         binding.webView.addJavascriptInterface(this, "app")
         upWebViewTheme()
@@ -155,8 +154,17 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     }
 
     private fun saveImage() {
+        val path = ACache.get(this@ReadRssActivity).getAsString(imagePathKey)
+        if (path.isNullOrEmpty()) {
+            selectExportFolder()
+        } else {
+            viewModel.saveImage(webPic, path)
+        }
+    }
+
+    private fun selectExportFolder() {
         val default = arrayListOf<String>()
-        val path = ACache.get(this).getAsString(imagePathKey)
+        val path = ACache.get(this@ReadRssActivity).getAsString(imagePathKey)
         if (!path.isNullOrEmpty()) {
             default.add(path)
         }

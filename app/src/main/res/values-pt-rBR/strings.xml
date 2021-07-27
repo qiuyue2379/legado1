@@ -87,7 +87,6 @@
     <string name="web_service">Serviço Web</string>
     <string name="web_service_desc">Fonte de edição web e livro lidos</string>
     <string name="web_edit_source">Editar fontes de livros na web</string>
-    <string name="http_ip">http://%1$s:%2$d</string>
     <string name="offline_cache">Cache off-line</string>
     <string name="offline_cache_t">Cache off-line</string>
     <string name="offline_cache_s">salvar o(s) capítulo(s) selecionado(s) no Armazenamento em cache</string>
@@ -157,7 +156,6 @@
     <string name="ps_hide_navigation_bar">Esconder botões virtuais durante a leitura</string>
     <string name="pt_hide_navigation_bar">Ocultar a barra de navegação</string>
     <string name="re_navigation_bar_color">Cor da barra de navegação</string>
-    <string name="git_hub">GitHub</string>
     <string name="scoring">Avaliação</string>
     <string name="send_mail">E-mail</string>
     <string name="can_not_open">Falha ao abrir</string>
@@ -395,7 +393,6 @@
     <string name="source_group">源分组(fonteGrupo)</string>
     <string name="diy_source_group">自定义源分组</string>
     <string name="diy_edit_source_group">输入自定义源分组名称</string>
-    <string name="diy_edit_source_group_title">【%s】</string>
     <string name="sort_url">分类Url</string>
     <string name="login_url">登录URL(loginUrl)</string>
     <string name="comment">源注释(fonteComentário)</string>
