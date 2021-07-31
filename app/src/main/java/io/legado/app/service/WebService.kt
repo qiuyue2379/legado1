@@ -28,9 +28,9 @@ class WebService : BaseService() {
 
         fun stop(context: Context) {
             if (isRun) {
-                val intent = Intent(context, WebService::class.java)
-                intent.action = IntentAction.stop
-                context.startService(intent)
+                context.startService<WebService> {
+                    action = IntentAction.stop
+                }
             }
         }
 
@@ -45,6 +45,9 @@ class WebService : BaseService() {
         isRun = true
         notificationContent = getString(R.string.service_starting)
         upNotification()
+        startService<WebTileService> {
+            action = IntentAction.start
+        }
     }
 
     override fun onDestroy() {
@@ -57,6 +60,9 @@ class WebService : BaseService() {
             webSocketServer?.stop()
         }
         postEvent(EventBus.WEB_SERVICE, "")
+        startService<WebTileService> {
+            action = IntentAction.stop
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

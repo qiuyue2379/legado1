@@ -23,7 +23,7 @@ import kotlin.math.min
 
 class MainViewModel(application: Application) : BaseViewModel(application) {
     private var threadCount = AppConfig.threadCount
-    private var upTocPool = Executors.newFixedThreadPool(threadCount).asCoroutineDispatcher()
+    private var upTocPool = Executors.newFixedThreadPool(min(threadCount,8)).asCoroutineDispatcher()
     val updateList = CopyOnWriteArraySet<String>()
     private val bookMap = ConcurrentHashMap<String, Book>()
 
@@ -38,7 +38,7 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
     fun upPool() {
         threadCount = AppConfig.threadCount
         upTocPool.close()
-        upTocPool = Executors.newFixedThreadPool(threadCount).asCoroutineDispatcher()
+        upTocPool = Executors.newFixedThreadPool(min(threadCount,8)).asCoroutineDispatcher()
     }
 
     fun upAllBookToc() {
@@ -48,7 +48,7 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
     }
 
     fun upToc(books: List<Book>) {
-        execute {
+        execute(context = upTocPool) {
             books.filter {
                 it.origin != BookType.local && it.canUpdate
             }.forEach {
@@ -72,7 +72,7 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
                 val book = bookEntry.value
                 synchronized(this) {
                     updateList.add(book.bookUrl)
-                    postEvent(EventBus.UP_BOOK, book.bookUrl)
+                    postEvent(EventBus.UP_BOOKSHELF, book.bookUrl)
                 }
                 appDb.bookSourceDao.getBookSource(book.origin)?.let { bookSource ->
                     execute(context = upTocPool) {
@@ -85,20 +85,20 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
                         appDb.bookChapterDao.delByBook(book.bookUrl)
                         appDb.bookChapterDao.insert(*toc.toTypedArray())
                         cacheBook(webBook, book)
-                    }.onError {
+                    }.onError(upTocPool) {
                         it.printStackTrace()
-                    }.onFinally {
+                    }.onFinally(upTocPool) {
                         synchronized(this) {
                             bookMap.remove(bookEntry.key)
                             updateList.remove(book.bookUrl)
-                            postEvent(EventBus.UP_BOOK, book.bookUrl)
+                            postEvent(EventBus.UP_BOOKSHELF, book.bookUrl)
                             upNext()
                         }
                     }
                 } ?: synchronized(this) {
                     bookMap.remove(bookEntry.key)
                     updateList.remove(book.bookUrl)
-                    postEvent(EventBus.UP_BOOK, book.bookUrl)
+                    postEvent(EventBus.UP_BOOKSHELF, book.bookUrl)
                     upNext()
                 }
                 return

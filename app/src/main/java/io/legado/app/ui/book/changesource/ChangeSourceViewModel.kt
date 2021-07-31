@@ -24,6 +24,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import splitties.init.appCtx
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
+import kotlin.math.min
 
 class ChangeSourceViewModel(application: Application) : BaseViewModel(application) {
     private val threadCount = AppConfig.threadCount
@@ -56,7 +57,7 @@ class ChangeSourceViewModel(application: Application) : BaseViewModel(applicatio
     }
 
     private fun initSearchPool() {
-        searchPool = Executors.newFixedThreadPool(threadCount).asCoroutineDispatcher()
+        searchPool = Executors.newFixedThreadPool(min(threadCount,8)).asCoroutineDispatcher()
         searchIndex = -1
     }
 
@@ -132,7 +133,7 @@ class ChangeSourceViewModel(application: Application) : BaseViewModel(applicatio
         val task = webBook
             .searchBook(viewModelScope, name, context = searchPool!!)
             .timeout(60000L)
-            .onSuccess(IO) {
+            .onSuccess(searchPool) {
                 it.forEach { searchBook ->
                     if (searchBook.name == name) {
                         if ((AppConfig.changeSourceCheckAuthor && searchBook.author.contains(author))
@@ -151,7 +152,7 @@ class ChangeSourceViewModel(application: Application) : BaseViewModel(applicatio
                     }
                 }
             }
-            .onFinally {
+            .onFinally(searchPool) {
                 synchronized(this) {
                     if (searchIndex < bookSourceList.lastIndex) {
                         search()
