@@ -183,6 +183,8 @@ class ThemeConfigFragment : BasePreferenceFragment(),
                     }
                 }
             }
+            PreferKey.bgImageBlurring -> ImageBlurringDialogFragment(PreferKey.bgImageBlurring) { upTheme(false) }.show(parentFragmentManager)
+            PreferKey.bgImageNBlurring -> ImageBlurringDialogFragment(PreferKey.bgImageNBlurring) { upTheme(true) }.show(parentFragmentManager)
             PreferKey.defaultCover -> if (getPrefString(PreferKey.defaultCover).isNullOrEmpty()) {
                 selectImage.launch(requestCodeCover)
             } else {
@@ -213,7 +215,9 @@ class ThemeConfigFragment : BasePreferenceFragment(),
     @SuppressLint("InflateParams")
     private fun saveThemeAlert(key: String) {
         alert(R.string.theme_name) {
-            val alertBinding = DialogEditTextBinding.inflate(layoutInflater)
+            val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                textInputLayout.hint = "name"
+            }
             customView { alertBinding.root }
             okButton {
                 alertBinding.editView.text?.toString()?.let { themeName ->

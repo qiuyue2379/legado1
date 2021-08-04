@@ -80,7 +80,7 @@ abstract class BaseBooksAdapter<VH : RecyclerView.ViewHolder>(
         fun onItemLongClick(position: Int)
         fun isUpdate(bookUrl: String): Boolean
         fun getItemCount(): Int
-        fun getItem(position: Int): Any
         fun getItemType(position: Int): Int
+        fun getItem(position: Int): Any
     }
 }

@@ -198,7 +198,7 @@ dependencies {
     implementation('org.nanohttpd:nanohttpd-apache-fileupload:2.3.1')
 
     //二维码
-    implementation('com.github.jenly1314:zxing-lite:2.1.0')
+    implementation('com.github.jenly1314:zxing-lite:2.1.1')
 
     //颜色选择
     implementation('com.jaredrummler:colorpicker:1.1.0')
@@ -212,6 +212,9 @@ dependencies {
     implementation("io.noties.markwon:image-glide:$markwonVersion")
     implementation("io.noties.markwon:ext-tables:$markwonVersion")
     implementation("io.noties.markwon:html:$markwonVersion")
+
+    // 谷歌RenderScript库
+    implementation('com.github.android:renderscript-intrinsics-replacement-toolkit:b6363490c3')
 
     //转换繁体
     implementation('com.github.liuyueyi.quick-chinese-transfer:quick-transfer-core:0.2.1')

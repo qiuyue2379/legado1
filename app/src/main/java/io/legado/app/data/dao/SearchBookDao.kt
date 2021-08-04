@@ -67,5 +67,4 @@ interface SearchBookDao {
 
     @Delete
     fun delete(vararg searchBook: SearchBook)
-
 }
