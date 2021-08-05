@@ -2,8 +2,8 @@ package io.legado.app.help
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.util.DisplayMetrics
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatDelegate
 import io.legado.app.R
@@ -43,14 +43,26 @@ object ThemeConfig {
         AppCompatDelegate.setDefaultNightMode(targetMode)
     }
 
-    fun getBgImage(context: Context): Bitmap? {
-        val bgPath = when (Theme.getTheme()) {
-            Theme.Light -> context.getPrefString(PreferKey.bgImage)
-            Theme.Dark -> context.getPrefString(PreferKey.bgImageN)
+    fun getBgImage(context: Context, metrics: DisplayMetrics): Bitmap? {
+        val bgCfg = when (Theme.getTheme()) {
+            Theme.Light -> Pair(
+                context.getPrefString(PreferKey.bgImage),
+                context.getPrefInt(PreferKey.bgImageBlurring, 0)
+            )
+            Theme.Dark -> Pair(
+                context.getPrefString(PreferKey.bgImageN),
+                context.getPrefInt(PreferKey.bgImageNBlurring, 0)
+            )
             else -> null
+        } ?: return null
+        if (bgCfg.first.isNullOrBlank()) return null
+        val bgImage = BitmapUtils
+            .decodeBitmap(bgCfg.first!!, metrics.widthPixels, metrics.heightPixels)
+            ?: return null
+        if (bgCfg.second == 0) {
+            return bgImage
         }
-        if (bgPath.isNullOrBlank()) return null
-        return BitmapFactory.decodeFile(bgPath)
+        return BitmapUtils.stackBlur(bgImage, bgCfg.second.toFloat())
     }
 
     fun upConfig() {
