@@ -849,6 +849,8 @@
     <string name="null_url">url為空</string>
     <string name="dict">字典</string>
     <string name="unknown_error">未知錯誤</string>
+    <string name="autobackup_fail">Autobackup failed</string>
     <string name="end">end</string>
+    <string name="custom_group_summary">关闭替换分组/开启添加分组</string>
 
 </resources>
