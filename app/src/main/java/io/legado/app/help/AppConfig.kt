@@ -205,13 +205,11 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
         set(value) {
             appCtx.putPrefBoolean(PreferKey.exportToWebDav, value)
         }
-
     var exportNoChapterName: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.exportNoChapterName)
         set(value) {
             appCtx.putPrefBoolean(PreferKey.exportNoChapterName, value)
         }
-
     var exportType: Int
         get() = appCtx.getPrefInt(PreferKey.exportType)
         set(value) {
@@ -227,7 +225,7 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
     val autoChangeSource: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.autoChangeSource, true)
 
-    val changeSourceLoadInfo get() = appCtx.getPrefBoolean(PreferKey.changeSourceLoadToc)
+    val changeSourceLoadInfo get() = appCtx.getPrefBoolean(PreferKey.changeSourceLoadInfo)
 
     val changeSourceLoadToc get() = appCtx.getPrefBoolean(PreferKey.changeSourceLoadToc)
 
@@ -256,4 +254,3 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
         return ua
     }
 }
-
