@@ -295,7 +295,7 @@ class BackupConfigFragment : BasePreferenceFragment(),
                     restoreDir.launch(null)
                 }
             } else {
-                restoreDir.launch(null)
+                restoreUsePermission(backupPath)
             }
         } else {
             restoreDir.launch(null)

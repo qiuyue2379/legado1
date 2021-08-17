@@ -393,6 +393,7 @@
     <string name="source_group">源分组(sourceGroup)</string>
     <string name="diy_source_group">自定义源分组</string>
     <string name="diy_edit_source_group">输入自定义源分组名称</string>
+    <string name="source_concurrent_rate">并发率(concurrentRate)</string>
     <string name="sort_url">分类Url</string>
     <string name="login_url">登录URL(loginUrl)</string>
     <string name="comment">源注释(sourceComment)</string>
@@ -806,6 +807,9 @@
     <string name="pre_download_s">Download %s chapters in advance</string>
     <string name="is_enabled">Is enabled</string>
     <string name="background_image">Background image</string>
+    <string name="background_image_blurring">Background image blurring</string>
+    <string name="background_image_blurring_radius">Blurring radius</string>
+    <string name="background_image_hint">Disabled when 0, enable range from 1 to 25\nThe greater the radius, the stronger the effect of blurring</string>
     <string name="copy_book_url">Copy book URL</string>
     <string name="copy_toc_url">Copy chapters URL</string>
     <string name="export_folder">Export to a folder</string>

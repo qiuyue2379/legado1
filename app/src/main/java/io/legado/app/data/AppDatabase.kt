@@ -1,6 +1,7 @@
 package io.legado.app.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -19,13 +20,19 @@ val appDb by lazy {
 }
 
 @Database(
+    version = 35,
+    exportSchema = true,
     entities = [Book::class, BookGroup::class, BookSource::class, BookChapter::class,
         ReplaceRule::class, SearchBook::class, SearchKeyword::class, Cookie::class,
         RssSource::class, Bookmark::class, RssArticle::class, RssReadRecord::class,
         RssStar::class, TxtTocRule::class, ReadRecord::class, HttpTTS::class, Cache::class,
         RuleSub::class],
-    version = 34,
-    exportSchema = true
+    autoMigrations = [
+        AutoMigration(from = 11, to = 12),
+        AutoMigration(from = 19, to = 20),
+        AutoMigration(from = 27, to = 29),
+        AutoMigration(from = 33, to = 35),
+    ]
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -55,12 +62,24 @@ abstract class AppDatabase : RoomDatabase() {
             Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
                 .fallbackToDestructiveMigration()
                 .addMigrations(
-                    migration_10_11, migration_11_12, migration_12_13, migration_13_14,
-                    migration_14_15, migration_15_17, migration_17_18, migration_18_19,
-                    migration_19_20, migration_20_21, migration_21_22, migration_22_23,
-                    migration_23_24, migration_24_25, migration_25_26, migration_26_27,
-                    migration_27_28, migration_28_29, migration_29_30, migration_30_31,
-                    migration_31_32, migration_32_33, migration_33_34
+                    migration_10_11,
+                    migration_12_13,
+                    migration_13_14,
+                    migration_14_15,
+                    migration_15_17,
+                    migration_17_18,
+                    migration_18_19,
+                    migration_20_21,
+                    migration_21_22,
+                    migration_22_23,
+                    migration_23_24,
+                    migration_24_25,
+                    migration_25_26,
+                    migration_26_27,
+                    migration_29_30,
+                    migration_30_31,
+                    migration_31_32,
+                    migration_32_33
                 )
                 .allowMainThreadQueries()
                 .addCallback(dbCallback)
@@ -107,12 +126,6 @@ abstract class AppDatabase : RoomDatabase() {
                     name TEXT NOT NULL, rule TEXT NOT NULL, serialNumber INTEGER NOT NULL, 
                     enable INTEGER NOT NULL, PRIMARY KEY (id))"""
                 )
-            }
-        }
-
-        private val migration_11_12 = object : Migration(11, 12) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE rssSources ADD style TEXT ")
             }
         }
 
@@ -167,11 +180,6 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("INSERT INTO readRecordNew(androidId, bookName, readTime) select '${androidId}' as androidId, bookName, readTime from readRecord")
                 database.execSQL("DROP TABLE readRecord")
                 database.execSQL("ALTER TABLE readRecordNew RENAME TO readRecord")
-            }
-        }
-        private val migration_19_20 = object : Migration(19, 20) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE book_sources ADD bookSourceComment TEXT")
             }
         }
 
@@ -258,19 +266,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val migration_27_28 = object : Migration(27, 28) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE rssArticles ADD variable TEXT")
-                database.execSQL("ALTER TABLE rssStars ADD variable TEXT")
-            }
-        }
-
-        private val migration_28_29 = object : Migration(28, 29) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE rssSources ADD sourceComment TEXT")
-            }
-        }
-
         private val migration_29_30 = object : Migration(29, 30) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE chapters ADD `startFragmentId` TEXT")
@@ -332,11 +327,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val migration_33_34 = object : Migration(33, 34) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE `book_groups` ADD `cover` TEXT")
-            }
-        }
     }
 
 }
