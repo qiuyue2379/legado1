@@ -24,8 +24,8 @@ import me.ag2s.umdlib.tool.WrapOutputStream;
  */
 public class UmdCover {
 	
-	private static int DEFAULT_COVER_WIDTH = 120;
-	private static int DEFAULT_COVER_HEIGHT = 160;
+	private static final int DEFAULT_COVER_WIDTH = 120;
+	private static final int DEFAULT_COVER_HEIGHT = 160;
 	
 	private byte[] coverData;
 

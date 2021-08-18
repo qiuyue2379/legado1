@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class StreamReader {
-    private InputStream is;
+    private final InputStream is;
 
     public long getOffset() {
         return offset;
