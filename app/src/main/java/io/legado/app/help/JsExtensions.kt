@@ -71,15 +71,15 @@ interface JsExtensions {
     /**
      * 访问网络,返回Response<String>
      */
-    fun connect(urlStr: String): Any {
+    fun connect(urlStr: String): StrResponse {
         return runBlocking {
+            val analyzeUrl = AnalyzeUrl(urlStr)
             kotlin.runCatching {
-                val analyzeUrl = AnalyzeUrl(urlStr)
                 analyzeUrl.getStrResponse(urlStr)
             }.onFailure {
                 it.printStackTrace()
             }.getOrElse {
-                it.msg
+                StrResponse(analyzeUrl.url, it.localizedMessage)
             }
         }
     }
@@ -475,8 +475,8 @@ interface JsExtensions {
         str: String, key: String, transformation: String, iv: String
     ): ByteArray? {
         return EncoderUtils.decryptBase64AES(
-            data = str.encodeToByteArray(),
-            key = key.encodeToByteArray(),
+            str.encodeToByteArray(),
+            key.encodeToByteArray(),
             transformation,
             iv.encodeToByteArray()
         )
@@ -539,7 +539,7 @@ interface JsExtensions {
     ): ByteArray? {
         return EncoderUtils.encryptAES2Base64(
             data.encodeToByteArray(),
-            key = key.encodeToByteArray(),
+            key.encodeToByteArray(),
             transformation,
             iv.encodeToByteArray()
         )
