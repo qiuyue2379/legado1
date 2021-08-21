@@ -8,7 +8,6 @@ import io.legado.app.constant.AppConst
 import io.legado.app.help.CacheManager
 import io.legado.app.help.http.CookieStore
 import io.legado.app.utils.ACache
-import io.legado.app.utils.GSON
 import kotlinx.parcelize.Parcelize
 import splitties.init.appCtx
 import javax.script.SimpleBindings
@@ -36,6 +35,7 @@ data class RssSource(
     var ruleImage: String? = null,
     var ruleLink: String? = null,
     var ruleContent: String? = null,
+    var style: String? = null,
     override var header: String? = null,
     var enableJs: Boolean = false,
     var loadWithBaseUrl: Boolean = false,
