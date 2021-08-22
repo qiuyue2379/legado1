@@ -466,7 +466,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
                     refreshCount += 1
                     emit(refreshCount)
                     delay(300L)
-            }
+                }
             }.collect {
                 adapter.notifyItemRangeChanged(firstIndex, lastIndex + 1, bundleOf(Pair("checkSourceMessage", null)))
                 if (!Debug.isChecking || (refreshCount > (600 * (lastIndex + 1 - firstIndex) / min(AppConfig.threadCount,8)))) {

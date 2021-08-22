@@ -29,10 +29,10 @@ import io.legado.app.help.storage.Backup
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.accentColor
+import io.legado.app.model.ReadBook
 import io.legado.app.receiver.TimeBatteryReceiver
 import io.legado.app.service.BaseReadAloudService
 import io.legado.app.service.help.ReadAloud
-import io.legado.app.model.ReadBook
 import io.legado.app.ui.book.changesource.ChangeSourceDialog
 import io.legado.app.ui.book.info.BookInfoActivity
 import io.legado.app.ui.book.login.SourceLoginActivity
@@ -790,7 +790,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
         ReadBook.webBook?.bookSource?.let {
             startActivity<SourceLoginActivity> {
                 putExtra("sourceUrl", it.bookSourceUrl)
-                putExtra("loginUrl", it.loginUrl)
+                putExtra("loginUrl", it.loginUrl?.url)
                 putExtra("userAgent", it.getHeaderMap()[AppConst.UA_NAME])
             }
         }
@@ -855,11 +855,7 @@ class ReadBookActivity : ReadBookBaseActivity(),
     private fun skipToSearch(index: Int, indexWithinChapter: Int) {
         viewModel.openChapter(index) {
             val pages = ReadBook.curTextChapter?.pages ?: return@openChapter
-            val positions = viewModel.searchResultPositions(
-                pages,
-                indexWithinChapter,
-                viewModel.searchContentQuery
-            )
+            val positions = viewModel.searchResultPositions(pages, indexWithinChapter)
             ReadBook.skipToPage(positions[0]) {
                 launch {
                     binding.readView.curPage.selectStartMoveIndex(0, positions[1], positions[2])

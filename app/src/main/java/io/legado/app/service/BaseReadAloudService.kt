@@ -21,8 +21,9 @@ import io.legado.app.constant.*
 import io.legado.app.help.IntentDataHelp
 import io.legado.app.help.IntentHelp
 import io.legado.app.help.MediaHelp
-import io.legado.app.receiver.MediaButtonReceiver
 import io.legado.app.model.ReadBook
+import io.legado.app.receiver.MediaButtonReceiver
+import io.legado.app.service.help.ReadAloud
 import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.book.read.page.entities.TextChapter
 import io.legado.app.utils.getPrefBoolean
@@ -60,6 +61,7 @@ abstract class BaseReadAloudService : BaseService(),
     override fun onCreate() {
         super.onCreate()
         isRun = true
+        pause = false
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         mFocusRequest = MediaHelp.getFocusRequest(this)
         mediaSessionCompat = MediaSessionCompat(this, "readAloud")
@@ -67,7 +69,7 @@ abstract class BaseReadAloudService : BaseService(),
         initBroadcastReceiver()
         upNotification()
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
-        doDs()
+        startDs()
     }
 
     override fun onDestroy() {
@@ -147,15 +149,13 @@ abstract class BaseReadAloudService : BaseService(),
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED)
         postEvent(EventBus.ALOUD_STATE, Status.PAUSE)
         ReadBook.uploadProgress()
+        startDs()
     }
 
     @CallSuper
     open fun resumeReadAloud() {
         pause = false
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
-        if (timeMinute > 1) {
-            doDs()
-        }
     }
 
     abstract fun upSpeechRate(reset: Boolean = false)
@@ -184,23 +184,22 @@ abstract class BaseReadAloudService : BaseService(),
 
     private fun setTimer(minute: Int) {
         timeMinute = minute
-        if (minute > 0) {
-            handler.removeCallbacks(dsRunnable)
-            handler.postDelayed(dsRunnable, 60000)
-        }
-        upNotification()
+        startDs()
     }
 
     private fun addTimer() {
         if (timeMinute == 180) {
             timeMinute = 0
-            handler.removeCallbacks(dsRunnable)
         } else {
             timeMinute += 10
             if (timeMinute > 180) timeMinute = 180
-            handler.removeCallbacks(dsRunnable)
-            handler.postDelayed(dsRunnable, 60000)
         }
+        startDs()
+    }
+
+    private fun startDs() {
+        handler.removeCallbacks(dsRunnable)
+        handler.postDelayed(dsRunnable, 60000)
         postEvent(EventBus.TTS_DS, timeMinute)
         upNotification()
     }
@@ -210,13 +209,15 @@ abstract class BaseReadAloudService : BaseService(),
      */
     private fun doDs() {
         if (!pause) {
-            timeMinute--
+            if (timeMinute >= 0) {
+                timeMinute--
+            }
             if (timeMinute == 0) {
-                stopSelf()
-            } else if (timeMinute > 0) {
-                handler.postDelayed(dsRunnable, 60000)
+                ReadAloud.stop(this)
             }
         }
+        handler.removeCallbacks(dsRunnable)
+        handler.postDelayed(dsRunnable, 60000)
         postEvent(EventBus.TTS_DS, timeMinute)
         upNotification()
     }
@@ -313,7 +314,7 @@ abstract class BaseReadAloudService : BaseService(),
     private fun upNotification() {
         var nTitle: String = when {
             pause -> getString(R.string.read_aloud_pause)
-            timeMinute in 1..180 -> getString(
+            timeMinute > 0 -> getString(
                 R.string.read_aloud_timer,
                 timeMinute
             )
