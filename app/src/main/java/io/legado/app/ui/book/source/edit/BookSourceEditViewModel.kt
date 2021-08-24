@@ -5,11 +5,11 @@ import android.content.Intent
 import io.legado.app.base.BaseViewModel
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.BookSource
+import io.legado.app.help.http.newCallStrResponse
+import io.legado.app.help.http.okHttpClient
 import io.legado.app.help.storage.BookSourceAnalyzer
-import io.legado.app.utils.GSON
-import io.legado.app.utils.fromJsonObject
-import io.legado.app.utils.getClipText
-import io.legado.app.utils.toastOnUi
+import io.legado.app.help.storage.Restore
+import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers
 
 class BookSourceEditViewModel(application: Application) : BaseViewModel(application) {
@@ -54,31 +54,42 @@ class BookSourceEditViewModel(application: Application) : BaseViewModel(applicat
 
     fun pasteSource(onSuccess: (source: BookSource) -> Unit) {
         execute(context = Dispatchers.Main) {
-            var source: BookSource? = null
-            context.getClipText()?.let { json ->
-                source = BookSourceAnalyzer.jsonToBookSource(json)
+            context.getClipText()?.let { text ->
+                importSource(text, onSuccess)
             }
-            source
         }.onError {
-            context.toastOnUi(it.localizedMessage)
+            context.toastOnUi(it.localizedMessage ?: "Error")
             it.printStackTrace()
-        }.onSuccess {
-            if (it != null) {
-                onSuccess(it)
-            } else {
-                context.toastOnUi("格式不对")
-            }
         }
     }
 
     fun importSource(text: String, finally: (source: BookSource) -> Unit) {
         execute {
-            val text1 = text.trim()
-            GSON.fromJsonObject<BookSource>(text1)?.let {
-                finally.invoke(it)
-            }
+            importSource(text)
+        }.onSuccess {
+            it?.let(finally) ?: context.toastOnUi("格式不对")
         }.onError {
             context.toastOnUi(it.localizedMessage ?: "Error")
+        }
+    }
+
+    suspend fun importSource(text: String): BookSource? {
+        return when {
+            text.isAbsUrl() -> {
+                val text1 = okHttpClient.newCallStrResponse { url(text) }.body
+                text1?.let { importSource(text1) }
+            }
+            text.isJsonArray() -> {
+                val items: List<Map<String, Any>> = Restore.jsonPath.parse(text).read("$")
+                val jsonItem = Restore.jsonPath.parse(items[0])
+                BookSourceAnalyzer.jsonToBookSource(jsonItem.jsonString())
+            }
+            text.isJsonObject() -> {
+                BookSourceAnalyzer.jsonToBookSource(text)
+            }
+            else -> {
+                null
+            }
         }
     }
 }

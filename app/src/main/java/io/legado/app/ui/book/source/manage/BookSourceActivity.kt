@@ -166,6 +166,9 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             R.id.menu_disabled_group -> {
                 searchView.setQuery(getString(R.string.disabled), true)
             }
+            R.id.menu_group_login -> {
+                searchView.setQuery(getString(R.string.need_login), true)
+            }
             R.id.menu_help -> showHelp()
         }
         if (item.groupId == R.id.source_group) {
@@ -210,6 +213,9 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
                 }
                 searchKey == getString(R.string.disabled) -> {
                     appDb.bookSourceDao.flowDisabled()
+                }
+                searchKey == getString(R.string.need_login) -> {
+                    appDb.bookSourceDao.flowLogin()
                 }
                 searchKey.startsWith("group:") -> {
                     val key = searchKey.substringAfter("group:")
@@ -330,7 +336,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     private fun checkSource() {
         alert(titleResource = R.string.search_book_key) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                textInputLayout.hint = "search word"
+                editView.hint = "search word"
                 editView.setText(CheckSource.keyword)
             }
             customView { alertBinding.root }
@@ -351,7 +357,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     private fun selectionAddToGroups() {
         alert(titleResource = R.string.add_group) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                textInputLayout.setHint(R.string.group_name)
+                editView.setHint(R.string.group_name)
                 editView.setFilterValues(groups.toList())
                 editView.dropDownHeight = 180.dp
             }
@@ -371,7 +377,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     private fun selectionRemoveFromGroups() {
         alert(titleResource = R.string.remove_group) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                textInputLayout.setHint(R.string.group_name)
+                editView.setHint(R.string.group_name)
                 editView.setFilterValues(groups.toList())
                 editView.dropDownHeight = 180.dp
             }
@@ -405,7 +411,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             ?.toMutableList() ?: mutableListOf()
         alert(titleResource = R.string.import_on_line) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                textInputLayout.hint = "url"
+                editView.hint = "url"
                 editView.setFilterValues(cacheUrls)
                 editView.delCallBack = {
                     cacheUrls.remove(it)
@@ -456,10 +462,10 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     }
 
     private fun checkMessageRefreshJob(): Job {
-        val firstIndex = adapter.getItems().indexOf(adapter.selection.first())
-        val lastIndex = adapter.getItems().indexOf(adapter.selection.last())
+        val firstIndex = adapter.getItems().indexOf(adapter.selection.firstOrNull())
+        val lastIndex = adapter.getItems().indexOf(adapter.selection.lastOrNull())
         var refreshCount = 0
-        Debug.isChecking = true
+        Debug.isChecking = firstIndex >= 0 && lastIndex >= 0
         return async(start = CoroutineStart.LAZY) {
             flow {
                 while (true) {

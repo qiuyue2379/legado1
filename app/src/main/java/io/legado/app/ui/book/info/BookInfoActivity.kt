@@ -15,7 +15,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
-import io.legado.app.constant.AppConst
 import io.legado.app.constant.BookType
 import io.legado.app.constant.Theme
 import io.legado.app.data.appDb
@@ -119,7 +118,7 @@ class BookInfoActivity :
         menu.findItem(R.id.menu_can_update)?.isChecked =
             viewModel.bookData.value?.canUpdate ?: true
         menu.findItem(R.id.menu_login)?.isVisible =
-            !viewModel.bookSource?.loginUrl?.url.isNullOrBlank()
+            !viewModel.bookSource?.loginUrl.isNullOrBlank()
         return super.onMenuOpened(featureId, menu)
     }
 
@@ -156,8 +155,6 @@ class BookInfoActivity :
             R.id.menu_login -> viewModel.bookSource?.let {
                 startActivity<SourceLoginActivity> {
                     putExtra("sourceUrl", it.bookSourceUrl)
-                    putExtra("loginUrl", it.loginUrl?.url)
-                    putExtra("userAgent", it.getHeaderMap()[AppConst.UA_NAME])
                 }
             }
             R.id.menu_top -> viewModel.topBook()
@@ -404,6 +401,10 @@ class BookInfoActivity :
         viewModel.bookData.value?.group = groupId
         if (viewModel.inBookshelf) {
             viewModel.saveBook()
+        } else if (groupId > 0) {
+            viewModel.saveBook()
+            viewModel.inBookshelf = true
+            upTvBookshelf()
         }
     }
 

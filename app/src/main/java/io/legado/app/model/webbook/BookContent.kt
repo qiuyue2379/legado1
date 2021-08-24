@@ -19,7 +19,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
+import java.net.URLDecoder
 
+@Suppress("BlockingMethodInNonBlockingContext")
 object BookContent {
 
     @Throws(Exception::class)
@@ -32,7 +34,7 @@ object BookContent {
         redirectUrl: String,
         nextChapterUrl: String? = null
     ): String {
-        val baseUrl = strResponse.url
+        val baseUrl = URLDecoder.decode(strResponse.url, "utf-8")
         val body = strResponse.body
         body ?: throw Exception(
             appCtx.getString(R.string.error_get_web_content, baseUrl)
@@ -67,6 +69,7 @@ object BookContent {
                 val res = AnalyzeUrl(
                     ruleUrl = nextUrl,
                     book = book,
+                    source = bookSource,
                     headerMapF = bookSource.getHeaderMap()
                 ).getStrResponse(bookSource.bookSourceUrl)
                 res.body?.let { nextBody ->
@@ -89,6 +92,7 @@ object BookContent {
                         val analyzeUrl = AnalyzeUrl(
                             ruleUrl = urlStr,
                             book = book,
+                            source = bookSource,
                             headerMapF = bookSource.getHeaderMap()
                         )
                         val res = analyzeUrl.getStrResponse(bookSource.bookSourceUrl)
