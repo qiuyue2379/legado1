@@ -14,6 +14,7 @@ import javax.script.SimpleBindings
 /**
  * 可在js里调用,source.xxx()
  */
+@Suppress("unused")
 interface BaseSource : JsExtensions {
 
     fun getStoreUrl(): String
@@ -39,7 +40,7 @@ interface BaseSource : JsExtensions {
             }
         }
         if (hasLoginHeader) {
-            getLoginHeader()?.let {
+            getLoginHeaderMap()?.let {
                 putAll(it)
             }
         }
@@ -48,8 +49,12 @@ interface BaseSource : JsExtensions {
     /**
      * 获取用于登录的头部信息
      */
-    fun getLoginHeader(): Map<String, String>? {
-        val cache = CacheManager.get("loginHeader_${getStoreUrl()}") ?: return null
+    fun getLoginHeader(): String? {
+        return CacheManager.get("loginHeader_${getStoreUrl()}")
+    }
+
+    fun getLoginHeaderMap(): Map<String, String>? {
+        val cache = getLoginHeader() ?: return null
         return GSON.fromJsonObject(cache)
     }
 
@@ -91,9 +96,11 @@ interface BaseSource : JsExtensions {
      * 执行JS
      */
     @Throws(Exception::class)
-    private fun evalJS(jsStr: String): Any? {
+    fun evalJS(jsStr: String): Any? {
         val bindings = SimpleBindings()
         bindings["java"] = this
+        bindings["source"] = this
+        bindings["baseUrl"] = getStoreUrl()
         bindings["cookie"] = CookieStore
         bindings["cache"] = CacheManager
         return AppConst.SCRIPT_ENGINE.eval(jsStr, bindings)

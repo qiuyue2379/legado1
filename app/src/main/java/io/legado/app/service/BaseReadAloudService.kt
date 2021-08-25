@@ -198,16 +198,17 @@ abstract class BaseReadAloudService : BaseService(),
     }
 
     private fun startDs() {
-        handler.removeCallbacks(dsRunnable)
-        handler.postDelayed(dsRunnable, 60000)
         postEvent(EventBus.TTS_DS, timeMinute)
         upNotification()
+        handler.removeCallbacks(dsRunnable)
+        handler.postDelayed(dsRunnable, 60000)
     }
 
     /**
      * 定时
      */
     private fun doDs() {
+        handler.removeCallbacks(dsRunnable)
         if (!pause) {
             if (timeMinute >= 0) {
                 timeMinute--
@@ -216,10 +217,9 @@ abstract class BaseReadAloudService : BaseService(),
                 ReadAloud.stop(this)
             }
         }
-        handler.removeCallbacks(dsRunnable)
-        handler.postDelayed(dsRunnable, 60000)
         postEvent(EventBus.TTS_DS, timeMinute)
         upNotification()
+        handler.postDelayed(dsRunnable, 60000)
     }
 
     /**

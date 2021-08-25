@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.text.TextUtils
 import android.util.Log
+import io.legado.app.help.AppConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.utils.getPrefString
 import io.legado.app.utils.putPrefString
@@ -40,7 +41,7 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
         md5Url = ("https://cdn.jsdelivr.net/gh/ag2s20150909/cronet-repo@" +
                 ImplVersion.getCronetVersion() + "/cronet/" + ImplVersion.getCronetVersion() + "/"
                 + getCpuAbi(appCtx) + "/" + soName + ".js")
-        val dir = appCtx.getDir("lib", Context.MODE_PRIVATE)
+        val dir = appCtx.getDir("cronet", Context.MODE_PRIVATE)
         soFile = File(dir.toString() + "/" + getCpuAbi(appCtx), soName)
         downloadFile = File(appCtx.cacheDir.toString() + "/so_download", soName)
         Log.e(TAG, "soName+:$soName")
@@ -50,10 +51,14 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
     }
 
     fun install(): Boolean {
+        if (AppConfig.isGooglePlay) {
+            return true
+        }
         return soFile.exists()
     }
 
     fun preDownload() {
+        if (AppConfig.isGooglePlay) return
         Coroutine.async {
             md5 = getUrlMd5(md5Url)
             if (soFile.exists() && md5 == getFileMD5(soFile)) {
