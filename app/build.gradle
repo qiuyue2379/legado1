@@ -162,7 +162,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-common-java8:$lifecycle_version")
 
     //room
-    def room_version = '2.4.0-alpha04'
+    def room_version = '2.3.0'
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
@@ -182,8 +182,11 @@ dependencies {
 
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.9.1')
-    implementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
-    googleImplementation 'com.google.android.gms:play-services-cronet:17.0.0'
+    compileOnly('com.google.android.gms:play-services-cronet:17.0.1'){
+        exclude(group: "org.chromium.net")
+    }
+    googleImplementation('com.google.android.gms:play-services-cronet:17.0.1')
+    appImplementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
 
     //Glide
     implementation('com.github.bumptech.glide:glide:4.12.0')
