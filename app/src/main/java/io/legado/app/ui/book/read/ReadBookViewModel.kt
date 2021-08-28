@@ -16,7 +16,6 @@ import io.legado.app.help.ContentProcessor
 import io.legado.app.help.storage.AppWebDav
 import io.legado.app.model.ReadBook
 import io.legado.app.model.localBook.LocalBook
-import io.legado.app.model.webBook.PreciseSearch
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.BaseReadAloudService
 import io.legado.app.service.help.ReadAloud
@@ -53,7 +52,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         if (ReadBook.book?.bookUrl != book.bookUrl) {
             ReadBook.resetData(book)
             isInitFinish = true
-            if (!book.isLocalBook() && ReadBook.webBook == null) {
+            if (!book.isLocalBook() && ReadBook.bookSource == null) {
                 autoChangeSource(book.name, book.author)
                 return
             }
@@ -81,7 +80,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             ReadBook.titleDate.postValue(book.name)
             ReadBook.upWebBook(book)
             isInitFinish = true
-            if (!book.isLocalBook() && ReadBook.webBook == null) {
+            if (!book.isLocalBook() && ReadBook.bookSource == null) {
                 autoChangeSource(book.name, book.author)
                 return
             }
@@ -112,10 +111,12 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         if (book.isLocalBook()) {
             loadChapterList(book, changeDruChapterIndex)
         } else {
-            ReadBook.webBook?.getBookInfo(viewModelScope, book, canReName = false)
-                ?.onSuccess {
-                    loadChapterList(book, changeDruChapterIndex)
-                }
+            ReadBook.bookSource?.let {
+                WebBook.getBookInfo(viewModelScope, it, book, canReName = false)
+                    .onSuccess {
+                        loadChapterList(book, changeDruChapterIndex)
+                    }
+            }
         }
     }
 
@@ -141,24 +142,26 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
                 ReadBook.upMsg("LoadTocError:${it.localizedMessage}")
             }
         } else {
-            ReadBook.webBook?.getChapterList(viewModelScope, book)
-                ?.onSuccess(IO) { cList ->
-                    if (cList.isNotEmpty()) {
-                        if (changeDruChapterIndex == null) {
-                            appDb.bookChapterDao.insert(*cList.toTypedArray())
-                            appDb.bookDao.update(book)
-                            ReadBook.chapterSize = cList.size
-                            ReadBook.upMsg(null)
-                            ReadBook.loadContent(resetPageOffset = true)
+            ReadBook.bookSource?.let {
+                WebBook.getChapterList(viewModelScope, it, book)
+                    .onSuccess(IO) { cList ->
+                        if (cList.isNotEmpty()) {
+                            if (changeDruChapterIndex == null) {
+                                appDb.bookChapterDao.insert(*cList.toTypedArray())
+                                appDb.bookDao.update(book)
+                                ReadBook.chapterSize = cList.size
+                                ReadBook.upMsg(null)
+                                ReadBook.loadContent(resetPageOffset = true)
+                            } else {
+                                changeDruChapterIndex(cList)
+                            }
                         } else {
-                            changeDruChapterIndex(cList)
+                            ReadBook.upMsg(context.getString(R.string.error_load_toc))
                         }
-                    } else {
+                    }.onError {
                         ReadBook.upMsg(context.getString(R.string.error_load_toc))
                     }
-                }?.onError {
-                    ReadBook.upMsg(context.getString(R.string.error_load_toc))
-                }
+            }
         }
     }
 
@@ -192,9 +195,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
                 it.changeTo(newBook)
             }
             ReadBook.book = newBook
-            appDb.bookSourceDao.getBookSource(newBook.origin)?.let {
-                ReadBook.webBook = WebBook(it)
-            }
+            ReadBook.bookSource = appDb.bookSourceDao.getBookSource(newBook.origin)
             ReadBook.prevTextChapter = null
             ReadBook.curTextChapter = null
             ReadBook.nextTextChapter = null
@@ -219,7 +220,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         if (!AppConfig.autoChangeSource) return
         execute {
             val sources = appDb.bookSourceDao.allTextEnabled
-            val book = PreciseSearch.searchFirstBook(this, sources, name, author)
+            val book = WebBook.preciseSearch(this, sources, name, author)
             if (book != null) {
                 book.upInfoFromOld(ReadBook.book)
                 changeTo(book)
@@ -277,9 +278,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
     fun upBookSource(success: (() -> Unit)?) {
         execute {
             ReadBook.book?.let { book ->
-                appDb.bookSourceDao.getBookSource(book.origin)?.let {
-                    ReadBook.webBook = WebBook(it)
-                }
+                ReadBook.bookSource = appDb.bookSourceDao.getBookSource(book.origin)
             }
         }.onSuccess {
             success?.invoke()

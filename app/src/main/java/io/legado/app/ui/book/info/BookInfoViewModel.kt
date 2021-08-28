@@ -81,7 +81,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
                 loadChapter(book, changeDruChapterIndex)
             } else {
                 bookSource?.let { bookSource ->
-                    WebBook(bookSource).getBookInfo(this, book, canReName = canReName)
+                    WebBook.getBookInfo(this, bookSource, book, canReName = canReName)
                         .onSuccess(IO) {
                             bookData.postValue(book)
                             if (inBookshelf) {
@@ -112,7 +112,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
                 }
             } else {
                 bookSource?.let { bookSource ->
-                    WebBook(bookSource).getChapterList(this, book)
+                    WebBook.getChapterList(this, bookSource, book)
                         .onSuccess(IO) {
                             if (it.isNotEmpty()) {
                                 if (inBookshelf) {
@@ -201,6 +201,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             bookData.value?.let { book ->
                 val minOrder = appDb.bookDao.minOrder
                 book.order = minOrder - 1
+                book.durChapterTime = System.currentTimeMillis()
                 appDb.bookDao.update(book)
             }
         }

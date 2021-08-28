@@ -6,7 +6,6 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.rule.TocRule
-import io.legado.app.help.http.StrResponse
 import io.legado.app.model.Debug
 import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.analyzeRule.AnalyzeUrl
@@ -16,20 +15,18 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
-import java.net.URLDecoder
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object BookChapterList {
 
     suspend fun analyzeChapterList(
         scope: CoroutineScope,
-        strResponse: StrResponse,
         bookSource: BookSource,
         book: Book,
-        redirectUrl: String
+        redirectUrl: String,
+        baseUrl: String,
+        body: String?
     ): List<BookChapter> {
-        val baseUrl = URLDecoder.decode(strResponse.url, "utf-8")
-        val body = strResponse.body
         body ?: throw Exception(
             appCtx.getString(R.string.error_get_web_content, baseUrl)
         )
@@ -52,13 +49,11 @@ object BookChapterList {
                 scope, book, baseUrl, redirectUrl, body,
                 tocRule, listRule, bookSource, log = true
             )
-        chapterData.chapterList?.let {
-            chapterList.addAll(it)
-        }
-        when (chapterData.nextUrl.size) {
+        chapterList.addAll(chapterData.first)
+        when (chapterData.second.size) {
             0 -> Unit
             1 -> {
-                var nextUrl = chapterData.nextUrl[0]
+                var nextUrl = chapterData.second[0]
                 while (nextUrl.isNotEmpty() && !nextUrlList.contains(nextUrl)) {
                     nextUrlList.add(nextUrl)
                     AnalyzeUrl(
@@ -71,20 +66,18 @@ object BookChapterList {
                             scope, book, nextUrl, nextUrl,
                             nextBody, tocRule, listRule, bookSource
                         )
-                        nextUrl = chapterData.nextUrl.firstOrNull() ?: ""
-                        chapterData.chapterList?.let {
-                            chapterList.addAll(it)
-                        }
+                        nextUrl = chapterData.second.firstOrNull() ?: ""
+                        chapterList.addAll(chapterData.first)
                     }
                 }
                 Debug.log(bookSource.bookSourceUrl, "◇目录总页数:${nextUrlList.size}")
             }
             else -> {
-                Debug.log(bookSource.bookSourceUrl, "◇并发解析目录,总页数:${chapterData.nextUrl.size}")
+                Debug.log(bookSource.bookSourceUrl, "◇并发解析目录,总页数:${chapterData.second.size}")
                 withContext(IO) {
-                    val asyncArray = Array(chapterData.nextUrl.size) {
+                    val asyncArray = Array(chapterData.second.size) {
                         async(IO) {
-                            val urlStr = chapterData.nextUrl[it]
+                            val urlStr = chapterData.second[it]
                             val analyzeUrl = AnalyzeUrl(
                                 ruleUrl = urlStr,
                                 book = book,
@@ -95,13 +88,11 @@ object BookChapterList {
                             analyzeChapterList(
                                 this, book, urlStr, res.url,
                                 res.body!!, tocRule, listRule, bookSource, false
-                            ).chapterList
+                            ).first
                         }
                     }
                     asyncArray.forEach { coroutine ->
-                        coroutine.await()?.let {
-                            chapterList.addAll(it)
-                        }
+                        chapterList.addAll(coroutine.await())
                     }
                 }
             }
@@ -142,7 +133,7 @@ object BookChapterList {
         bookSource: BookSource,
         getNextUrl: Boolean = true,
         log: Boolean = false
-    ): ChapterData<List<String>> {
+    ): Pair<List<BookChapter>, List<String>> {
         val analyzeRule = AnalyzeRule(book, bookSource)
         analyzeRule.setContent(body).setBaseUrl(baseUrl)
         analyzeRule.setRedirectUrl(redirectUrl)
@@ -204,7 +195,7 @@ object BookChapterList {
             Debug.log(bookSource.bookSourceUrl, "┌获取首章信息", log)
             Debug.log(bookSource.bookSourceUrl, "└${chapterList[0].tag}", log)
         }
-        return ChapterData(chapterList, nextUrlList)
+        return Pair(chapterList, nextUrlList)
     }
 
 }

@@ -7,7 +7,6 @@ import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.rule.ContentRule
 import io.legado.app.help.BookHelp
-import io.legado.app.help.http.StrResponse
 import io.legado.app.model.Debug
 import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.analyzeRule.AnalyzeUrl
@@ -19,7 +18,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
-import java.net.URLDecoder
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object BookContent {
@@ -27,15 +25,14 @@ object BookContent {
     @Throws(Exception::class)
     suspend fun analyzeContent(
         scope: CoroutineScope,
-        strResponse: StrResponse,
         bookSource: BookSource,
         book: Book,
         bookChapter: BookChapter,
         redirectUrl: String,
+        baseUrl: String,
+        body: String?,
         nextChapterUrl: String? = null
     ): String {
-        val baseUrl = URLDecoder.decode(strResponse.url, "utf-8")
-        val body = strResponse.body
         body ?: throw Exception(
             appCtx.getString(R.string.error_get_web_content, baseUrl)
         )
@@ -56,9 +53,9 @@ object BookContent {
         var contentData = analyzeContent(
             book, baseUrl, redirectUrl, body, contentRule, bookChapter, bookSource, mNextChapterUrl
         )
-        content.append(contentData.content)
-        if (contentData.nextUrl.size == 1) {
-            var nextUrl = contentData.nextUrl[0]
+        content.append(contentData.first)
+        if (contentData.second.size == 1) {
+            var nextUrl = contentData.second[0]
             while (nextUrl.isNotEmpty() && !nextUrlList.contains(nextUrl)) {
                 if (!mNextChapterUrl.isNullOrEmpty()
                     && NetworkUtils.getAbsoluteURL(baseUrl, nextUrl)
@@ -78,17 +75,17 @@ object BookContent {
                         bookChapter, bookSource, mNextChapterUrl, false
                     )
                     nextUrl =
-                        if (contentData.nextUrl.isNotEmpty()) contentData.nextUrl[0] else ""
-                    content.append("\n").append(contentData.content)
+                        if (contentData.second.isNotEmpty()) contentData.second[0] else ""
+                    content.append("\n").append(contentData.first)
                 }
             }
             Debug.log(bookSource.bookSourceUrl, "◇本章总页数:${nextUrlList.size}")
-        } else if (contentData.nextUrl.size > 1) {
-            Debug.log(bookSource.bookSourceUrl, "◇并发解析目录,总页数:${contentData.nextUrl.size}")
+        } else if (contentData.second.size > 1) {
+            Debug.log(bookSource.bookSourceUrl, "◇并发解析目录,总页数:${contentData.second.size}")
             withContext(IO) {
-                val asyncArray = Array(contentData.nextUrl.size) {
+                val asyncArray = Array(contentData.second.size) {
                     async(IO) {
-                        val urlStr = contentData.nextUrl[it]
+                        val urlStr = contentData.second[it]
                         val analyzeUrl = AnalyzeUrl(
                             ruleUrl = urlStr,
                             book = book,
@@ -99,7 +96,7 @@ object BookContent {
                         analyzeContent(
                             book, urlStr, res.url, res.body!!, contentRule,
                             bookChapter, bookSource, mNextChapterUrl, false
-                        ).content
+                        ).first
                     }
                 }
                 asyncArray.forEach { coroutine ->
@@ -134,7 +131,7 @@ object BookContent {
         bookSource: BookSource,
         nextChapterUrl: String?,
         printLog: Boolean = true
-    ): ContentData<List<String>> {
+    ): Pair<String, List<String>> {
         val analyzeRule = AnalyzeRule(book, bookSource)
         analyzeRule.setContent(body, baseUrl)
         val rUrl = analyzeRule.setRedirectUrl(redirectUrl)
@@ -153,6 +150,6 @@ object BookContent {
             }
             Debug.log(bookSource.bookSourceUrl, "└" + nextUrlList.joinToString("，"), printLog)
         }
-        return ContentData(content, nextUrlList)
+        return Pair(content, nextUrlList)
     }
 }
