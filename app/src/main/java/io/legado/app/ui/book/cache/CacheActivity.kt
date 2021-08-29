@@ -24,8 +24,7 @@ import io.legado.app.help.BookHelp
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.service.help.CacheBook
-import io.legado.app.ui.document.FilePicker
-import io.legado.app.ui.document.FilePickerParam
+import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.widget.dialog.TextListDialog
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
@@ -53,7 +52,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     private val groupList: ArrayList<BookGroup> = arrayListOf()
     private var groupId: Long = -1
 
-    private val exportDir = registerForActivityResult(FilePicker()) { uri ->
+    private val exportDir = registerForActivityResult(HandleFileContract()) { uri ->
         uri ?: return@registerForActivityResult
         if (uri.isContentScheme()) {
             ACache.get(this@CacheActivity).put(exportBookPathKey, uri.toString())
@@ -254,11 +253,9 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         if (!path.isNullOrEmpty()) {
             default.add(path)
         }
-        exportDir.launch(
-            FilePickerParam(
-                otherActions = default.toTypedArray()
-            )
-        )
+        exportDir.launch {
+            otherActions = default.toTypedArray()
+        }
     }
 
     private fun startExport(path: String) {
@@ -304,6 +301,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun alertExportFileName() {
         alert(R.string.export_file_name) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {

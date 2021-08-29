@@ -18,8 +18,7 @@ import io.legado.app.ui.book.cache.CacheActivity
 import io.legado.app.ui.book.group.GroupManageDialog
 import io.legado.app.ui.book.local.ImportBookActivity
 import io.legado.app.ui.book.search.SearchActivity
-import io.legado.app.ui.document.FilePicker
-import io.legado.app.ui.document.FilePickerParam
+import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.main.MainViewModel
 import io.legado.app.utils.*
 
@@ -28,7 +27,7 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
     val activityViewModel by activityViewModels<MainViewModel>()
     override val viewModel by viewModels<BookshelfViewModel>()
 
-    private val importBookshelf = registerForActivityResult(FilePicker()) {
+    private val importBookshelf = registerForActivityResult(HandleFileContract()) {
         it?.readText(requireContext())?.let { text ->
             viewModel.importBookshelf(text, groupId)
         }
@@ -56,7 +55,7 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
                 putExtra("groupId", groupId)
             }
             R.id.menu_export_bookshelf -> viewModel.exportBookshelf(books) {
-                activity?.share(it)
+
             }
             R.id.menu_import_bookshelf -> importBookshelfAlert(groupId)
         }
@@ -134,12 +133,10 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
             }
             noButton()
             neutralButton(R.string.select_file) {
-                importBookshelf.launch(
-                    FilePickerParam(
-                        mode = FilePicker.FILE,
-                        allowExtensions = arrayOf("txt", "json")
-                    )
-                )
+                importBookshelf.launch {
+                    mode = HandleFileContract.FILE
+                    allowExtensions = arrayOf("txt", "json")
+                }
             }
         }.show()
     }

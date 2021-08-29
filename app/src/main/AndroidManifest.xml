@@ -293,9 +293,10 @@
             android:launchMode="singleTop" />
         <!-- 书源登录 -->
         <activity
-            android:name=".ui.book.login.SourceLoginActivity"
+            android:name="io.legado.app.ui.login.SourceLoginActivity"
             android:configChanges="orientation|screenSize"
-            android:hardwareAccelerated="true" />
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme.Transparent" />
         <!-- 阅读记录 -->
         <activity
             android:name=".ui.about.ReadRecordActivity"
@@ -303,15 +304,15 @@
             android:hardwareAccelerated="true" />
         <!-- 选择文件 -->
         <activity
-            android:name=".ui.document.FilePickerActivity"
+            android:name=".ui.document.HandleFileActivity"
             android:configChanges="orientation|screenSize"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme.Transparent" />
         <!-- 文字处理 -->
         <activity
             android:name=".receiver.SharedReceiverActivity"
-            android:label="@string/receiving_shared_label"
             android:exported="true"
+            android:label="@string/receiving_shared_label"
             android:theme="@style/AppTheme.Transparent">
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_TEXT" />
@@ -347,8 +348,8 @@
         <!-- 打开文件 -->
         <activity
             android:name=".ui.association.FileAssociationActivity"
-            android:launchMode="singleTop"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.Transparent">
             <!-- VIEW (Open with) action -->
             <!-- Works when an app knows the media type of a file, e.g. Gmail or Chrome. -->
@@ -399,10 +400,10 @@
         <service android:name=".service.WebService" />
         <service
             android:name=".service.WebTileService"
-            android:label="legado Web Service"
+            android:exported="true"
             android:icon="@drawable/ic_web_service_noti"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
+            android:label="legado Web Service"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>

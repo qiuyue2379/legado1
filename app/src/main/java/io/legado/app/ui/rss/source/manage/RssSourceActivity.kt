@@ -22,8 +22,7 @@ import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.ui.association.ImportRssSourceDialog
-import io.legado.app.ui.document.FilePicker
-import io.legado.app.ui.document.FilePickerParam
+import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.qrcode.QrCodeResult
 import io.legado.app.ui.rss.source.edit.RssSourceEditActivity
 import io.legado.app.ui.widget.SelectActionBar
@@ -57,7 +56,7 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
         it ?: return@registerForActivityResult
         ImportRssSourceDialog.start(supportFragmentManager, it)
     }
-    private val importDoc = registerForActivityResult(FilePicker()) { uri ->
+    private val importDoc = registerForActivityResult(HandleFileContract()) { uri ->
         kotlin.runCatching {
             uri?.readText(this)?.let {
                 ImportRssSourceDialog.start(supportFragmentManager, it)
@@ -66,7 +65,7 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
             toastOnUi("readTextError:${it.localizedMessage}")
         }
     }
-    private val exportDir = registerForActivityResult(FilePicker()) { uri ->
+    private val exportDir = registerForActivityResult(HandleFileContract()) { uri ->
         uri ?: return@registerForActivityResult
         if (uri.isContentScheme()) {
             DocumentFile.fromTreeUri(this, uri)?.let {
@@ -101,12 +100,10 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_add -> startActivity<RssSourceEditActivity>()
-            R.id.menu_import_local -> importDoc.launch(
-                FilePickerParam(
-                    mode = FilePicker.FILE,
-                    allowExtensions = arrayOf("txt", "json")
-                )
-            )
+            R.id.menu_import_local -> importDoc.launch {
+                mode = HandleFileContract.FILE
+                allowExtensions = arrayOf("txt", "json")
+            }
             R.id.menu_import_onLine -> showImportDialog()
             R.id.menu_import_qr -> qrCodeResult.launch(null)
             R.id.menu_group_manage -> GroupManageDialog()

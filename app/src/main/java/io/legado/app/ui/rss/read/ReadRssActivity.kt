@@ -22,8 +22,7 @@ import io.legado.app.lib.theme.DrawableUtils
 import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.service.help.Download
 import io.legado.app.ui.association.OnLineImportActivity
-import io.legado.app.ui.document.FilePicker
-import io.legado.app.ui.document.FilePickerParam
+import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.launch
@@ -42,7 +41,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private var ttsMenuItem: MenuItem? = null
     private var customWebViewCallback: WebChromeClient.CustomViewCallback? = null
     private var webPic: String? = null
-    private val saveImage = registerForActivityResult(FilePicker()) {
+    private val saveImage = registerForActivityResult(HandleFileContract()) {
         it ?: return@registerForActivityResult
         ACache.get(this).put(imagePathKey, it.toString())
         viewModel.saveImage(webPic, it.toString())
@@ -170,11 +169,9 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         if (!path.isNullOrEmpty()) {
             default.add(path)
         }
-        saveImage.launch(
-            FilePickerParam(
-                otherActions = default.toTypedArray()
-            )
-        )
+        saveImage.launch {
+            otherActions = default.toTypedArray()
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
