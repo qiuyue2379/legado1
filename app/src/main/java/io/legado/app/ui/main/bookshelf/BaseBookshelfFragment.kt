@@ -32,7 +32,20 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
             viewModel.importBookshelf(text, groupId)
         }
     }
-
+    private val exportBookshelf = registerForActivityResult(HandleFileContract()) {
+        it?.let { uri ->
+            alert(R.string.export_success) {
+                val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                    editView.hint = getString(R.string.path)
+                    editView.setText(uri.toString())
+                }
+                customView { alertBinding.root }
+                okButton {
+                    requireContext().sendToClip(uri.toString())
+                }
+            }.show()
+        }
+    }
     abstract val groupId: Long
     abstract val books: List<Book>
 
@@ -55,7 +68,11 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
                 putExtra("groupId", groupId)
             }
             R.id.menu_export_bookshelf -> viewModel.exportBookshelf(books) {
-
+                exportBookshelf.launch {
+                    mode = HandleFileContract.EXPORT
+                    fileName = "bookshelf.json"
+                    file = it.toByteArray()
+                }
             }
             R.id.menu_import_bookshelf -> importBookshelfAlert(groupId)
         }

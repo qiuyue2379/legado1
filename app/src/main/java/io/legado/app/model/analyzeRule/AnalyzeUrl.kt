@@ -19,6 +19,7 @@ import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
 import javax.script.SimpleBindings
+import kotlin.collections.HashMap
 
 /**
  * Created by GKF on 2018/1/24.
@@ -280,7 +281,6 @@ class AnalyzeUrl(
             return getWebViewSrc(params)
         }
         return getProxyClient(proxy).newCallStrResponse(retry) {
-            removeHeader(UA_NAME)
             addHeaders(headerMap)
             when (method) {
                 RequestMethod.POST -> {
@@ -300,7 +300,6 @@ class AnalyzeUrl(
         setCookie(tag)
         @Suppress("BlockingMethodInNonBlockingContext")
         return getProxyClient(proxy).newCall(retry) {
-            removeHeader(UA_NAME)
             addHeaders(headerMap)
             when (method) {
                 RequestMethod.POST -> {
@@ -314,6 +313,23 @@ class AnalyzeUrl(
                 else -> get(url, fieldMap, true)
             }
         }.bytes()
+    }
+
+    suspend fun upload(fileName: String, file: ByteArray, contentType: String): StrResponse {
+        return getProxyClient(proxy).newCallStrResponse(retry) {
+            url(url)
+            val bodyMap = GSON.fromJsonObject<HashMap<String, Any>>(body)!!
+            bodyMap.forEach { entry ->
+                if (entry.value.toString() == "fileRequest") {
+                    bodyMap[entry.key] = mapOf(
+                        Pair("fileName", fileName),
+                        Pair("file", file),
+                        Pair("contentType", contentType)
+                    )
+                }
+            }
+            postMultipart(type, bodyMap)
+        }
     }
 
     private fun setCookie(tag: String?) {

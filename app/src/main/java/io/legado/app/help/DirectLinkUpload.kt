@@ -1,9 +1,7 @@
 package io.legado.app.help
 
-import io.legado.app.help.http.newCallStrResponse
-import io.legado.app.help.http.okHttpClient
-import io.legado.app.help.http.postMultipart
 import io.legado.app.model.analyzeRule.AnalyzeRule
+import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.analyzeRule.RuleData
 
 object DirectLinkUpload {
@@ -12,16 +10,33 @@ object DirectLinkUpload {
     private const val downloadUrlRuleKey = "directLinkDownloadUrlRule"
 
     suspend fun upLoad(fileName: String, byteArray: ByteArray): String {
-        val res = okHttpClient.newCallStrResponse {
-            url("https://shuyuan.miaogongzi.site/index.html")
-            postMultipart(mapOf("file" to Triple(fileName, byteArray, null)))
+        val url = getUploadUrl()
+        if (url.isNullOrBlank()) {
+            error("上传url未配置")
         }
+        val downloadUrlRule = getDownloadUrlRule()
+        if (downloadUrlRule.isNullOrBlank()) {
+            error("下载地址规则未配置")
+        }
+        val analyzeUrl = AnalyzeUrl(url)
+        val res = analyzeUrl.upload(fileName, byteArray, "application/json")
         val analyzeRule = AnalyzeRule(RuleData()).setContent(res.body, res.url)
-        return analyzeRule.getString("tag.b@text")
+        val downloadUrl = analyzeRule.getString(downloadUrlRule)
+        if (downloadUrl.isBlank()) {
+            error("上传失败")
+        }
+        return downloadUrl
     }
 
     fun getUploadUrl(): String? {
         return CacheManager.get(uploadUrlKey)
+            ?: """http://shuyuan.miaogongzi.site:6564/shuyuan,{
+            "method":"POST",
+            "body": {
+                "file": "fileRequest"
+            },
+            "type": "multipart/form-data"
+          }""".trimMargin()
     }
 
     fun putUploadUrl(url: String) {
@@ -30,6 +45,10 @@ object DirectLinkUpload {
 
     fun getDownloadUrlRule(): String? {
         return CacheManager.get(uploadUrlKey)
+            ?: """
+                ${'$'}.data@js:if (result == '') '' 
+                else 'https://shuyuan.miaogongzi.site/shuyuan/'+result
+            """.trimIndent()
     }
 
     fun putDownloadUrlRule(rule: String) {

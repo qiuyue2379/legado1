@@ -86,6 +86,10 @@ fun ResponseBody.text(encode: String? = null): String {
 
 fun Request.Builder.addHeaders(headers: Map<String, String>) {
     headers.forEach {
+        if (it.key == AppConst.UA_NAME) {
+            //防止userAgent重复
+            removeHeader(AppConst.UA_NAME)
+        }
         addHeader(it.key, it.value)
     }
 }
@@ -114,15 +118,17 @@ fun Request.Builder.postForm(form: Map<String, String>, encoded: Boolean = false
     post(formBody.build())
 }
 
-fun Request.Builder.postMultipart(form: Map<String, Any>) {
+fun Request.Builder.postMultipart(type: String?, form: Map<String, Any>) {
     val multipartBody = MultipartBody.Builder()
+    type?.let {
+        multipartBody.setType(type.toMediaType())
+    }
     form.forEach {
-        when (it.value) {
-            is Triple<*, *, *> -> {
-                val triple = it.value as Triple<*, *, *>
-                val fileName = triple.first!!.toString()
-                val file = triple.second as ByteArray
-                val mediaType = triple.third?.toString()?.toMediaType()
+        when (val value = it.value) {
+            is Map<*, *> -> {
+                val fileName = value["fileName"] as String
+                val file = value["file"] as ByteArray
+                val mediaType = (value["contentType"] as? String)?.toMediaType()
                 val requestBody = file.toRequestBody(mediaType)
                 multipartBody.addFormDataPart(it.key, fileName, requestBody)
             }

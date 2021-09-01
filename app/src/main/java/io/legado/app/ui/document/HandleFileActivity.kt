@@ -6,37 +6,42 @@ import android.os.Build
 import android.os.Bundle
 import android.webkit.MimeTypeMap
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import io.legado.app.R
-import io.legado.app.base.BaseActivity
+import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.Theme
 import io.legado.app.databinding.ActivityTranslucenceBinding
+import io.legado.app.help.IntentDataHelp
 import io.legado.app.lib.dialogs.SelectItem
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.permission.Permissions
 import io.legado.app.lib.permission.PermissionsCompat
 import io.legado.app.utils.isContentScheme
+import io.legado.app.utils.toastOnUi
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import java.io.File
 
 class HandleFileActivity :
-    BaseActivity<ActivityTranslucenceBinding>(
+    VMBaseActivity<ActivityTranslucenceBinding, HandleFileViewModel>(
         theme = Theme.Transparent
     ), FilePickerDialog.CallBack {
 
     override val binding by viewBinding(ActivityTranslucenceBinding::inflate)
+    override val viewModel by viewModels<HandleFileViewModel>()
+    private var mode = 0
 
     private val selectDocTree =
-        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) {
-            it ?: let {
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            uri ?: let {
                 finish()
                 return@registerForActivityResult
             }
-            if (it.isContentScheme()) {
+            if (uri.isContentScheme()) {
                 val modeFlags =
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                contentResolver.takePersistableUriPermission(it, modeFlags)
+                contentResolver.takePersistableUriPermission(uri, modeFlags)
             }
-            onResult(Intent().setData(it))
+            onResult(Intent().setData(uri))
         }
 
     private val selectDoc = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
@@ -45,27 +50,20 @@ class HandleFileActivity :
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        val mode = intent.getIntExtra("mode", 0)
+        mode = intent.getIntExtra("mode", 0)
+        viewModel.errorLiveData.observe(this) {
+            toastOnUi(it)
+            finish()
+        }
         val allowExtensions = intent.getStringArrayExtra("allowExtensions")
         val selectList = when (mode) {
-            HandleFileContract.DIR -> arrayListOf(
-                SelectItem(getString(R.string.sys_folder_picker), HandleFileContract.DIR)
-            ).apply {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                    add(SelectItem(getString(R.string.app_folder_picker), 10))
-                }
-            }
-            HandleFileContract.FILE -> arrayListOf(
-                SelectItem(getString(R.string.sys_file_picker), HandleFileContract.FILE)
-            ).apply {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                    add(SelectItem(getString(R.string.app_folder_picker), 11))
-                }
-            }
+            HandleFileContract.DIR -> getDirActions()
+            HandleFileContract.FILE -> getFileActions()
             HandleFileContract.EXPORT -> arrayListOf(
-                SelectItem(getString(R.string.upload_url), 111),
-                SelectItem(getString(R.string.sys_folder_picker), HandleFileContract.DIR)
-            )
+                SelectItem(getString(R.string.upload_url), 111)
+            ).apply {
+                addAll(getDirActions())
+            }
             else -> arrayListOf()
         }
         intent.getParcelableArrayListExtra<SelectItem>("otherActions")?.let {
@@ -73,12 +71,9 @@ class HandleFileActivity :
         }
         val title = intent.getStringExtra("title") ?: let {
             when (mode) {
-                HandleFileContract.DIR -> {
-                    return@let getString(R.string.select_folder)
-                }
-                else -> {
-                    return@let getString(R.string.select_file)
-                }
+                HandleFileContract.EXPORT -> return@let getString(R.string.export)
+                HandleFileContract.DIR -> return@let getString(R.string.select_folder)
+                else -> return@let getString(R.string.select_file)
             }
         }
         alert(title) {
@@ -99,6 +94,13 @@ class HandleFileActivity :
                             allowExtensions = allowExtensions
                         )
                     }
+                    111 -> getFileData()?.let {
+                        viewModel.upload(it.first, it.second) { url ->
+                            val uri = Uri.parse(url)
+                            setResult(RESULT_OK, Intent().setData(uri))
+                            finish()
+                        }
+                    }
                     else -> {
                         val path = item.title
                         val uri = if (path.isContentScheme()) {
@@ -114,6 +116,39 @@ class HandleFileActivity :
                 finish()
             }
         }.show()
+    }
+
+    private fun getFileData(): Pair<String, ByteArray>? {
+        val fileName = intent.getStringExtra("fileName")
+        val file = intent.getStringExtra("fileKey")?.let {
+            IntentDataHelp.getData<ByteArray>(it)
+        }
+        if (fileName != null && file != null) {
+            return Pair(fileName, file)
+        }
+        return null
+    }
+
+    private fun getDirActions(): ArrayList<SelectItem> {
+        return if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            arrayListOf(
+                SelectItem(getString(R.string.sys_folder_picker), HandleFileContract.DIR),
+                SelectItem(getString(R.string.app_folder_picker), 10)
+            )
+        } else {
+            arrayListOf(SelectItem(getString(R.string.sys_folder_picker), HandleFileContract.DIR))
+        }
+    }
+
+    private fun getFileActions(): ArrayList<SelectItem> {
+        return if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            arrayListOf(
+                SelectItem(getString(R.string.sys_file_picker), HandleFileContract.FILE),
+                SelectItem(getString(R.string.app_file_picker), 11)
+            )
+        } else {
+            arrayListOf(SelectItem(getString(R.string.sys_file_picker), HandleFileContract.FILE))
+        }
     }
 
     private fun checkPermissions(success: (() -> Unit)? = null) {
@@ -148,10 +183,22 @@ class HandleFileActivity :
     }
 
     override fun onResult(data: Intent) {
-        if (data.data != null) {
-            setResult(RESULT_OK, data)
+        val uri = data.data
+        uri ?: let {
+            finish()
+            return
         }
-        finish()
+        if (mode == HandleFileContract.EXPORT) {
+            getFileData()?.let { fileData ->
+                viewModel.saveToLocal(uri, fileData.first, fileData.second) { savedUri ->
+                    setResult(RESULT_OK, Intent().setData(savedUri))
+                    finish()
+                }
+            }
+        } else {
+            setResult(RESULT_OK, data)
+            finish()
+        }
     }
 
 }
