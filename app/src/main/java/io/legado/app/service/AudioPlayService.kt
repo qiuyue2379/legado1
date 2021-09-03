@@ -14,7 +14,6 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.media.AudioFocusRequestCompat
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -25,6 +24,7 @@ import io.legado.app.constant.EventBus
 import io.legado.app.constant.IntentAction
 import io.legado.app.constant.Status
 import io.legado.app.data.appDb
+import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.ExoPlayerHelper
 import io.legado.app.help.IntentHelp
@@ -49,16 +49,16 @@ class AudioPlayService : BaseService(),
         var isRun = false
         var pause = false
         var timeMinute: Int = 0
+        var url: String = ""
     }
 
     private lateinit var audioManager: AudioManager
     private lateinit var mFocusRequest: AudioFocusRequestCompat
-    private lateinit var exoPlayer: ExoPlayer
+    private lateinit var exoPlayer: SimpleExoPlayer
     private var title: String = ""
     private var subtitle: String = ""
     private var mediaSessionCompat: MediaSessionCompat? = null
     private var broadcastReceiver: BroadcastReceiver? = null
-    private var url: String = ""
     private var position = 0
     private var dsJob: Job? = null
     private var upPlayProgressJob: Job? = null
@@ -135,6 +135,7 @@ class AudioPlayService : BaseService(),
                 exoPlayer.setMediaSource(mediaSource)
                 exoPlayer.playWhenReady = true
                 exoPlayer.prepare()
+                exoPlayer.seekTo(position.toLong())
             }.onFailure {
                 it.printStackTrace()
                 toastOnUi("$url ${it.localizedMessage}")
@@ -144,21 +145,17 @@ class AudioPlayService : BaseService(),
     }
 
     private fun pause(pause: Boolean) {
-        if (url.contains(".m3u8", false)) {
-            stopSelf()
-        } else {
-            try {
-                AudioPlayService.pause = pause
-                upPlayProgressJob?.cancel()
-                position = exoPlayer.currentPosition.toInt()
-                if (exoPlayer.isPlaying) exoPlayer.pause()
-                upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED)
-                AudioPlay.status = Status.PAUSE
-                postEvent(EventBus.AUDIO_STATE, Status.PAUSE)
-                upNotification()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        try {
+            AudioPlayService.pause = pause
+            upPlayProgressJob?.cancel()
+            position = exoPlayer.currentPosition.toInt()
+            if (exoPlayer.isPlaying) exoPlayer.pause()
+            upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED)
+            AudioPlay.status = Status.PAUSE
+            postEvent(EventBus.AUDIO_STATE, Status.PAUSE)
+            upNotification()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -167,7 +164,6 @@ class AudioPlayService : BaseService(),
             pause = false
             if (!exoPlayer.isPlaying) {
                 exoPlayer.play()
-                exoPlayer.seekTo(position.toLong())
             }
             upPlayProgress()
             upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
@@ -181,11 +177,7 @@ class AudioPlayService : BaseService(),
     }
 
     private fun adjustProgress(position: Int) {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.seekTo(position.toLong())
-        } else {
-            this.position = position
-        }
+        exoPlayer.seekTo(position.toLong())
     }
 
     private fun upSpeed(adjust: Float) {
@@ -209,8 +201,13 @@ class AudioPlayService : BaseService(),
             }
             Player.STATE_READY -> {
                 // 准备好
-                AudioPlay.status = Status.PLAY
-                postEvent(EventBus.AUDIO_STATE, Status.PLAY)
+                if (exoPlayer.playWhenReady) {
+                    AudioPlay.status = Status.PLAY
+                    postEvent(EventBus.AUDIO_STATE, Status.PLAY)
+                } else {
+                    AudioPlay.status = Status.PAUSE
+                    postEvent(EventBus.AUDIO_STATE, Status.PAUSE)
+                }
                 postEvent(EventBus.AUDIO_SIZE, exoPlayer.duration)
                 upPlayProgress()
                 AudioPlay.saveDurChapter(exoPlayer.duration)
@@ -281,8 +278,11 @@ class AudioPlayService : BaseService(),
         upPlayProgressJob?.cancel()
         upPlayProgressJob = launch {
             while (isActive) {
-                saveProgress()
-                postEvent(EventBus.AUDIO_PROGRESS, exoPlayer.currentPosition)
+                AudioPlay.book?.let {
+                    it.durChapterPos = exoPlayer.currentPosition.toInt()
+                    postEvent(EventBus.AUDIO_PROGRESS, it.durChapterPos)
+                    saveProgress(it)
+                }
                 delay(1000)
             }
         }
@@ -290,7 +290,7 @@ class AudioPlayService : BaseService(),
 
     private fun loadContent() = with(AudioPlay) {
         durChapter?.let { chapter ->
-            if (addLoading(durChapterIndex)) {
+            if (addLoading(chapter.index)) {
                 val book = AudioPlay.book
                 val bookSource = AudioPlay.bookSource
                 if (book != null && bookSource != null) {
@@ -334,19 +334,16 @@ class AudioPlayService : BaseService(),
      * 加载完成
      */
     private fun contentLoadFinish(chapter: BookChapter, content: String) {
-        if (chapter.index == AudioPlay.durChapterIndex) {
+        if (chapter.index == AudioPlay.book?.durChapterIndex) {
             subtitle = chapter.title
             url = content
             play()
         }
     }
 
-    private fun saveProgress() {
+    private fun saveProgress(book: Book) {
         execute {
-            AudioPlay.book?.let {
-                AudioPlay.durChapterPos = exoPlayer.currentPosition.toInt()
-                appDb.bookDao.upProgress(it.bookUrl, AudioPlay.durChapterPos)
-            }
+            appDb.bookDao.upProgress(book.bookUrl, book.durChapterPos)
         }
     }
 
