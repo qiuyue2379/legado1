@@ -652,6 +652,10 @@ class AnalyzeRule(
         return SCRIPT_ENGINE.eval(jsStr, bindings)
     }
 
+    override fun getSource(): BaseSource? {
+        return source
+    }
+
     /**
      * js实现跨域访问,不能删
      */
@@ -659,7 +663,7 @@ class AnalyzeRule(
         return runBlocking {
             kotlin.runCatching {
                 val analyzeUrl = AnalyzeUrl(urlStr, book = book, source = source)
-                analyzeUrl.getStrResponse(urlStr).body
+                analyzeUrl.getStrResponse().body
             }.onFailure {
                 it.printStackTrace()
             }.getOrElse {

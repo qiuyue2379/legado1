@@ -20,9 +20,10 @@ data class RssSource(
     var sourceGroup: String? = null,
     var sourceComment: String? = null,
     var enabled: Boolean = true,
+    override var concurrentRate: String? = null,    //并发率
     override var header: String? = null,            // 请求头
-    override var loginUrl: String? = null,                // 登录地址
-    var loginUi: List<RowUi>? = null,             //登录UI
+    override var loginUrl: String? = null,          // 登录地址
+    var loginUi: List<RowUi>? = null,               //登录UI
     var loginCheckJs: String? = null,               //登录检测js
     var sortUrl: String? = null,
     var singleUrl: Boolean = false,
@@ -46,6 +47,10 @@ data class RssSource(
 
     override fun getStoreUrl(): String {
         return sourceUrl
+    }
+
+    override fun getSource(): BaseSource {
+        return this
     }
 
     override fun equals(other: Any?): Boolean {
