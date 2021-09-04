@@ -30,7 +30,7 @@ import io.legado.app.lib.theme.accentColor
 import io.legado.app.model.ReadBook
 import io.legado.app.receiver.TimeBatteryReceiver
 import io.legado.app.service.BaseReadAloudService
-import io.legado.app.service.help.ReadAloud
+import io.legado.app.model.ReadAloud
 import io.legado.app.ui.book.changesource.ChangeSourceDialog
 import io.legado.app.ui.book.info.BookInfoActivity
 import io.legado.app.ui.book.read.config.*

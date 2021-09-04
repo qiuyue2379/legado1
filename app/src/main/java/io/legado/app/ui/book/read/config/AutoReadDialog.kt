@@ -11,7 +11,7 @@ import io.legado.app.help.ReadBookConfig
 import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.lib.theme.getPrimaryTextColor
 import io.legado.app.service.BaseReadAloudService
-import io.legado.app.service.help.ReadAloud
+import io.legado.app.model.ReadAloud
 import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.book.read.ReadBookBaseActivity
 import io.legado.app.ui.widget.seekbar.SeekBarChangeListener
