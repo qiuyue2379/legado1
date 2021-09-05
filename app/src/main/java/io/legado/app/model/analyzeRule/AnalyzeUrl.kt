@@ -15,7 +15,6 @@ import io.legado.app.help.CacheManager
 import io.legado.app.help.JsExtensions
 import io.legado.app.help.http.*
 import io.legado.app.utils.*
-import kotlinx.coroutines.delay
 import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
@@ -26,6 +25,7 @@ import kotlin.collections.HashMap
  * Created by GKF on 2018/1/24.
  * 搜索URL规则解析
  */
+@Suppress("unused")
 @Keep
 @SuppressLint("DefaultLocale")
 class AnalyzeUrl(
@@ -268,7 +268,7 @@ class AnalyzeUrl(
     /**
      * 根据书源并发率等待
      */
-    private suspend fun concurrentWait() {
+    private fun judgmentConcurrent() {
         source ?: return
         val concurrentRate = source.concurrentRate
         if (concurrentRate.isNullOrEmpty()) {
@@ -311,10 +311,13 @@ class AnalyzeUrl(
             }
         }
         if (waitTime > 0) {
-            delay(waitTime)
+            error("根据并发率还需等待${waitTime}毫秒才可以访问")
         }
     }
 
+    /**
+     * 访问网站,返回StrResponse
+     */
     suspend fun getStrResponse(
         jsStr: String? = null,
         sourceRegex: String? = null,
@@ -322,7 +325,7 @@ class AnalyzeUrl(
         if (type != null) {
             return StrResponse(url, StringUtils.byteToHexString(getByteArray()))
         }
-        concurrentWait()
+        judgmentConcurrent()
         setCookie(source?.getStoreUrl())
         if (useWebView) {
             val params = AjaxWebView.AjaxParams(url)
@@ -350,8 +353,11 @@ class AnalyzeUrl(
         }
     }
 
+    /**
+     * 访问网站,返回ByteArray
+     */
     suspend fun getByteArray(): ByteArray {
-        concurrentWait()
+        judgmentConcurrent()
         setCookie(source?.getStoreUrl())
         @Suppress("BlockingMethodInNonBlockingContext")
         return getProxyClient(proxy).newCall(retry) {
@@ -370,6 +376,9 @@ class AnalyzeUrl(
         }.bytes()
     }
 
+    /**
+     * 上传文件
+     */
     suspend fun upload(fileName: String, file: ByteArray, contentType: String): StrResponse {
         return getProxyClient(proxy).newCallStrResponse(retry) {
             url(url)
@@ -408,6 +417,10 @@ class AnalyzeUrl(
             headers.addHeader(key, value)
         }
         return GlideUrl(urlHasQuery, headers.build())
+    }
+
+    fun getUserAgent(): String {
+        return headerMap[UA_NAME] ?: AppConfig.userAgent
     }
 
     override fun getSource(): BaseSource? {

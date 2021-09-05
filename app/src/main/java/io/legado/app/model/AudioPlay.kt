@@ -29,6 +29,9 @@ object AudioPlay {
         return bookSource?.getHeaderMap()
     }
 
+    /**
+     * 播放当前章节
+     */
     fun play(context: Context) {
         book?.let {
             if (durChapter == null) {
@@ -37,12 +40,14 @@ object AudioPlay {
             durChapter?.let {
                 context.startService<AudioPlayService> {
                     action = IntentAction.play
-
                 }
             }
         }
     }
 
+    /**
+     * 更新当前章节
+     */
     fun upDurChapter(book: Book) {
         durChapter = appDb.bookChapterDao.getChapter(book.bookUrl, book.durChapterIndex)
         postEvent(EventBus.AUDIO_SUB_TITLE, durChapter?.title ?: "")
@@ -149,11 +154,14 @@ object AudioPlay {
         }
     }
 
+    /**
+     * 保存章节长度
+     */
     fun saveDurChapter(audioSize: Long) {
         Coroutine.async {
             durChapter?.let {
                 it.end = audioSize
-                appDb.bookChapterDao.insert(it)
+                appDb.bookChapterDao.upDate(it)
             }
         }
     }
