@@ -1,4 +1,4 @@
-package io.legado.app.help
+package io.legado.app.help.exoplayer
 
 import android.net.Uri
 import com.google.android.exoplayer2.MediaItem
@@ -18,15 +18,13 @@ object ExoPlayerHelper {
 
     fun createMediaSource(
         uri: Uri,
-        defaultRequestProperties: Map<String, String>,
-        overrideExtension: String? = null
+        defaultRequestProperties: Map<String, String>
     ): MediaSource {
         val mediaItem = MediaItem.fromUri(uri)
         val mediaSourceFactory = ProgressiveMediaSource.Factory(
             cacheDataSourceFactory.setDefaultRequestProperties(defaultRequestProperties)
         )
         return mediaSourceFactory.createMediaSource(mediaItem)
-
     }
 
 
@@ -38,7 +36,6 @@ object ExoPlayerHelper {
         return@lazy OkhttpCacheDataSource.Factory()
             .setCache(cache)
             .setUpstreamDataSourceFactory(okhttpDataFactory)
-
     }
 
     /**
@@ -46,7 +43,6 @@ object ExoPlayerHelper {
      */
     private val okhttpDataFactory by lazy {
         OkHttpDataSource.Factory(okHttpClient)
-
     }
 
     /**
@@ -61,8 +57,7 @@ object ExoPlayerHelper {
             LeastRecentlyUsedCacheEvictor((100 * 1024 * 1024).toLong()),
             //记录缓存的数据库
             databaseProvider
-        );
-
+        )
     }
 
 }

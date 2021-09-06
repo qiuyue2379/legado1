@@ -192,6 +192,7 @@ object ReadBook : CoroutineScope by MainScope() {
         }
         upReadStartTime()
         preDownload()
+        ImageProvider.clearOut(durChapterIndex)
     }
 
     /**
@@ -295,7 +296,7 @@ object ReadBook : CoroutineScope by MainScope() {
         val book = book
         val bookSource = bookSource
         if (book != null && bookSource != null) {
-            CacheBook.get(bookSource, book).download(scope, chapter)
+            CacheBook.getOrCreate(bookSource, book).download(scope, chapter)
         } else if (book != null) {
             contentLoadFinish(
                 book, chapter, "没有书源", resetPageOffset = resetPageOffset
@@ -334,7 +335,6 @@ object ReadBook : CoroutineScope by MainScope() {
         success: (() -> Unit)? = null
     ) {
         Coroutine.async {
-            ImageProvider.clearOut(durChapterIndex)
             if (chapter.index in durChapterIndex - 1..durChapterIndex + 1) {
                 chapter.title = when (AppConfig.chineseConverterType) {
                     1 -> ChineseUtils.t2s(chapter.title)
