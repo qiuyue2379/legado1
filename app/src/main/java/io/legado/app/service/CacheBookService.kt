@@ -9,6 +9,8 @@ import io.legado.app.constant.EventBus
 import io.legado.app.constant.IntentAction
 import io.legado.app.help.AppConfig
 import io.legado.app.model.CacheBook
+import io.legado.app.ui.book.cache.CacheActivity
+import io.legado.app.utils.activityPendingIntent
 import io.legado.app.utils.postEvent
 import io.legado.app.utils.servicePendingIntent
 import kotlinx.coroutines.*
@@ -19,7 +21,7 @@ import kotlin.math.min
 class CacheBookService : BaseService() {
     private val threadCount = AppConfig.threadCount
     private var cachePool =
-        Executors.newFixedThreadPool(min(threadCount, 8)).asCoroutineDispatcher()
+        Executors.newFixedThreadPool(min(threadCount, AppConst.MAX_THREAD)).asCoroutineDispatcher()
     private var downloadJob: Job? = null
 
     private var notificationContent = appCtx.getString(R.string.starting_download)
@@ -29,6 +31,7 @@ class CacheBookService : BaseService() {
             .setSmallIcon(R.drawable.ic_download)
             .setOngoing(true)
             .setContentTitle(getString(R.string.offline_cache))
+            .setContentIntent(activityPendingIntent<CacheActivity>("cacheActivity"))
         builder.addAction(
             R.drawable.ic_stop_black_24dp,
             getString(R.string.cancel),
@@ -108,7 +111,7 @@ class CacheBookService : BaseService() {
 
     private fun upNotificationContent() {
         notificationContent =
-            "正在下载:${CacheBook.onDownloadCount}/等待中:${CacheBook.waitDownloadCount}/成功:${CacheBook.successDownloadCount}"
+            "正在下载:${CacheBook.onDownloadCount}|等待中:${CacheBook.waitDownloadCount}|失败:${CacheBook.errorCount}|成功:${CacheBook.successDownloadCount}"
         upNotification()
     }
 
