@@ -11,12 +11,17 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.activityViewModels
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
+import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.DialogLoginBinding
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.widget.text.EditText
 import io.legado.app.ui.widget.text.TextInputLayout
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import splitties.views.onClick
 
 class RuleUiLoginDialog : BaseDialogFragment() {
@@ -101,23 +106,34 @@ class RuleUiLoginDialog : BaseDialogFragment() {
                             }
                         }
                     }
-                    if (loginData.isEmpty()) {
-                        bookSource.removeLoginInfo()
-                        return@setOnMenuItemClickListener true
-                    }
-                    bookSource.putLoginInfo(GSON.toJson(loginData))
-                    bookSource.getLoginJs()?.let {
-                        try {
-                            bookSource.evalJS(it)
-                            toastOnUi(R.string.success)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            toastOnUi(e.localizedMessage ?: "ERROR")
-                        }
-                    }
+                    login(bookSource, loginData)
                 }
             }
             return@setOnMenuItemClickListener true
+        }
+    }
+
+    private fun login(bookSource: BookSource, loginData: HashMap<String, String>) {
+        launch(IO) {
+            if (loginData.isEmpty()) {
+                bookSource.removeLoginInfo()
+                withContext(Main) {
+                    dismiss()
+                }
+            } else if (bookSource.putLoginInfo(GSON.toJson(loginData))) {
+                bookSource.getLoginJs()?.let {
+                    try {
+                        bookSource.evalJS(it)
+                        toastOnUi(R.string.success)
+                        withContext(Main) {
+                            dismiss()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        toastOnUi("error:${e.localizedMessage}")
+                    }
+                }
+            }
         }
     }
 
