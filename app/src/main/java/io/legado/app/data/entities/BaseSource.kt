@@ -2,6 +2,7 @@ package io.legado.app.data.entities
 
 import android.util.Base64
 import io.legado.app.constant.AppConst
+import io.legado.app.data.entities.rule.RowUi
 import io.legado.app.help.AppConfig
 import io.legado.app.help.CacheManager
 import io.legado.app.help.JsExtensions
@@ -19,7 +20,10 @@ interface BaseSource : JsExtensions {
 
     var concurrentRate: String? // 并发率
     var loginUrl: String?       // 登录地址
+    var loginUi: List<RowUi>?   // 登录UI
     var header: String?         // 请求头
+
+    fun getName(): String
 
     fun getStoreUrl(): String
 
@@ -118,6 +122,18 @@ interface BaseSource : JsExtensions {
 
     fun removeLoginInfo() {
         CacheManager.delete("userInfo_${getStoreUrl()}")
+    }
+
+    fun setVariable(variable: String?) {
+        if (variable != null) {
+            CacheManager.put("sourceVariable_${getStoreUrl()}", variable)
+        } else {
+            CacheManager.delete("sourceVariable_${getStoreUrl()}")
+        }
+    }
+
+    fun getVariable(): String? {
+        return CacheManager.get("sourceVariable_${getStoreUrl()}")
     }
 
     /**

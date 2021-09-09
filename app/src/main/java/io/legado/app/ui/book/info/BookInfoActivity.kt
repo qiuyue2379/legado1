@@ -21,6 +21,7 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.databinding.ActivityBookInfoBinding
+import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.help.BlurTransformation
 import io.legado.app.help.glide.ImageLoader
 import io.legado.app.lib.dialogs.alert
@@ -84,7 +85,7 @@ class BookInfoActivity :
         }
     }
     private val infoEditResult = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        StartActivityForResult(BookInfoEditActivity::class.java)
     ) {
         if (it.resultCode == RESULT_OK) {
             viewModel.upEditBook()
@@ -119,6 +120,10 @@ class BookInfoActivity :
             viewModel.bookData.value?.canUpdate ?: true
         menu.findItem(R.id.menu_login)?.isVisible =
             !viewModel.bookSource?.loginUrl.isNullOrBlank()
+        menu.findItem(R.id.menu_set_source_variable)?.isVisible =
+            viewModel.bookSource != null
+        menu.findItem(R.id.menu_set_book_variable)?.isVisible =
+            viewModel.bookSource != null
         return super.onMenuOpened(featureId, menu)
     }
 
@@ -127,10 +132,9 @@ class BookInfoActivity :
             R.id.menu_edit -> {
                 if (viewModel.inBookshelf) {
                     viewModel.bookData.value?.let {
-                        infoEditResult.launch(
-                            Intent(this, BookInfoEditActivity::class.java)
-                                .putExtra("bookUrl", it.bookUrl)
-                        )
+                        infoEditResult.launch {
+                            putExtra("bookUrl", it.bookUrl)
+                        }
                     }
                 } else {
                     toastOnUi(R.string.after_add_bookshelf)
@@ -158,6 +162,8 @@ class BookInfoActivity :
                 }
             }
             R.id.menu_top -> viewModel.topBook()
+            R.id.menu_set_source_variable -> setSourceVariable()
+            R.id.menu_set_book_variable -> setBookVariable()
             R.id.menu_copy_book_url -> viewModel.bookData.value?.bookUrl?.let {
                 sendToClip(it)
             } ?: toastOnUi(R.string.no_book)
@@ -307,6 +313,52 @@ class BookInfoActivity :
             startActivity<SearchActivity> {
                 putExtra("key", viewModel.bookData.value?.name)
             }
+        }
+    }
+
+    private fun setSourceVariable() {
+        launch {
+            val variable = withContext(IO) { viewModel.bookSource?.getVariable() }
+            alert(R.string.set_source_variable) {
+                setMessage("源变量可在js中通过source.getVariable()获取")
+                val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                    editView.hint = "source variable"
+                    editView.setText(variable)
+                }
+                customView { alertBinding.root }
+                okButton {
+                    viewModel.bookSource?.setVariable(alertBinding.editView.text?.toString())
+                }
+                cancelButton()
+                neutralButton(R.string.delete) {
+                    viewModel.bookSource?.setVariable(null)
+                }
+            }.show()
+        }
+    }
+
+    private fun setBookVariable() {
+        launch {
+            val variable = withContext(IO) { viewModel.bookData.value?.getVariable("custom") }
+            alert(R.string.set_source_variable) {
+                setMessage("""书籍变量可在js中通过book.getVariable("custom")获取""")
+                val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
+                    editView.hint = "book variable"
+                    editView.setText(variable)
+                }
+                customView { alertBinding.root }
+                okButton {
+                    viewModel.bookData.value
+                        ?.putVariable("custom", alertBinding.editView.text?.toString())
+                    viewModel.saveBook()
+                }
+                cancelButton()
+                neutralButton(R.string.delete) {
+                    viewModel.bookData.value
+                        ?.putVariable("custom", null)
+                    viewModel.saveBook()
+                }
+            }.show()
         }
     }
 
