@@ -190,7 +190,7 @@ class AboutFragment : PreferenceFragmentCompat() {
 
                                 Looper.loop()
                             }.onFailure {
-                                it.printStackTrace()
+                                it.printOnDebug()
                             }
                         }
                     }

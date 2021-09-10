@@ -56,7 +56,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             }
         }.onError {
             finally(it.localizedMessage ?: "ERROR")
-            it.printStackTrace()
+            it.printOnDebug()
         }.onSuccess {
             finally(context.getString(R.string.success))
         }
@@ -148,7 +148,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                         useReplace = useReplace,
                         chineseConvert = false,
                         reSegment = false
-                ).joinToString("\n")
+                    ).joinToString("\n")
                 append.invoke("\n\n$content1")
             }
         }
@@ -187,7 +187,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             }
         }.onError {
             finally(it.localizedMessage ?: "ERROR")
-            it.printStackTrace()
+            it.printOnDebug()
         }.onSuccess {
             finally(context.getString(R.string.success))
         }
