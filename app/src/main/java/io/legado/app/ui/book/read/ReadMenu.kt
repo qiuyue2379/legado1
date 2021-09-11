@@ -32,6 +32,7 @@ class ReadMenu @JvmOverloads constructor(
 ) : FrameLayout(context, attrs) {
     var cnaShowMenu: Boolean = false
     private val callBack: CallBack get() = activity as CallBack
+
     private val binding = ViewReadMenuBinding.inflate(LayoutInflater.from(context), this, true)
     private lateinit var menuTopIn: Animation
     private lateinit var menuTopOut: Animation

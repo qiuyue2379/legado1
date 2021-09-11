@@ -45,10 +45,10 @@ class HttpReadAloudService : BaseReadAloudService(),
         player.release()
     }
 
-    override fun newReadAloud(dataKey: String?, play: Boolean) {
+    override fun newReadAloud(play: Boolean) {
         player.reset()
         playingIndex = -1
-        super.newReadAloud(dataKey, play)
+        super.newReadAloud(play)
     }
 
     override fun play() {
