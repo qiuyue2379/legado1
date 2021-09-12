@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <io.legado.app.ui.widget.image.CoverImageView
+            <io.qiuyue.app.ui.widget.image.CoverImageView
                 android:id="@+id/iv_cover"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 tools:ignore="UnusedAttribute,ImageContrastCheck"
                 tools:layout_editor_absoluteX="8dp" />
 
-            <io.legado.app.ui.widget.text.BadgeView
+            <io.qiuyue.app.ui.widget.text.BadgeView
                 android:id="@+id/bv_unread"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="RtlHardcoded" />
 
-            <io.legado.app.ui.widget.anima.RotateLoading
+            <io.qiuyue.app.ui.widget.anima.RotateLoading
                 android:id="@+id/rl_loading"
                 android:layout_width="22dp"
                 android:layout_height="22dp"

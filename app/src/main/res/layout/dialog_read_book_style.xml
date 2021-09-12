@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.5" />
 
-        <io.legado.app.ui.book.read.config.TextFontWeightConverter
+        <io.qiuyue.app.ui.book.read.config.TextFontWeightConverter
             android:id="@+id/text_font_weight_converter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <io.legado.app.ui.widget.text.StrokeTextView
+        <io.qiuyue.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_text_font"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <io.legado.app.ui.widget.text.StrokeTextView
+        <io.qiuyue.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_text_indent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <io.legado.app.ui.book.read.config.ChineseConverter
+        <io.qiuyue.app.ui.book.read.config.ChineseConverter
             android:id="@+id/chinese_converter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <io.legado.app.ui.widget.text.StrokeTextView
+        <io.qiuyue.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_padding"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -113,7 +113,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <io.legado.app.ui.widget.text.StrokeTextView
+        <io.qiuyue.app.ui.widget.text.StrokeTextView
             android:id="@+id/tv_tip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -134,7 +134,7 @@
 
     </LinearLayout>
 
-    <io.legado.app.ui.widget.DetailSeekBar
+    <io.qiuyue.app.ui.widget.DetailSeekBar
         android:id="@+id/dsb_text_size"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -145,7 +145,7 @@
         app:max="45"
         app:title="@string/text_size" />
 
-    <io.legado.app.ui.widget.DetailSeekBar
+    <io.qiuyue.app.ui.widget.DetailSeekBar
         android:id="@+id/dsb_text_letter_spacing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -155,7 +155,7 @@
         app:max="100"
         app:title="@string/text_letter_spacing" />
 
-    <io.legado.app.ui.widget.DetailSeekBar
+    <io.qiuyue.app.ui.widget.DetailSeekBar
         android:id="@+id/dsb_line_size"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -165,7 +165,7 @@
         app:max="20"
         app:title="@string/line_size" />
 
-    <io.legado.app.ui.widget.DetailSeekBar
+    <io.qiuyue.app.ui.widget.DetailSeekBar
         android:id="@+id/dsb_paragraph_spacing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -200,7 +200,7 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <io.legado.app.lib.theme.view.ATERadioNoButton
+        <io.qiuyue.app.lib.theme.view.ATERadioNoButton
             android:id="@+id/rb_anim0"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -213,7 +213,7 @@
             android:text="@string/page_anim_cover"
             app:isBottomBackground="true" />
 
-        <io.legado.app.lib.theme.view.ATERadioNoButton
+        <io.qiuyue.app.lib.theme.view.ATERadioNoButton
             android:id="@+id/rb_anim1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -226,7 +226,7 @@
             android:text="@string/page_anim_slide"
             app:isBottomBackground="true" />
 
-        <io.legado.app.lib.theme.view.ATERadioNoButton
+        <io.qiuyue.app.lib.theme.view.ATERadioNoButton
             android:id="@+id/rb_simulation_anim"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -239,7 +239,7 @@
             android:text="@string/page_anim_simulation"
             app:isBottomBackground="true" />
 
-        <io.legado.app.lib.theme.view.ATERadioNoButton
+        <io.qiuyue.app.lib.theme.view.ATERadioNoButton
             android:id="@+id/rb_scroll_anim"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -252,7 +252,7 @@
             android:text="@string/page_anim_scroll"
             app:isBottomBackground="true" />
 
-        <io.legado.app.lib.theme.view.ATERadioNoButton
+        <io.qiuyue.app.lib.theme.view.ATERadioNoButton
             android:id="@+id/rb_no_anim"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -296,7 +296,7 @@
             android:layout_height="wrap_content"
             android:text="@string/share_layout" />
 
-        <io.legado.app.ui.widget.checkbox.SmoothCheckBox
+        <io.qiuyue.app.ui.widget.checkbox.SmoothCheckBox
             android:id="@+id/cb_share_layout"
             android:layout_width="20dp"
             android:layout_height="20dp"

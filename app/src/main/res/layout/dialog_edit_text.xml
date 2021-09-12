@@ -7,7 +7,7 @@
     android:paddingLeft="16dp"
     android:paddingRight="16dp">
 
-    <io.legado.app.ui.widget.text.AutoCompleteTextView
+    <io.qiuyue.app.ui.widget.text.AutoCompleteTextView
         android:id="@+id/edit_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

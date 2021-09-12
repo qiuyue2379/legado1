@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <io.legado.app.ui.widget.TitleBar
+    <io.qiuyue.app.ui.widget.TitleBar
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -13,13 +13,13 @@
         app:contentInsetRight="24dp"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <io.legado.app.ui.widget.anima.RefreshProgressBar
+    <io.qiuyue.app.ui.widget.anima.RefreshProgressBar
         android:id="@+id/refresh_progress_bar"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         app:layout_constraintTop_toBottomOf="@id/title_bar" />
 
-    <io.legado.app.ui.widget.recycler.scroller.FastScrollRecyclerView
+    <io.qiuyue.app.ui.widget.recycler.scroller.FastScrollRecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"

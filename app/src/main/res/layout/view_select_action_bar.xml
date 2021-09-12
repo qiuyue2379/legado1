@@ -13,7 +13,7 @@
     android:paddingBottom="6dp"
     tools:ignore="RtlHardcoded">
 
-    <io.legado.app.lib.theme.view.ATECheckBox
+    <io.qiuyue.app.lib.theme.view.ATECheckBox
         android:id="@+id/cb_selected_all"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -21,7 +21,7 @@
         android:padding="5dp"
         android:text="@string/select_all" />
 
-    <io.legado.app.ui.widget.text.AccentStrokeTextView
+    <io.qiuyue.app.ui.widget.text.AccentStrokeTextView
         android:id="@+id/btn_revert_selection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -32,7 +32,7 @@
         android:text="@string/revert_selection"
         app:isBottomBackground="true" />
 
-    <io.legado.app.ui.widget.text.AccentStrokeTextView
+    <io.qiuyue.app.ui.widget.text.AccentStrokeTextView
         android:id="@+id/btn_select_action_main"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

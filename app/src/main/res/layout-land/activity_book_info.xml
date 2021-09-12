@@ -14,7 +14,7 @@
         android:contentDescription="@string/bg_image"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <io.legado.app.ui.widget.TitleBar
+    <io.qiuyue.app.ui.widget.TitleBar
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="68dp">
 
-                <io.legado.app.ui.widget.ArcView
+                <io.qiuyue.app.ui.widget.ArcView
                     android:id="@+id/arc_view"
                     android:layout_width="match_parent"
                     android:layout_height="78dp"
@@ -61,7 +61,7 @@
                     app:cardCornerRadius="5dp"
                     app:cardElevation="8dp">
 
-                    <io.legado.app.ui.widget.image.CoverImageView
+                    <io.qiuyue.app.ui.widget.image.CoverImageView
                         android:id="@+id/iv_cover"
                         android:layout_width="130dp"
                         android:layout_height="200dp"
@@ -98,7 +98,7 @@
                     android:textSize="18sp"
                     tools:ignore="RtlHardcoded" />
 
-                <io.legado.app.ui.widget.LabelsBar
+                <io.qiuyue.app.ui.widget.LabelsBar
                     android:id="@+id/lb_kind"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -217,7 +217,7 @@
                                 tools:ignore="NestedWeights,RtlHardcoded,RtlSymmetry"
                                 tools:text="@string/origin_format" />
 
-                            <io.legado.app.ui.widget.text.AccentBgTextView
+                            <io.qiuyue.app.ui.widget.text.AccentBgTextView
                                 android:id="@+id/tv_change_source"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -296,7 +296,7 @@
                                 tools:ignore="NestedWeights,RtlHardcoded,RtlSymmetry"
                                 tools:text="@string/group_s" />
 
-                            <io.legado.app.ui.widget.text.AccentBgTextView
+                            <io.qiuyue.app.ui.widget.text.AccentBgTextView
                                 android:id="@+id/tv_change_group"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -340,7 +340,7 @@
                                 tools:ignore="NestedWeights,RtlHardcoded,RtlSymmetry"
                                 tools:text="@string/toc_s" />
 
-                            <io.legado.app.ui.widget.text.AccentBgTextView
+                            <io.qiuyue.app.ui.widget.text.AccentBgTextView
                                 android:id="@+id/tv_toc_view"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -355,7 +355,7 @@
 
                     </LinearLayout>
 
-                    <io.legado.app.ui.widget.text.ScrollTextView
+                    <io.qiuyue.app.ui.widget.text.ScrollTextView
                         android:id="@+id/tv_intro"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -397,7 +397,7 @@
                     android:textColor="@color/primaryText"
                     android:textSize="15sp" />
 
-                <io.legado.app.ui.widget.text.AccentBgTextView
+                <io.qiuyue.app.ui.widget.text.AccentBgTextView
                     android:id="@+id/tv_read"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"

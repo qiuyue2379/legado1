@@ -40,7 +40,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/sw_add_group" />
 
-            <io.legado.app.lib.theme.view.ATESwitch
+            <io.qiuyue.app.lib.theme.view.ATESwitch
                 android:id="@+id/sw_add_group"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -53,19 +53,19 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <io.legado.app.ui.widget.text.TextInputLayout
+        <io.qiuyue.app.ui.widget.text.TextInputLayout
             android:id="@+id/text_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="6dp">
 
-            <io.legado.app.ui.widget.text.AutoCompleteTextView
+            <io.qiuyue.app.ui.widget.text.AutoCompleteTextView
                 android:id="@+id/edit_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-        </io.legado.app.ui.widget.text.TextInputLayout>
+        </io.qiuyue.app.ui.widget.text.TextInputLayout>
 
     </LinearLayout>
 

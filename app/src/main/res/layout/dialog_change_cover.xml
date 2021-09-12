@@ -16,7 +16,7 @@
         app:displayHomeAsUp="false"
         app:fitStatusBar="false" />
 
-    <io.legado.app.ui.widget.anima.RefreshProgressBar
+    <io.qiuyue.app.ui.widget.anima.RefreshProgressBar
         android:id="@+id/refresh_progress_bar"
         android:layout_width="match_parent"
         android:layout_height="2dp" />

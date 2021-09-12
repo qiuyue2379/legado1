@@ -23,7 +23,7 @@
                 android:orientation="horizontal"
                 android:paddingBottom="10dp">
 
-                <io.legado.app.ui.widget.text.AccentTextView
+                <io.qiuyue.app.ui.widget.text.AccentTextView
                     android:id="@+id/tv_header_padding"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/showLine" />
 
-                <io.legado.app.ui.widget.checkbox.SmoothCheckBox
+                <io.qiuyue.app.ui.widget.checkbox.SmoothCheckBox
                     android:id="@+id/cb_show_top_line"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -44,28 +44,28 @@
 
             </LinearLayout>
 
-            <io.legado.app.ui.widget.DetailSeekBar
+            <io.qiuyue.app.ui.widget.DetailSeekBar
                 android:id="@+id/dsb_header_padding_top"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:max="100"
                 app:title="@string/padding_top" />
 
-            <io.legado.app.ui.widget.DetailSeekBar
+            <io.qiuyue.app.ui.widget.DetailSeekBar
                 android:id="@+id/dsb_header_padding_bottom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:max="100"
                 app:title="@string/padding_bottom" />
 
-            <io.legado.app.ui.widget.DetailSeekBar
+            <io.qiuyue.app.ui.widget.DetailSeekBar
                 android:id="@+id/dsb_header_padding_left"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:max="100"
                 app:title="@string/padding_left" />
 
-            <io.legado.app.ui.widget.DetailSeekBar
+            <io.qiuyue.app.ui.widget.DetailSeekBar
                 android:id="@+id/dsb_header_padding_right"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -74,7 +74,7 @@
 
         </LinearLayout>
 
-        <io.legado.app.ui.widget.text.AccentTextView
+        <io.qiuyue.app.ui.widget.text.AccentTextView
             android:id="@+id/tv_body_padding"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -83,28 +83,28 @@
             android:text="@string/main_body"
             android:textSize="18sp" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_padding_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:max="200"
             app:title="@string/padding_top" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_padding_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:max="100"
             app:title="@string/padding_bottom" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_padding_left"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:max="100"
             app:title="@string/padding_left" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_padding_right"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -117,7 +117,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <io.legado.app.ui.widget.text.AccentTextView
+            <io.qiuyue.app.ui.widget.text.AccentTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -131,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/showLine" />
 
-            <io.legado.app.ui.widget.checkbox.SmoothCheckBox
+            <io.qiuyue.app.ui.widget.checkbox.SmoothCheckBox
                 android:id="@+id/cb_show_bottom_line"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
@@ -139,28 +139,28 @@
 
         </LinearLayout>
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_footer_padding_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:max="100"
             app:title="@string/padding_top" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_footer_padding_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:max="100"
             app:title="@string/padding_bottom" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_footer_padding_left"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:max="100"
             app:title="@string/padding_left" />
 
-        <io.legado.app.ui.widget.DetailSeekBar
+        <io.qiuyue.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_footer_padding_right"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

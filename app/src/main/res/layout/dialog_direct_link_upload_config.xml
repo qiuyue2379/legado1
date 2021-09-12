@@ -26,33 +26,33 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <io.legado.app.ui.widget.text.TextInputLayout
+            <io.qiuyue.app.ui.widget.text.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="3dp">
 
-                <io.legado.app.ui.widget.text.EditText
+                <io.qiuyue.app.ui.widget.text.EditText
                     android:id="@+id/edit_upload_url"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/upload_url"
                     tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-            </io.legado.app.ui.widget.text.TextInputLayout>
+            </io.qiuyue.app.ui.widget.text.TextInputLayout>
 
-            <io.legado.app.ui.widget.text.TextInputLayout
+            <io.qiuyue.app.ui.widget.text.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="3dp">
 
-                <io.legado.app.ui.widget.text.EditText
+                <io.qiuyue.app.ui.widget.text.EditText
                     android:id="@+id/edit_download_url_rule"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/download_url_rule"
                     tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-            </io.legado.app.ui.widget.text.TextInputLayout>
+            </io.qiuyue.app.ui.widget.text.TextInputLayout>
 
         </LinearLayout>
 
@@ -66,7 +66,7 @@
         app:flexWrap="wrap"
         app:justifyContent="space_between">
 
-        <io.legado.app.ui.widget.text.AccentTextView
+        <io.qiuyue.app.ui.widget.text.AccentTextView
             android:id="@+id/tv_footer_left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -79,7 +79,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <io.legado.app.ui.widget.text.AccentTextView
+            <io.qiuyue.app.ui.widget.text.AccentTextView
                 android:id="@+id/tv_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -87,7 +87,7 @@
                 android:text="@string/cancel"
                 tools:ignore="RtlHardcoded" />
 
-            <io.legado.app.ui.widget.text.AccentTextView
+            <io.qiuyue.app.ui.widget.text.AccentTextView
                 android:id="@+id/tv_ok"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".ui.replace.ReplaceRuleActivity">
 
-    <io.legado.app.ui.widget.TitleBar
+    <io.qiuyue.app.ui.widget.TitleBar
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +20,7 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <io.legado.app.ui.widget.recycler.scroller.FastScrollRecyclerView
+        <io.qiuyue.app.ui.widget.recycler.scroller.FastScrollRecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -28,7 +28,7 @@
 
     </FrameLayout>
 
-    <io.legado.app.ui.widget.SelectActionBar
+    <io.qiuyue.app.ui.widget.SelectActionBar
         android:id="@+id/select_action_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

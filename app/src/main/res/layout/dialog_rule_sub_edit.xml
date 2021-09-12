@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <io.legado.app.ui.widget.text.AccentTextView
+        <io.qiuyue.app.ui.widget.text.AccentTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/book_type"
@@ -28,29 +28,29 @@
 
     </LinearLayout>
 
-    <io.legado.app.ui.widget.text.TextInputLayout
+    <io.qiuyue.app.ui.widget.text.TextInputLayout
         android:id="@+id/til_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/name">
 
-        <io.legado.app.ui.widget.text.EditText
+        <io.qiuyue.app.ui.widget.text.EditText
             android:id="@+id/et_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-    </io.legado.app.ui.widget.text.TextInputLayout>
+    </io.qiuyue.app.ui.widget.text.TextInputLayout>
 
-    <io.legado.app.ui.widget.text.TextInputLayout
+    <io.qiuyue.app.ui.widget.text.TextInputLayout
         android:id="@+id/til_url"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Url"
         tools:ignore="HardcodedText">
 
-        <io.legado.app.ui.widget.text.EditText
+        <io.qiuyue.app.ui.widget.text.EditText
             android:id="@+id/et_url"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-    </io.legado.app.ui.widget.text.TextInputLayout>
+    </io.qiuyue.app.ui.widget.text.TextInputLayout>
 
 </LinearLayout>

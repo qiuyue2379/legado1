@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/transparent50">
 
-    <io.legado.app.ui.widget.anima.RotateLoading
+    <io.qiuyue.app.ui.widget.anima.RotateLoading
         android:id="@+id/rotate_loading"
         android:layout_width="36dp"
         android:layout_height="36dp"

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <io.legado.app.ui.widget.TitleBar
+    <io.qiuyue.app.ui.widget.TitleBar
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,7 +21,7 @@
         app:layout_constraintTop_toBottomOf="@+id/title_bar"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <io.legado.app.ui.widget.recycler.RecyclerViewAtPager2
+        <io.qiuyue.app.ui.widget.recycler.RecyclerViewAtPager2
             android:id="@+id/rv_bookshelf"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
