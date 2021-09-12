@@ -32,7 +32,6 @@ class ReadMenu @JvmOverloads constructor(
 ) : FrameLayout(context, attrs) {
     var cnaShowMenu: Boolean = false
     private val callBack: CallBack get() = activity as CallBack
-
     private val binding = ViewReadMenuBinding.inflate(LayoutInflater.from(context), this, true)
     private lateinit var menuTopIn: Animation
     private lateinit var menuTopOut: Animation
@@ -247,8 +246,10 @@ class ReadMenu @JvmOverloads constructor(
 
             override fun onAnimationEnd(animation: Animation) {
                 binding.vwMenuBg.setOnClickListener { runMenuOut() }
-                binding.vwNavigationBar.layoutParams = binding.vwNavigationBar.layoutParams.apply {
-                    height = activity!!.navigationBarHeight
+                binding.vwNavigationBar.run {
+                    layoutParams = layoutParams.apply {
+                        height = activity?.navigationBarHeight ?: 0
+                    }
                 }
                 if (!LocalConfig.readMenuHelpVersionIsLast) {
                     callBack.showReadMenuHelp()
