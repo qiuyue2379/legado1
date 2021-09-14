@@ -49,10 +49,6 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
     private fun initBook(book: Book) {
         if (ReadBook.book?.bookUrl != book.bookUrl) {
             ReadBook.resetData(book)
-            if (!book.isLocalBook() && ReadBook.bookSource == null) {
-                autoChangeSource(book.name, book.author)
-                return
-            }
             isInitFinish = true
             if (ReadBook.chapterSize == 0) {
                 if (book.tocUrl.isEmpty()) {
@@ -77,10 +73,6 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             ReadBook.titleDate.postValue(book.name)
             ReadBook.upWebBook(book)
             isInitFinish = true
-            if (!book.isLocalBook() && ReadBook.bookSource == null) {
-                autoChangeSource(book.name, book.author)
-                return
-            }
             ReadBook.chapterSize = appDb.bookChapterDao.getChapterCount(book.bookUrl)
             if (ReadBook.chapterSize == 0) {
                 if (book.tocUrl.isEmpty()) {
@@ -98,6 +90,10 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             if (!BaseReadAloudService.isRun) {
                 syncBookProgress(book)
             }
+        }
+        if (!book.isLocalBook() && ReadBook.bookSource == null) {
+            autoChangeSource(book.name, book.author)
+            return
         }
     }
 
@@ -174,26 +170,26 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
                 WebBook.getBookInfoAwait(this, source, book)
             }
             val chapters = WebBook.getChapterListAwait(this, source, book)
-            ReadBook.book!!.let { oldBook ->
-                book.durChapterIndex = BookHelp.getDurChapter(
-                    oldBook.durChapterIndex,
-                    oldBook.totalChapterNum,
-                    oldBook.durChapterTitle,
-                    chapters
-                )
-                book.durChapterTitle = chapters[ReadBook.durChapterIndex].title
-                oldBook.changeTo(book)
-            }
+            val oldBook = ReadBook.book!!
+            book.durChapterIndex = BookHelp.getDurChapter(
+                oldBook.durChapterIndex,
+                oldBook.totalChapterNum,
+                oldBook.durChapterTitle,
+                chapters
+            )
+            book.durChapterTitle = chapters[book.durChapterIndex].title
+            oldBook.changeTo(book)
             appDb.bookChapterDao.insert(*chapters.toTypedArray())
             ReadBook.resetData(book)
             ReadBook.upMsg(null)
             ReadBook.loadContent(resetPageOffset = true)
-        }.onError {
-            context.toastOnUi("换源失败\n${it.localizedMessage}")
-            ReadBook.upMsg(null)
-        }.onFinally {
-            postEvent(EventBus.SOURCE_CHANGED, book.bookUrl)
-        }
+        }.timeout(60000)
+            .onError {
+                context.toastOnUi("换源失败\n${it.localizedMessage}")
+                ReadBook.upMsg(null)
+            }.onFinally {
+                postEvent(EventBus.SOURCE_CHANGED, book.bookUrl)
+            }
     }
 
     private fun autoChangeSource(name: String, author: String) {
