@@ -9,7 +9,7 @@
     android:focusable="true"
     tools:ignore="UnusedAttribute">
 
-    <io.qiuyue.app.ui.widget.image.CoverImageView
+    <io.legado.app.ui.widget.image.CoverImageView
         android:id="@+id/iv_cover"
         android:layout_width="66dp"
         android:layout_height="90dp"
@@ -33,7 +33,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/iv_cover">
 
-        <io.qiuyue.app.ui.widget.text.BadgeView
+        <io.legado.app.ui.widget.text.BadgeView
             android:id="@+id/bv_unread"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
             android:includeFontPadding="false"
             tools:ignore="RtlHardcoded" />
 
-        <io.qiuyue.app.ui.widget.anima.RotateLoading
+        <io.legado.app.ui.widget.anima.RotateLoading
             android:id="@+id/rl_loading"
             android:layout_width="26dp"
             android:layout_height="26dp"

@@ -27,7 +27,7 @@
             android:textColor="@color/primaryText"
             tools:text="起点中文" />
 
-        <io.qiuyue.app.ui.widget.anima.RotateLoading
+        <io.legado.app.ui.widget.anima.RotateLoading
             android:id="@+id/rotate_loading"
             android:layout_width="20dp"
             android:layout_height="20dp"

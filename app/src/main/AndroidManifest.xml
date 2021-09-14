@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="io.qiuyue.app">
+    package="io.legado.app">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -176,11 +176,11 @@
             android:launchMode="singleTask" />
         <!-- 音频播放界面 -->
         <activity
-            android:name="io.qiuyue.app.ui.book.audio.AudioPlayActivity"
+            android:name="io.legado.app.ui.book.audio.AudioPlayActivity"
             android:launchMode="singleTask" />
         <!-- 授权界面 -->
         <activity
-            android:name="io.qiuyue.app.lib.permission.PermissionActivity"
+            android:name="io.legado.app.lib.permission.PermissionActivity"
             android:theme="@style/Activity.Permission" />
         <!-- 二维码扫描 -->
         <activity
@@ -293,7 +293,7 @@
             android:launchMode="singleTop" />
         <!-- 书源登录 -->
         <activity
-            android:name="io.qiuyue.app.ui.login.SourceLoginActivity"
+            android:name="io.legado.app.ui.login.SourceLoginActivity"
             android:configChanges="orientation|screenSize"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme.Transparent" />

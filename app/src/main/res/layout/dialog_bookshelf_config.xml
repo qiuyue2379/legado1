@@ -31,7 +31,7 @@
 
     </LinearLayout>
 
-    <io.qiuyue.app.lib.theme.view.ATESwitch
+    <io.legado.app.lib.theme.view.ATESwitch
         android:id="@+id/sw_show_unread"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -49,7 +49,7 @@
         app:layout_constraintTop_toBottomOf="@+id/sw_show_unread"
         app:layout_constraintLeft_toLeftOf="parent">
 
-        <io.qiuyue.app.ui.widget.text.AccentTextView
+        <io.legado.app.ui.widget.text.AccentTextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="6dp"
@@ -104,7 +104,7 @@
         app:layout_constraintTop_toBottomOf="@id/sw_show_unread"
         app:layout_constraintRight_toRightOf="parent">
 
-        <io.qiuyue.app.ui.widget.text.AccentTextView
+        <io.legado.app.ui.widget.text.AccentTextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="6dp"

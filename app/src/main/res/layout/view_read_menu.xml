@@ -14,7 +14,7 @@
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp" />
 
-    <io.qiuyue.app.ui.widget.TitleBar
+    <io.legado.app.ui.widget.TitleBar
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -51,7 +51,7 @@
                 app:layout_constraintRight_toLeftOf="@+id/tv_login"
                 app:layout_constraintTop_toBottomOf="@+id/tv_chapter_name" />
 
-            <io.qiuyue.app.ui.widget.text.AccentBgTextView
+            <io.legado.app.ui.widget.text.AccentBgTextView
                 android:id="@+id/tv_login"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
@@ -65,7 +65,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </io.qiuyue.app.ui.widget.TitleBar>
+    </io.legado.app.ui.widget.TitleBar>
 
     <LinearLayout
         android:id="@+id/ll_brightness"
@@ -88,18 +88,18 @@
             android:contentDescription="@string/brightness_auto"
             android:src="@drawable/ic_brightness_auto" />
 
-        <io.qiuyue.app.ui.widget.seekbar.VerticalSeekBarWrapper
+        <io.legado.app.ui.widget.seekbar.VerticalSeekBarWrapper
             android:layout_width="wrap_content"
             android:layout_height="match_parent">
 
-            <io.qiuyue.app.ui.widget.seekbar.VerticalSeekBar
+            <io.legado.app.ui.widget.seekbar.VerticalSeekBar
                 android:id="@+id/seek_brightness"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:max="255"
                 app:seekBarRotation="CW270" />
 
-        </io.qiuyue.app.ui.widget.seekbar.VerticalSeekBarWrapper>
+        </io.legado.app.ui.widget.seekbar.VerticalSeekBarWrapper>
 
     </LinearLayout>
 
@@ -242,7 +242,7 @@
                         android:textColor="@color/primaryText"
                         android:textSize="14sp" />
 
-                    <io.qiuyue.app.lib.theme.view.ATESeekBar
+                    <io.legado.app.lib.theme.view.ATESeekBar
                         android:id="@+id/seek_read_page"
                         android:layout_width="0dp"
                         android:layout_height="25dp"

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <io.qiuyue.app.ui.widget.TitleBar
+    <io.legado.app.ui.widget.TitleBar
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,14 +19,14 @@
         android:orientation="horizontal"
         android:layout_gravity="center_vertical">
 
-        <io.qiuyue.app.lib.theme.view.ATECheckBox
+        <io.legado.app.lib.theme.view.ATECheckBox
             android:id="@+id/cb_is_enable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
             android:text="@string/is_enable" />
 
-        <io.qiuyue.app.lib.theme.view.ATECheckBox
+        <io.legado.app.lib.theme.view.ATECheckBox
             android:id="@+id/cb_is_enable_find"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

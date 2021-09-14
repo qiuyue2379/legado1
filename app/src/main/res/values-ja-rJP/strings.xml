@@ -439,6 +439,9 @@
     <string name="r_content">内容规则(ruleContent)</string>
     <string name="r_style">样式(style)</string>
     <string name="r_link">链接规则(ruleLink)</string>
+    <string name="check_key_word">校验关键字(checkKeyWord)</string>
+    <string name="rule_actions">操作(actions)</string>
+    <string name="rule_is_pay">购买标识(isPay)</string>
     <!-- source end-->
 
     <!--error string start-->
@@ -874,7 +877,4 @@
     <string name="copy_play_url">拷贝播放Url</string>
     <string name="set_source_variable">设置源变量</string>
     <string name="set_book_variable">设置书籍变量</string>
-    <string name="check_key_word">校验关键字</string>
-    <string name="rule_actions">操作(actions)</string>
-
 </resources>

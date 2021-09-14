@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <io.qiuyue.app.ui.widget.text.AccentTextView
+        <io.legado.app.ui.widget.text.AccentTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/body_title"
@@ -45,7 +45,7 @@
                 android:text="@string/title_hide" />
         </RadioGroup>
 
-        <io.qiuyue.app.ui.widget.DetailSeekBar
+        <io.legado.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_title_size"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
             app:max="10"
             app:title="@string/title_font_size" />
 
-        <io.qiuyue.app.ui.widget.DetailSeekBar
+        <io.legado.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_title_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,7 +61,7 @@
             app:max="100"
             app:title="@string/title_margin_top" />
 
-        <io.qiuyue.app.ui.widget.DetailSeekBar
+        <io.legado.app.ui.widget.DetailSeekBar
             android:id="@+id/dsb_title_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
             app:max="100"
             app:title="@string/title_margin_bottom" />
 
-        <io.qiuyue.app.ui.widget.text.AccentTextView
+        <io.legado.app.ui.widget.text.AccentTextView
             android:id="@+id/tv_header_padding"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -180,7 +180,7 @@
 
         </LinearLayout>
 
-        <io.qiuyue.app.ui.widget.text.AccentTextView
+        <io.legado.app.ui.widget.text.AccentTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/footer"
@@ -290,7 +290,7 @@
 
         </LinearLayout>
 
-        <io.qiuyue.app.ui.widget.text.AccentTextView
+        <io.legado.app.ui.widget.text.AccentTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/header_footer"
