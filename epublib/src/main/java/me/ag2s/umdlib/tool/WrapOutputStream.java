@@ -5,7 +5,7 @@ import java.io.OutputStream;
 
 public class WrapOutputStream extends OutputStream {
 	
-	private final OutputStream os;
+	private OutputStream os;
 	private int written;
 
 	public WrapOutputStream(OutputStream os) {

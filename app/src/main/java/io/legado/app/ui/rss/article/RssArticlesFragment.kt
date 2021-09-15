@@ -26,17 +26,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class RssArticlesFragment : VMBaseFragment<RssArticlesViewModel>(R.layout.fragment_rss_articles),
+class RssArticlesFragment() : VMBaseFragment<RssArticlesViewModel>(R.layout.fragment_rss_articles),
     BaseRssArticlesAdapter.CallBack {
 
-    companion object {
-        fun create(sortName: String, sortUrl: String): RssArticlesFragment {
-            return RssArticlesFragment().apply {
-                val bundle = Bundle()
-                bundle.putString("sortName", sortName)
-                bundle.putString("sortUrl", sortUrl)
-                arguments = bundle
-            }
+    constructor(sortName: String, sortUrl: String) : this() {
+        arguments = Bundle().apply {
+            putString("sortName", sortName)
+            putString("sortUrl", sortUrl)
         }
     }
 

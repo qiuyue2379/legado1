@@ -9,7 +9,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
@@ -32,20 +31,12 @@ import io.legado.app.utils.splitNotBlank
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import io.legado.app.utils.visible
 
-class ImportReplaceRuleDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class ImportReplaceRuleDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
-    companion object {
-        fun start(
-            fragmentManager: FragmentManager,
-            source: String,
-            finishOnDismiss: Boolean = false
-        ) {
-            ImportReplaceRuleDialog().apply {
-                arguments = Bundle().apply {
-                    putString("source", source)
-                    putBoolean("finishOnDismiss", finishOnDismiss)
-                }
-            }.show(fragmentManager, "importReplaceRule")
+    constructor(source: String, finishOnDismiss: Boolean = false) : this() {
+        arguments = Bundle().apply {
+            putString("source", source)
+            putBoolean("finishOnDismiss", finishOnDismiss)
         }
     }
 

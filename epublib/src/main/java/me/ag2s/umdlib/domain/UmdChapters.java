@@ -27,7 +27,7 @@ public class UmdChapters {
 		return titles;
 	}
 
-	private final List<byte[]> titles = new ArrayList<>();
+	private List<byte[]> titles = new ArrayList<>();
 	public List<Integer> contentLengths = new ArrayList<>();
 	public ByteArrayOutputStream contents = new ByteArrayOutputStream();
 

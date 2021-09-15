@@ -9,7 +9,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
@@ -37,23 +36,13 @@ import io.legado.app.utils.visible
 /**
  * 导入书源弹出窗口
  */
-class ImportBookSourceDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
-    companion object {
-
-        fun start(
-            fragmentManager: FragmentManager,
-            source: String,
-            finishOnDismiss: Boolean = false
-        ) {
-            ImportBookSourceDialog().apply {
-                arguments = Bundle().apply {
-                    putString("source", source)
-                    putBoolean("finishOnDismiss", finishOnDismiss)
-                }
-            }.show(fragmentManager, "importBookSource")
+    constructor(source: String, finishOnDismiss: Boolean = false) : this() {
+        arguments = Bundle().apply {
+            putString("source", source)
+            putBoolean("finishOnDismiss", finishOnDismiss)
         }
-
     }
 
     private val binding by viewBinding(DialogRecyclerViewBinding::bind)

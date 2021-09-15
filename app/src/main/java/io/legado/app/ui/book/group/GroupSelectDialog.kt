@@ -7,7 +7,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,25 +25,19 @@ import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.widget.recycler.ItemTouchCallback
 import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.applyTint
+import io.legado.app.utils.showDialog
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import io.legado.app.utils.windowSize
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
-class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class GroupSelectDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
-    companion object {
-        const val tag = "groupSelectDialog"
-
-        fun show(manager: FragmentManager, groupId: Long, requestCode: Int = -1) {
-            val fragment = GroupSelectDialog().apply {
-                val bundle = Bundle()
-                bundle.putLong("groupId", groupId)
-                bundle.putInt("requestCode", requestCode)
-                arguments = bundle
-            }
-            fragment.show(manager, tag)
+    constructor(groupId: Long, requestCode: Int = -1) : this() {
+        arguments = Bundle().apply {
+            putLong("groupId", groupId)
+            putInt("requestCode", requestCode)
         }
     }
 
@@ -111,7 +104,9 @@ class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
 
     override fun onMenuItemClick(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.menu_add -> GroupEditDialog.start(childFragmentManager)
+            R.id.menu_add -> childFragmentManager.showDialog(
+                GroupEditDialog()
+            )
         }
         return true
     }
@@ -153,7 +148,9 @@ class GroupSelectDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener 
                     }
                 }
                 tvEdit.setOnClickListener {
-                    GroupEditDialog.start(childFragmentManager, getItem(holder.layoutPosition))
+                    childFragmentManager.showDialog(
+                        GroupEditDialog(getItem(holder.layoutPosition))
+                    )
                 }
             }
         }

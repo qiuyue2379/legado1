@@ -6,6 +6,7 @@ import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.databinding.ActivityTranslucenceBinding
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.utils.showDialog
 import io.legado.app.utils.toastOnUi
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
@@ -22,12 +23,15 @@ class OnLineImportActivity :
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         viewModel.successLive.observe(this) {
             when (it.first) {
-                "bookSource" -> ImportBookSourceDialog
-                    .start(supportFragmentManager, it.second, true)
-                "rssSource" -> ImportRssSourceDialog
-                    .start(supportFragmentManager, it.second, true)
-                "replaceRule" -> ImportReplaceRuleDialog
-                    .start(supportFragmentManager, it.second, true)
+                "bookSource" -> supportFragmentManager.showDialog(
+                    ImportBookSourceDialog(it.second, true)
+                )
+                "rssSource" -> supportFragmentManager.showDialog(
+                    ImportRssSourceDialog(it.second, true)
+                )
+                "replaceRule" -> supportFragmentManager.showDialog(
+                    ImportReplaceRuleDialog(it.second, true)
+                )
             }
         }
         viewModel.errorLive.observe(this) {
@@ -40,9 +44,15 @@ class OnLineImportActivity :
                 return
             }
             when (it.path) {
-                "/bookSource" -> ImportBookSourceDialog.start(supportFragmentManager, url, true)
-                "/rssSource" -> ImportRssSourceDialog.start(supportFragmentManager, url, true)
-                "/replaceRule" -> ImportReplaceRuleDialog.start(supportFragmentManager, url, true)
+                "/bookSource" -> supportFragmentManager.showDialog(
+                    ImportBookSourceDialog(url, true)
+                )
+                "/rssSource" -> supportFragmentManager.showDialog(
+                    ImportRssSourceDialog(url, true)
+                )
+                "/replaceRule" -> supportFragmentManager.showDialog(
+                    ImportReplaceRuleDialog(url, true)
+                )
                 "/textTocRule" -> viewModel.getText(url) { json ->
                     viewModel.importTextTocRule(json, this::finallyDialog)
                 }
@@ -56,9 +66,15 @@ class OnLineImportActivity :
                     viewModel.importReadConfig(bytes, this::finallyDialog)
                 }
                 "/importonline" -> when (it.host) {
-                    "booksource" -> ImportBookSourceDialog.start(supportFragmentManager, url, true)
-                    "rsssource" -> ImportRssSourceDialog.start(supportFragmentManager, url, true)
-                    "replace" -> ImportReplaceRuleDialog.start(supportFragmentManager, url, true)
+                    "booksource" -> supportFragmentManager.showDialog(
+                        ImportBookSourceDialog(url, true)
+                    )
+                    "rsssource" -> supportFragmentManager.showDialog(
+                        ImportRssSourceDialog(url, true)
+                    )
+                    "replace" -> supportFragmentManager.showDialog(
+                        ImportReplaceRuleDialog(url, true)
+                    )
                     else -> {
                         toastOnUi("url error")
                         finish()

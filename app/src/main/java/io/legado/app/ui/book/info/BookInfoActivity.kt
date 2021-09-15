@@ -29,6 +29,7 @@ import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.backgroundColor
 import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.lib.theme.getPrimaryTextColor
+import io.legado.app.ui.about.AppLogDialog
 import io.legado.app.ui.book.audio.AudioPlayActivity
 import io.legado.app.ui.book.changecover.ChangeCoverDialog
 import io.legado.app.ui.book.changesource.ChangeSourceDialog
@@ -182,6 +183,7 @@ class BookInfoActivity :
                 }
             }
             R.id.menu_clear_cache -> viewModel.clearCache()
+            R.id.menu_log -> supportFragmentManager.showDialog<AppLogDialog>()
         }
         return super.onCompatOptionsItemSelected(item)
     }
@@ -260,7 +262,9 @@ class BookInfoActivity :
     private fun initOnClick() = binding.run {
         ivCover.setOnClickListener {
             viewModel.bookData.value?.let {
-                ChangeCoverDialog.show(supportFragmentManager, it.name, it.author)
+                supportFragmentManager.showDialog(
+                    ChangeCoverDialog(it.name, it.author)
+                )
             }
         }
         tvRead.setOnClickListener {
@@ -286,7 +290,7 @@ class BookInfoActivity :
         }
         tvChangeSource.setOnClickListener {
             viewModel.bookData.value?.let {
-                ChangeSourceDialog.show(supportFragmentManager, it.name, it.author)
+                supportFragmentManager.showDialog(ChangeSourceDialog(it.name, it.author))
             }
         }
         tvTocView.setOnClickListener {
@@ -302,7 +306,9 @@ class BookInfoActivity :
         }
         tvChangeGroup.setOnClickListener {
             viewModel.bookData.value?.let {
-                GroupSelectDialog.show(supportFragmentManager, it.group)
+                supportFragmentManager.showDialog(
+                    GroupSelectDialog(it.group)
+                )
             }
         }
         tvAuthor.setOnClickListener {

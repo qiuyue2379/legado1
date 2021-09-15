@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -35,7 +34,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
 
-class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class TocRegexDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+
+    constructor(tocRegex: String?) : this() {
+        arguments = Bundle().apply {
+            putString("tocRegex", tocRegex)
+        }
+    }
 
     private val importTocRuleKey = "tocRuleUrl"
     private val viewModel: TocRegexViewModel by viewModels()
@@ -259,16 +264,6 @@ class TocRegexDialog : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
                 }
             }
             isMoved = false
-        }
-    }
-
-    companion object {
-        fun show(fragmentManager: FragmentManager, tocRegex: String? = null) {
-            val dialog = TocRegexDialog()
-            val bundle = Bundle()
-            bundle.putString("tocRegex", tocRegex)
-            dialog.arguments = bundle
-            dialog.show(fragmentManager, "tocRegexDialog")
         }
     }
 

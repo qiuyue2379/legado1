@@ -143,7 +143,7 @@ public class UmdUtils {
 		}
 	}
 	
-	private static final Random random = new Random();
+	private static Random random = new Random();
 	
 	public static byte[] genRandomBytes(int len) {
 		if (len <= 0) {

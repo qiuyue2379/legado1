@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.FragmentManager
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
 import io.legado.app.data.appDb
@@ -16,18 +15,12 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class BookmarkDialog : BaseDialogFragment() {
+class BookmarkDialog() : BaseDialogFragment() {
 
-    companion object {
-
-        fun start(fragmentManager: FragmentManager, bookmark: Bookmark) {
-            BookmarkDialog().apply {
-                arguments = Bundle().apply {
-                    putParcelable("bookmark", bookmark)
-                }
-            }.show(fragmentManager, "bookMarkDialog")
+    constructor(bookmark: Bookmark) : this() {
+        arguments = Bundle().apply {
+            putParcelable("bookmark", bookmark)
         }
-
     }
 
     private val binding by viewBinding(DialogBookmarkBinding::bind)
