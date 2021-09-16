@@ -1,6 +1,7 @@
 package io.legado.app.help
 
 import com.github.liuyueyi.quick.transfer.ChineseUtils
+import io.legado.app.constant.AppLog
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
@@ -8,6 +9,7 @@ import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.utils.toastOnUi
 import splitties.init.appCtx
 import java.lang.ref.WeakReference
+import java.util.regex.Pattern
 
 class ContentProcessor private constructor(
     private val bookName: String,
@@ -61,14 +63,17 @@ class ContentProcessor private constructor(
         chineseConvert: Boolean = true,
         reSegment: Boolean = true
     ): List<String> {
-        //去除无效内容
-        var mContent = content.trimStart {
-            it.code <= 0x20 || it == '　' || it == ',' || it == '，'
-        }
-        //去除重复标题
-//        val titleRegex = "^(\\s|\\pP|${book.name})*${chapter.title}(\\s|\\pP)+".toRegex()
-//        mContent = mContent.replace(titleRegex, "")
+        var mContent = content
         if (includeTitle) {
+            //去除重复标题
+            try {
+                val name = Pattern.quote(book.name)
+                val title = Pattern.quote(chapter.title)
+                val titleRegex = "^(\\s|\\p{P}|${name})*${title}(\\s|\\p{P})+".toRegex()
+                mContent = mContent.replace(titleRegex, "")
+            } catch (e: Exception) {
+                AppLog.addLog("去除重复标题出错\n${e.localizedMessage}", e)
+            }
             //重新添加标题
             mContent = chapter.getDisplayTitle() + "\n" + mContent
         }
@@ -109,7 +114,7 @@ class ContentProcessor private constructor(
                 it.code <= 0x20 || it == '　'
             }
             if (paragraph.isNotEmpty()) {
-                if (contents.isEmpty() && includeTitle) {
+                if (contents.isEmpty()) {
                     contents.add(paragraph)
                 } else {
                     contents.add("${ReadBookConfig.paragraphIndent}$paragraph")
