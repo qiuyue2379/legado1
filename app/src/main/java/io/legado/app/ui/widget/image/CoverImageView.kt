@@ -14,6 +14,7 @@ import io.legado.app.R
 import io.legado.app.constant.PreferKey
 import io.legado.app.help.AppConfig
 import io.legado.app.help.glide.ImageLoader
+import io.legado.app.lib.theme.accentColor
 import io.legado.app.utils.getPrefBoolean
 import io.legado.app.utils.getPrefString
 import io.legado.app.utils.textHeight
@@ -84,10 +85,6 @@ class CoverImageView @JvmOverloads constructor(
                 close()
             }
         }
-        namePaint.textSize = width / 6
-        namePaint.strokeWidth = namePaint.textSize / 10
-        authorPaint.textSize = width / 8
-        authorPaint.strokeWidth = authorPaint.textSize / 10
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -95,36 +92,42 @@ class CoverImageView @JvmOverloads constructor(
             canvas.clipPath(filletPath)
         }
         super.onDraw(canvas)
-        if (defaultCover && drawBookName) {
-            drawName(canvas)
+        if (defaultCover && !isInEditMode) {
+            drawNameAuthor(canvas)
         }
     }
 
-    private fun drawName(canvas: Canvas) {
+    private fun drawNameAuthor(canvas: Canvas) {
+        if (!drawBookName) return
         var startX = width * 0.2f
         var startY = height * 0.2f
         name?.toStringArray()?.let { name ->
+            namePaint.textSize = width / 7
+            namePaint.strokeWidth = namePaint.textSize / 5
             name.forEach {
                 namePaint.color = Color.WHITE
                 namePaint.style = Paint.Style.STROKE
                 canvas.drawText(it, startX, startY, namePaint)
-                namePaint.color = Color.DKGRAY
+                namePaint.color = context.accentColor
                 namePaint.style = Paint.Style.FILL
                 canvas.drawText(it, startX, startY, namePaint)
                 startY += namePaint.textHeight
-                if (startY > height * 0.9) {
+                if (startY > height * 0.8) {
                     return@let
                 }
             }
         }
-        startX = width * 0.8f
-        startY = height * 0.7f
+        if (!drawBookAuthor) return
         author?.toStringArray()?.let { author ->
+            startX = width * 0.8f
+            startY = height * 0.7f
+            authorPaint.textSize = width / 9
+            authorPaint.strokeWidth = authorPaint.textSize / 5
             author.forEach {
                 authorPaint.color = Color.WHITE
                 authorPaint.style = Paint.Style.STROKE
                 canvas.drawText(it, startX, startY, authorPaint)
-                authorPaint.color = Color.DKGRAY
+                authorPaint.color = context.accentColor
                 authorPaint.style = Paint.Style.FILL
                 canvas.drawText(it, startX, startY, authorPaint)
                 startY += authorPaint.textHeight
@@ -187,6 +190,7 @@ class CoverImageView @JvmOverloads constructor(
 
     companion object {
         private var drawBookName = true
+        private var drawBookAuthor = true
         lateinit var defaultDrawable: Drawable
 
         init {
@@ -196,17 +200,20 @@ class CoverImageView @JvmOverloads constructor(
         @SuppressLint("UseCompatLoadingForDrawables")
         fun upDefaultCover() {
             val isNightTheme = AppConfig.isNightTheme
+            drawBookName = if (isNightTheme) {
+                appCtx.getPrefBoolean(PreferKey.coverShowNameN, true)
+            } else {
+                appCtx.getPrefBoolean(PreferKey.coverShowName, true)
+            }
+            drawBookAuthor = if (isNightTheme) {
+                appCtx.getPrefBoolean(PreferKey.coverShowAuthorN, true)
+            } else {
+                appCtx.getPrefBoolean(PreferKey.coverShowAuthor, true)
+            }
             val key = if (isNightTheme) PreferKey.defaultCoverDark else PreferKey.defaultCover
             val path = appCtx.getPrefString(key)
-            defaultDrawable = Drawable.createFromPath(path)?.let {
-                val showNameKey = if (isNightTheme) PreferKey.defaultCoverDarkShowName
-                else PreferKey.defaultCoverShowName
-                drawBookName = appCtx.getPrefBoolean(showNameKey)
-                return@let it
-            } ?: let {
-                drawBookName = true
-                return@let appCtx.resources.getDrawable(R.drawable.image_cover_default, null)
-            }
+            defaultDrawable = Drawable.createFromPath(path)
+                ?: appCtx.resources.getDrawable(R.drawable.image_cover_default, null)
         }
 
     }
