@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 39,
-    "identityHash": "8cfa1fb6bb9a65c04bfe563680126a4f",
+    "version": 41,
+    "identityHash": "6fbd1d1b3918bcc6db113ad108e6b924",
     "entities": [
       {
         "tableName": "books",
@@ -421,7 +421,7 @@
       },
       {
         "tableName": "chapters",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`url` TEXT NOT NULL, `title` TEXT NOT NULL, `baseUrl` TEXT NOT NULL, `bookUrl` TEXT NOT NULL, `index` INTEGER NOT NULL, `resourceUrl` TEXT, `tag` TEXT, `start` INTEGER, `end` INTEGER, `startFragmentId` TEXT, `endFragmentId` TEXT, `variable` TEXT, PRIMARY KEY(`url`, `bookUrl`), FOREIGN KEY(`bookUrl`) REFERENCES `books`(`bookUrl`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`url` TEXT NOT NULL, `title` TEXT NOT NULL, `baseUrl` TEXT NOT NULL, `bookUrl` TEXT NOT NULL, `index` INTEGER NOT NULL, `isVip` INTEGER NOT NULL, `isPay` INTEGER NOT NULL, `resourceUrl` TEXT, `tag` TEXT, `start` INTEGER, `end` INTEGER, `startFragmentId` TEXT, `endFragmentId` TEXT, `variable` TEXT, PRIMARY KEY(`url`, `bookUrl`), FOREIGN KEY(`bookUrl`) REFERENCES `books`(`bookUrl`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "url",
@@ -450,6 +450,18 @@
           {
             "fieldPath": "index",
             "columnName": "index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isVip",
+            "columnName": "isVip",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPay",
+            "columnName": "isPay",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -1334,7 +1346,7 @@
       },
       {
         "tableName": "httpTTS",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `concurrentRate` TEXT, `loginUrl` TEXT, `loginUi` TEXT, `header` TEXT, `loginCheckJs` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -1353,6 +1365,36 @@
             "columnName": "url",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "concurrentRate",
+            "columnName": "concurrentRate",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "loginUrl",
+            "columnName": "loginUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "loginUi",
+            "columnName": "loginUi",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "header",
+            "columnName": "header",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "loginCheckJs",
+            "columnName": "loginCheckJs",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -1465,7 +1507,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8cfa1fb6bb9a65c04bfe563680126a4f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6fbd1d1b3918bcc6db113ad108e6b924')"
     ]
   }
 }
