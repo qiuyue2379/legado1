@@ -45,7 +45,7 @@ class AboutFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.about)
         findPreference<Preference>("update_log")?.summary =
-                "${getString(R.string.version)} ${appInfo.versionName}"
+            "${getString(R.string.version)} ${appInfo.versionName}"
         if (AppConfig.isGooglePlay) {
             preferenceScreen.removePreferenceRecursively("check_update")
         }
@@ -159,11 +159,11 @@ class AboutFragment : PreferenceFragmentCompat() {
                                 val assets: JsonArray = beat.get("elements").asJsonArray
                                 Looper.prepare()
                                 val version = assets[0].asJsonObject["versionName"].asString
-                                val uploadfath = assets[0].asJsonObject["outputFile"].asString
+                                val uploader = assets[0].asJsonObject["outputFile"].asString
                                 val dirName = "有版本更新，请下载!"
                                 UpdateAppUtils
                                     .getInstance()
-                                    .apkUrl("http://qiu-yue.top:86/apk/app/release/$uploadfath")
+                                    .apkUrl("http://qiu-yue.top:86/apk/app/release/$uploader")
                                     .updateTitle("发现新版本")
                                     .updateContent(dirName)
                                     .updateConfig(UpdateConfig(alwaysShowDownLoadDialog = true))
