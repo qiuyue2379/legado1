@@ -28,18 +28,27 @@ import okhttp3.*
 import update.UpdateAppUtils
 import java.io.IOException
 
-
 class AboutFragment : PreferenceFragmentCompat() {
+
     private val licenseUrl = "https://github.com/gedoor/legado/blob/master/LICENSE"
     private val disclaimerUrl = "https://gedoor.github.io/MyBookshelf/disclaimer.html"
     private val qqGroups = linkedMapOf(
+        Pair("(QQ群VIP中转)1017837876", "0d9-zpmqbYfK3i_wt8uCvQoB2lmXadrg"),
         Pair("(QQ群VIP1)701903217", "-iolizL4cbJSutKRpeImHlXlpLDZnzeF"),
         Pair("(QQ群VIP2)263949160", "xwfh7_csb2Gf3Aw2qexEcEtviLfLfd4L"),
+        Pair("(QQ群VIP3)680280282", "_N0i7yZObjKSeZQvzoe2ej7j02kLnOOK"),
+        Pair("(QQ群VIP4)682555679", "VF2UwvUCuaqlo6pddWTe_kw__a1_Fr8O"),
+        Pair("(QQ群VIP5)161622578", "S81xdnhJ5EBC389LTUvoyiyM-wr71pvJ"),
         Pair("(QQ群1)805192012", "6GlFKjLeIk5RhQnR3PNVDaKB6j10royo"),
         Pair("(QQ群2)773736122", "5Bm5w6OgLupXnICbYvbgzpPUgf0UlsJF"),
         Pair("(QQ群3)981838750", "g_Sgmp2nQPKqcZQ5qPcKLHziwX_mpps9"),
         Pair("(QQ群4)256929088", "czEJPLDnT4Pd9SKQ6RoRVzKhDxLchZrO"),
-        Pair("(QQ群5)811843556", "zKZ2UYGZ7o5CzcA6ylxzlqi21si_iqaX")
+        Pair("(QQ群5)811843556", "zKZ2UYGZ7o5CzcA6ylxzlqi21si_iqaX"),
+        Pair("(QQ群6)870270970", "FeCF8iSxfQbe90HPvGsvcqs5P5oSeY5n"),
+        Pair("(QQ群7)15987187", "S2g2TMD0LGd3sefUADd1AbyPEW2o2XfC"),
+        Pair("(QQ群8)1079926194", "gg2qFH8q9IPFaCHV3H7CqCN-YljvazE1"),
+        Pair("(QQ群9)892108780", "Ci_O3aysKjEBfplOWeCud-rxl71TjU2Q"),
+        Pair("(QQ群10)812720266", "oW9ksY0sAWUEq0hfM5irN5aOdvKVgMEE")
     )
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -60,7 +69,7 @@ class AboutFragment : PreferenceFragmentCompat() {
         when (preference?.key) {
             "contributors" -> openUrl(R.string.contributors_url)
             "update_log" -> showUpdateLog()
-            "check_update" -> shopUpdate()
+            "check_update" ->  shopUpdate()
             "mail" -> requireContext().sendMail("kunfei.ge@gmail.com")
             "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
@@ -160,10 +169,11 @@ class AboutFragment : PreferenceFragmentCompat() {
                                 Looper.prepare()
                                 val version = assets[0].asJsonObject["versionName"].asString
                                 val uploader = assets[0].asJsonObject["outputFile"].asString
-                                val dirName = "有版本更新，请下载!"
+                                val url = "http://qiu-yue.top:86/apk/app/release/"
+                                val dirName = "有版本更新，请下载!$url$uploader"
                                 UpdateAppUtils
                                     .getInstance()
-                                    .apkUrl("http://qiu-yue.top:86/apk/app/release/$uploader")
+                                    .apkUrl("$url$uploader")
                                     .updateTitle("发现新版本")
                                     .updateContent(dirName)
                                     .updateConfig(UpdateConfig(alwaysShowDownLoadDialog = true))
@@ -180,10 +190,8 @@ class AboutFragment : PreferenceFragmentCompat() {
                                             updateConfig: UpdateConfig,
                                             uiConfig: UiConfig
                                         ) {
-                                            view?.findViewById<TextView>(R.id.tv_update_title)?.text =
-                                                "版本更新啦"
-                                            view?.findViewById<TextView>(R.id.tv_version_name)?.text =
-                                                version
+                                            view?.findViewById<TextView>(R.id.tv_update_title)?.text = "版本更新啦"
+                                            view?.findViewById<TextView>(R.id.tv_version_name)?.text = version
                                         }
                                     })
                                     .update()

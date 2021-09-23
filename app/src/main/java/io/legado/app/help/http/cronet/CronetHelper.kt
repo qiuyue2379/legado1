@@ -51,7 +51,6 @@ val cronetEngine: ExperimentalCronetEngine by lazy {
 fun buildRequest(request: Request, callback: UrlRequest.Callback): UrlRequest {
     val url = request.url.toString()
     val headers: Headers = request.headers
-
     val requestBody = request.body
     return cronetEngine.newUrlRequestBuilder(url, callback, executor).apply {
         setHttpMethod(request.method)//设置
@@ -79,3 +78,4 @@ fun buildRequest(request: Request, callback: UrlRequest.Callback): UrlRequest {
 
 
 }
+

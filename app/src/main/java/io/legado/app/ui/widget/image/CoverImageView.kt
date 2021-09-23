@@ -167,9 +167,9 @@ class CoverImageView @JvmOverloads constructor(
     }
 
     fun load(path: String? = null, name: String? = null, author: String? = null) {
+        this.bitmapPath = path
         this.name = name?.replace(AppPattern.bdRegex, "")
         this.author = author?.replace(AppPattern.bdRegex, "")
-        this.author = author
         if (AppConfig.useDefaultCover) {
             defaultCover = true
             ImageLoader.load(context, BookCover.defaultDrawable)
