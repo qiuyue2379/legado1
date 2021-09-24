@@ -170,7 +170,7 @@ class AboutFragment : PreferenceFragmentCompat() {
                                 val version = assets[0].asJsonObject["versionName"].asString
                                 val uploader = assets[0].asJsonObject["outputFile"].asString
                                 val url = "http://qiu-yue.top:86/apk/app/release/"
-                                val dirName = "有版本更新，请下载!$url$uploader"
+                                val dirName = "有版本更新，请下载!"
                                 UpdateAppUtils
                                     .getInstance()
                                     .apkUrl("$url$uploader")

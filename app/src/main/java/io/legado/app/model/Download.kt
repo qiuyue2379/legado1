@@ -7,17 +7,12 @@ import io.legado.app.utils.startService
 
 object Download {
 
-    fun start(context: Context, downloadId: Long, fileName: String) {
+
+    fun start(context: Context, url: String, fileName: String) {
         context.startService<DownloadService> {
             action = IntentAction.start
-            putExtra("downloadId", downloadId)
+            putExtra("url", url)
             putExtra("fileName", fileName)
-        }
-    }
-
-    fun stop(context: Context) {
-        context.startService<DownloadService> {
-            action = IntentAction.stop
         }
     }
 
