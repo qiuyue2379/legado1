@@ -1,32 +1,21 @@
 package io.legado.app.ui.about
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Looper
 import android.view.View
-import android.widget.TextView
 import androidx.annotation.StringRes
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import constant.UiType
 import io.legado.app.R
 import io.legado.app.constant.AppConst.appInfo
 import io.legado.app.help.AppConfig
+import io.legado.app.help.AppUpdate
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.*
-import listener.OnInitUiListener
-import model.UiConfig
-import model.UpdateConfig
-import okhttp3.*
-import update.UpdateAppUtils
-import java.io.IOException
 
 class AboutFragment : PreferenceFragmentCompat() {
 
@@ -69,7 +58,7 @@ class AboutFragment : PreferenceFragmentCompat() {
         when (preference?.key) {
             "contributors" -> openUrl(R.string.contributors_url)
             "update_log" -> showUpdateLog()
-            "check_update" ->  shopUpdate()
+            "check_update" ->   checkUpdate()//shopUpdate()
             "mail" -> requireContext().sendMail("kunfei.ge@gmail.com")
             "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
@@ -142,70 +131,12 @@ class AboutFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun shopUpdate() {
-        object : Thread() {
-            override fun run() {
-                val okHttpClient = OkHttpClient()
-                val request = Request.Builder()
-                    .url("http://qiu-yue.top:86/apk/app/release/output-metadata.json")//请求的url
-                    .get()
-                    .build()
-
-                //创建/Call
-                val call = okHttpClient.newCall(request)
-                call.enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-
-                    }
-
-                    @Throws(IOException::class)
-                    override fun onResponse(call: Call, response: Response) {
-                        val string = response.body?.string()
-                        print(string)
-                        if (string != null) {
-                            kotlin.runCatching {
-                                val beat: JsonObject = JsonParser.parseString(string).asJsonObject
-                                val assets: JsonArray = beat.get("elements").asJsonArray
-                                Looper.prepare()
-                                val version = assets[0].asJsonObject["versionName"].asString
-                                val uploader = assets[0].asJsonObject["outputFile"].asString
-                                val url = "http://qiu-yue.top:86/apk/app/release/"
-                                val dirName = "有版本更新，请下载!"
-                                UpdateAppUtils
-                                    .getInstance()
-                                    .apkUrl("$url$uploader")
-                                    .updateTitle("发现新版本")
-                                    .updateContent(dirName)
-                                    .updateConfig(UpdateConfig(alwaysShowDownLoadDialog = true))
-                                    .uiConfig(
-                                        UiConfig(
-                                            uiType = UiType.CUSTOM,
-                                            customLayoutId = R.layout.view_update_dialog_custom
-                                        )
-                                    )
-                                    .setOnInitUiListener(object : OnInitUiListener {
-                                        @SuppressLint("SetTextI18n")
-                                        override fun onInitUpdateUi(
-                                            view: View?,
-                                            updateConfig: UpdateConfig,
-                                            uiConfig: UiConfig
-                                        ) {
-                                            view?.findViewById<TextView>(R.id.tv_update_title)?.text = "版本更新啦"
-                                            view?.findViewById<TextView>(R.id.tv_version_name)?.text = version
-                                        }
-                                    })
-                                    .update()
-
-                                Looper.loop()
-                            }.onFailure {
-                                it.printOnDebug()
-                            }
-                        }
-                    }
-                })
-
-            }
-        }.start()
+    private fun checkUpdate() {
+        AppUpdate.checkFromGitHub(lifecycleScope) { newVersion, updateBody, url, name ->
+            childFragmentManager.showDialog(
+                UpdateDialog(newVersion, updateBody, url, name)
+            )
+        }
     }
 
 }
