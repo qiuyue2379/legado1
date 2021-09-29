@@ -32,7 +32,7 @@ class HandleFileContract :
             intent.putJson("otherActions", it.otherActions)
             it.fileData?.let { fileData ->
                 intent.putExtra("fileName", fileData.first)
-                intent.putExtra("fileKey", IntentData.putData(fileData.second))
+                intent.putExtra("fileKey", IntentData.put(fileData.second))
                 intent.putExtra("contentType", fileData.third)
             }
         }
