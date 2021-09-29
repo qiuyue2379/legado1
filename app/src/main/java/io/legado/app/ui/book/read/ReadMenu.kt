@@ -16,6 +16,7 @@ import io.legado.app.constant.PreferKey
 import io.legado.app.databinding.ViewReadMenuBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.help.LocalConfig
+import io.legado.app.help.ReadBookConfig
 import io.legado.app.help.ThemeConfig
 import io.legado.app.lib.theme.*
 import io.legado.app.model.ReadBook
@@ -257,7 +258,11 @@ class ReadMenu @JvmOverloads constructor(
                 binding.vwMenuBg.setOnClickListener { runMenuOut() }
                 binding.vwNavigationBar.run {
                     layoutParams = layoutParams.apply {
-                        height = activity?.navigationBarHeight ?: 0
+                        height = if (ReadBookConfig.hideNavigationBar) {
+                            activity?.navigationBarHeight ?: 0
+                        } else {
+                            0
+                        }
                     }
                 }
                 if (!LocalConfig.readMenuHelpVersionIsLast) {

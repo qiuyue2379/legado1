@@ -1,6 +1,6 @@
 package io.legado.app.help
 
-object IntentDataHelp {
+object IntentData {
 
     private val bigData: MutableMap<String, Any> = mutableMapOf()
 
