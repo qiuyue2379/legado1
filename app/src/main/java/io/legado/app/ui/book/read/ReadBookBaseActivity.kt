@@ -22,12 +22,13 @@ import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.lib.theme.backgroundColor
+import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.model.CacheBook
-import io.legado.app.model.ReadBook
+import io.legado.app.model.BookRead
 import io.legado.app.ui.book.read.config.BgTextConfigDialog
 import io.legado.app.ui.book.read.config.ClickActionConfigDialog
 import io.legado.app.ui.book.read.config.PaddingConfigDialog
-import io.legado.app.utils.getPrefString
+import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
 /**
@@ -41,13 +42,14 @@ abstract class ReadBookBaseActivity :
     var bottomDialog = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ReadBook.msg = null
+        BookRead.msg = null
         setOrientation()
         upLayoutInDisplayCutoutMode()
         super.onCreate(savedInstanceState)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+        binding.navigationBar.setBackgroundColor(bottomBackground)
         if (!LocalConfig.readHelpVersionIsLast) {
             showClickRegionalConfig()
         }
@@ -86,16 +88,16 @@ abstract class ReadBookBaseActivity :
         toolBarHide: Boolean = true
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.let {
-                if (ReadBookConfig.hideNavigationBar) {
-                    it.hide(WindowInsets.Type.navigationBars())
+            window.insetsController?.run {
+                if (toolBarHide && ReadBookConfig.hideNavigationBar) {
+                    hide(WindowInsets.Type.navigationBars())
                 } else {
-                    it.show(WindowInsets.Type.navigationBars())
+                    show(WindowInsets.Type.navigationBars())
                 }
                 if (toolBarHide && ReadBookConfig.hideStatusBar) {
-                    it.hide(WindowInsets.Type.statusBars())
+                   hide(WindowInsets.Type.statusBars())
                 } else {
-                    it.show(WindowInsets.Type.statusBars())
+                    show(WindowInsets.Type.statusBars())
                 }
             }
         }
@@ -134,10 +136,28 @@ abstract class ReadBookBaseActivity :
     }
 
     override fun upNavigationBarColor() {
+        upNavigationBar()
         when {
             binding.readMenu.isVisible -> super.upNavigationBarColor()
             bottomDialog > 0 -> super.upNavigationBarColor()
             else -> ATH.setNavigationBarColorAuto(this, ReadBookConfig.bgMeanColor)
+        }
+    }
+
+    private fun upNavigationBar() {
+        binding.navigationBar.run {
+            if (bottomDialog > 0 || binding.readMenu.isVisible) {
+                layoutParams = layoutParams.apply {
+                    height = if (ReadBookConfig.hideNavigationBar) {
+                        activity?.navigationBarHeight ?: 0
+                    } else {
+                        0
+                    }
+                }
+                visible()
+            } else {
+                gone()
+            }
         }
     }
 
@@ -166,7 +186,7 @@ abstract class ReadBookBaseActivity :
 
     @SuppressLint("InflateParams")
     fun showDownloadDialog() {
-        ReadBook.book?.let { book ->
+        BookRead.book?.let { book ->
             alert(titleResource = R.string.offline_cache) {
                 val alertBinding = DialogDownloadChoiceBinding.inflate(layoutInflater).apply {
                     root.setBackgroundColor(root.context.backgroundColor)
@@ -191,12 +211,12 @@ abstract class ReadBookBaseActivity :
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.hint = "charset"
                 editView.setFilterValues(charsets)
-                editView.setText(ReadBook.book?.charset)
+                editView.setText(BookRead.book?.charset)
             }
             customView { alertBinding.root }
             okButton {
                 alertBinding.editView.text?.toString()?.let {
-                    ReadBook.setCharset(it)
+                    BookRead.setCharset(it)
                 }
             }
             cancelButton()
@@ -212,7 +232,7 @@ abstract class ReadBookBaseActivity :
         items.add(getString(R.string.page_anim_scroll))
         items.add(getString(R.string.page_anim_none))
         selector(R.string.page_anim, items) { _, i ->
-            ReadBook.book?.setPageAnim(i - 1)
+            BookRead.book?.setPageAnim(i - 1)
             success()
         }
     }

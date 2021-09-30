@@ -1,35 +1,24 @@
-package io.legado.app.ui.widget.dialog
+package io.legado.app.ui.book.read
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.FragmentManager
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
 import io.legado.app.databinding.DialogPhotoViewBinding
-import io.legado.app.model.ReadBook
+import io.legado.app.model.BookRead
 import io.legado.app.ui.book.read.page.provider.ImageProvider
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
 
-class PhotoDialog : BaseDialogFragment() {
+class PhotoDialog() : BaseDialogFragment() {
 
-    companion object {
-
-        fun show(
-            fragmentManager: FragmentManager,
-            chapterIndex: Int,
-            src: String,
-        ) {
-            PhotoDialog().apply {
-                val bundle = Bundle()
-                bundle.putInt("chapterIndex", chapterIndex)
-                bundle.putString("src", src)
-                arguments = bundle
-            }.show(fragmentManager, "photoDialog")
+    constructor(chapterIndex: Int, src: String) : this() {
+        arguments = Bundle().apply {
+            putInt("chapterIndex", chapterIndex)
+            putString("src", src)
         }
-
     }
 
     private val binding by viewBinding(DialogPhotoViewBinding::bind)
@@ -54,10 +43,10 @@ class PhotoDialog : BaseDialogFragment() {
         arguments?.let {
             val chapterIndex = it.getInt("chapterIndex")
             val src = it.getString("src")
-            ReadBook.book?.let { book ->
+            BookRead.book?.let { book ->
                 src?.let {
                     execute {
-                        ImageProvider.getImage(book, chapterIndex, src, ReadBook.bookSource)
+                        ImageProvider.getImage(book, chapterIndex, src, BookRead.bookSource)
                     }.onSuccess { bitmap ->
                         if (bitmap != null) {
                             binding.photoView.setImageBitmap(bitmap)

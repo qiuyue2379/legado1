@@ -61,7 +61,7 @@ class ReplaceRuleActivity : VMBaseActivity<ActivityReplaceRuleBinding, ReplaceRu
     private var dataInit = false
     private val qrCodeResult = registerForActivityResult(QrCodeResult()) {
         it ?: return@registerForActivityResult
-        supportFragmentManager.showDialog(
+        showDialogFragment(
             ImportReplaceRuleDialog(it)
         )
     }
@@ -74,7 +74,7 @@ class ReplaceRuleActivity : VMBaseActivity<ActivityReplaceRuleBinding, ReplaceRu
     private val importDoc = registerForActivityResult(HandleFileContract()) { uri ->
         kotlin.runCatching {
             uri?.readText(this)?.let {
-                supportFragmentManager.showDialog(
+                showDialogFragment(
                     ImportReplaceRuleDialog(it)
                 )
             }
@@ -283,7 +283,7 @@ class ReplaceRuleActivity : VMBaseActivity<ActivityReplaceRuleBinding, ReplaceRu
                         cacheUrls.add(0, it)
                         aCache.put(importRecordKey, cacheUrls.joinToString(","))
                     }
-                    supportFragmentManager.showDialog(
+                    showDialogFragment(
                         ImportReplaceRuleDialog(it)
                     )
                 }
@@ -294,7 +294,7 @@ class ReplaceRuleActivity : VMBaseActivity<ActivityReplaceRuleBinding, ReplaceRu
 
     private fun showHelp() {
         val text = String(assets.open("help/replaceRuleHelp.md").readBytes())
-        TextDialog.show(supportFragmentManager, text, TextDialog.MD)
+        showDialogFragment(TextDialog(text, TextDialog.Mode.MD))
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
