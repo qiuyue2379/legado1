@@ -159,7 +159,7 @@ class OtherConfigFragment : BasePreferenceFragment(),
                 }
             }
             noButton()
-        }.show()
+        }
     }
 
     private fun clearCache() {
@@ -173,7 +173,7 @@ class OtherConfigFragment : BasePreferenceFragment(),
                 toastOnUi(R.string.clear_cache_success)
             }
             noButton()
-        }.show()
+        }
     }
 
     private fun isProcessTextEnabled(): Boolean {

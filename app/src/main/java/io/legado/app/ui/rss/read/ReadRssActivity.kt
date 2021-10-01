@@ -27,6 +27,7 @@ import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.launch
 import org.apache.commons.text.StringEscapeUtils
 import org.jsoup.Jsoup
+import java.net.URLDecoder
 
 /**
  * rss阅读界面
@@ -132,7 +133,8 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             return@setOnLongClickListener false
         }
         binding.webView.setDownloadListener { url, _, contentDisposition, _, _ ->
-            val fileName = URLUtil.guessFileName(url, contentDisposition, null)
+            var fileName = URLUtil.guessFileName(url, contentDisposition, null)
+            fileName = URLDecoder.decode(fileName, "UTF-8")
             binding.llView.longSnackbar(fileName, getString(R.string.action_download)) {
                 Download.start(this, url, fileName)
             }
@@ -281,13 +283,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
 
     inner class CustomWebChromeClient : WebChromeClient() {
 
-        override fun onReceivedTitle(view: WebView?, title: String?) {
-            super.onReceivedTitle(view, title)
-            title.let {
-                binding.titleBar.title = title
-            }
-        }
-
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             binding.llView.invisible()
@@ -324,7 +319,11 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
             view?.title?.let { title ->
-                binding.titleBar.title = title
+                if (title != url && title != view.url && title.isNotBlank()) {
+                    binding.titleBar.title = title
+                } else {
+                    binding.titleBar.title = intent.getStringExtra("title")
+                }
             }
         }
 

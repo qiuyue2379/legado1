@@ -6,16 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import androidx.core.app.NotificationCompat
-import androidx.core.content.FileProvider
 import io.legado.app.R
 import io.legado.app.base.BaseService
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.IntentAction
-import io.legado.app.utils.RealPathUtil
-import io.legado.app.utils.msg
+import io.legado.app.utils.IntentType
+import io.legado.app.utils.openFileUri
 import io.legado.app.utils.servicePendingIntent
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.Job
@@ -25,9 +23,10 @@ import kotlinx.coroutines.launch
 import splitties.init.appCtx
 import splitties.systemservices.downloadManager
 import splitties.systemservices.notificationManager
-import java.io.File
 
-
+/**
+ * 下载文件
+ */
 class DownloadService : BaseService() {
     private val groupKey = "${appCtx.packageName}.download"
     private val downloads = hashMapOf<Long, Pair<String, String>>()
@@ -58,12 +57,10 @@ class DownloadService : BaseService() {
             )
             IntentAction.play -> {
                 val id = intent.getLongExtra("downloadId", 0)
-                if (completeDownloads.contains(id)
-                    && downloads[id]?.second?.endsWith(".apk") == true
-                ) {
-                    installApk(id)
+                if (completeDownloads.contains(id)) {
+                    openDownload(id, downloads[id]?.second)
                 } else {
-                    toastOnUi("下载的文件在Download文件夹")
+                    toastOnUi("未完成,下载的文件夹Download")
                 }
             }
             IntentAction.stop -> {
@@ -117,7 +114,7 @@ class DownloadService : BaseService() {
             completeDownloads.add(downloadId)
             val fileName = downloads[downloadId]?.second
             if (fileName?.endsWith(".apk") == true) {
-                installApk(downloadId)
+                openDownload(downloadId, fileName)
             } else {
                 toastOnUi("$fileName ${getString(R.string.download_success)}")
             }
@@ -172,29 +169,10 @@ class DownloadService : BaseService() {
         }
     }
 
-    private fun installApk(downloadId: Long) {
-        downloadManager.getUriForDownloadedFile(downloadId)?.let {
-            val filePath = RealPathUtil.getPath(this, it) ?: return
-            val file = File(filePath)
-            //调用系统安装apk
-            val intent = Intent()
-            intent.action = Intent.ACTION_VIEW
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {   //7.0版本以上
-                val contentUrl = FileProvider.getUriForFile(this, AppConst.authority, file)
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                intent.setDataAndType(contentUrl, "application/vnd.android.package-archive")
-            } else {
-                val uri: Uri = Uri.fromFile(file)
-                intent.setDataAndType(uri, "application/vnd.android.package-archive")
-            }
-
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                toastOnUi(e.msg)
-            }
+    private fun openDownload(downloadId: Long, fileName: String?) {
+        downloadManager.getUriForDownloadedFile(downloadId)?.let { uri ->
+            val type = IntentType.from(fileName)
+            openFileUri(uri, type)
         }
     }
 

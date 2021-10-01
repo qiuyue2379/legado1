@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.webkit.*
 import androidx.activity.viewModels
+import androidx.core.view.size
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import io.legado.app.R
@@ -21,6 +23,7 @@ import io.legado.app.ui.association.OnLineImportActivity
 import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import java.net.URLDecoder
 
 class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
 
@@ -86,7 +89,8 @@ class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
             return@setOnLongClickListener false
         }
         binding.webView.setDownloadListener { url, _, contentDisposition, _, _ ->
-            val fileName = URLUtil.guessFileName(url, contentDisposition, null)
+            var fileName = URLUtil.guessFileName(url, contentDisposition, null)
+            fileName = URLDecoder.decode(fileName, "UTF-8")
             binding.llView.longSnackbar(fileName, getString(R.string.action_download)) {
                 Download.start(this, url, fileName)
             }
@@ -131,14 +135,39 @@ class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
         }
     }
 
-    inner class CustomWebChromeClient : WebChromeClient() {
-
-        override fun onReceivedTitle(view: WebView?, title: String?) {
-            super.onReceivedTitle(view, title)
-            title?.let {
-                binding.titleBar.title = it
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_BACK -> {
+                finish()
+                return true
             }
         }
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        event?.let {
+            when (keyCode) {
+                KeyEvent.KEYCODE_BACK -> if (event.isTracking && !event.isCanceled && binding.webView.canGoBack()) {
+                    if (binding.customWebView.size > 0) {
+                        customWebViewCallback?.onCustomViewHidden()
+                        return true
+                    } else if (binding.webView.copyBackForwardList().size > 1) {
+                        binding.webView.goBack()
+                        return true
+                    }
+                }
+            }
+        }
+        return super.onKeyUp(keyCode, event)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        binding.webView.destroy()
+    }
+
+    inner class CustomWebChromeClient : WebChromeClient() {
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
@@ -176,7 +205,11 @@ class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
             view?.title?.let { title ->
-                binding.titleBar.title = title
+                if (title != url && title != view.url && title.isNotBlank()) {
+                    binding.titleBar.title = title
+                } else {
+                    binding.titleBar.title = intent.getStringExtra("title")
+                }
             }
         }
 
