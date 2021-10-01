@@ -21,7 +21,7 @@ import io.legado.app.help.*
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.*
 import io.legado.app.model.BookRead
-import io.legado.app.ui.web.WebViewActivity
+import io.legado.app.ui.browser.WebViewActivity
 import io.legado.app.ui.widget.seekbar.SeekBarChangeListener
 import io.legado.app.utils.*
 import splitties.views.onClick
@@ -159,6 +159,9 @@ class ReadMenu @JvmOverloads constructor(
 
     private fun bindEvent() = binding.run {
         val chapterViewClickListener = OnClickListener {
+            if (BookRead.isLocalBook) {
+                return@OnClickListener
+            }
             if (AppConfig.readUrlInBrowser) {
                 context.openUrl(tvChapterUrl.text.toString().substringBefore(",{"))
             } else {
@@ -171,6 +174,9 @@ class ReadMenu @JvmOverloads constructor(
             }
         }
         val chapterViewLongClickListener = OnLongClickListener {
+            if (BookRead.isLocalBook) {
+                return@OnLongClickListener true
+            }
             context.alert(R.string.Open_fan) {
                 setMessage(R.string.use_browser_open)
                 okButton {
@@ -293,6 +299,7 @@ class ReadMenu @JvmOverloads constructor(
         menuBottomIn = AnimationUtilsSupport.loadAnimation(context, R.anim.anim_readbook_bottom_in)
         menuTopIn.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationStart(animation: Animation) {
+                binding.tvSourceAction.isGone = BookRead.isLocalBook
                 binding.tvLogin.isGone = BookRead.bookSource?.loginUrl.isNullOrEmpty()
                 binding.tvPay.isGone = BookRead.bookSource?.loginUrl.isNullOrEmpty()
                         || BookRead.curTextChapter?.isVip != true
