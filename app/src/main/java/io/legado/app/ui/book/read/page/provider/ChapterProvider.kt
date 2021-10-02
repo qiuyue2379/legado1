@@ -69,7 +69,8 @@ object ChapterProvider {
         private set
 
     @JvmStatic
-    private var lineSpacingExtra = 0
+    var lineSpacingExtra = 0f
+        private set
 
     @JvmStatic
     private var paragraphSpacing = 0
@@ -85,10 +86,10 @@ object ChapterProvider {
         private set
 
     @JvmStatic
-    val titlePaint: TextPaint = TextPaint()
+    var titlePaint: TextPaint = TextPaint()
 
     @JvmStatic
-    val contentPaint: TextPaint = TextPaint()
+    var contentPaint: TextPaint = TextPaint()
 
     var doublePage = false
         private set
@@ -351,7 +352,7 @@ object ChapterProvider {
             if (isLastLine) stringBuilder.append("\n")
             textPages.last().textLines.add(textLine)
             textLine.upTopBottom(durY, textPaint)
-            durY += textPaint.textHeight * lineSpacingExtra / 10f
+            durY += textPaint.textHeight * lineSpacingExtra
             textPages.last().height = durY
         }
         if (isTitle) durY += titleBottomSpacing
@@ -500,9 +501,12 @@ object ChapterProvider {
      */
     fun upStyle() {
         typeface = getTypeface(ReadBookConfig.textFont)
-        upPaint(typeface)
+        getPaints(typeface).let {
+            titlePaint = it.first
+            contentPaint = it.second
+        }
         //间距
-        lineSpacingExtra = ReadBookConfig.lineSpacingExtra
+        lineSpacingExtra = ReadBookConfig.lineSpacingExtra / 10f
         paragraphSpacing = ReadBookConfig.paragraphSpacing
         titleTopSpacing = ReadBookConfig.titleTopSpacing.dp
         titleBottomSpacing = ReadBookConfig.titleBottomSpacing.dp
@@ -535,7 +539,7 @@ object ChapterProvider {
         } ?: Typeface.DEFAULT
     }
 
-    private fun upPaint(typeface: Typeface) {
+    private fun getPaints(typeface: Typeface): Pair<TextPaint, TextPaint> {
         // 字体统一处理
         val bold = Typeface.create(typeface, Typeface.BOLD)
         val normal = Typeface.create(typeface, Typeface.NORMAL)
@@ -556,17 +560,19 @@ object ChapterProvider {
         }
 
         //标题
-        titlePaint.color = ReadBookConfig.textColor
-        titlePaint.letterSpacing = ReadBookConfig.letterSpacing
-        titlePaint.typeface = titleFont
-        titlePaint.textSize = with(ReadBookConfig) { textSize + titleSize }.sp.toFloat()
-        titlePaint.isAntiAlias = true
-        //正文
-        contentPaint.color = ReadBookConfig.textColor
-        contentPaint.letterSpacing = ReadBookConfig.letterSpacing
-        contentPaint.typeface = textFont
-        contentPaint.textSize = ReadBookConfig.textSize.sp.toFloat()
-        contentPaint.isAntiAlias = true
+        val tPaint = TextPaint()
+        tPaint.color = ReadBookConfig.textColor
+        tPaint.letterSpacing = ReadBookConfig.letterSpacing
+        tPaint.typeface = titleFont
+        tPaint.textSize = with(ReadBookConfig) { textSize + titleSize }.sp.toFloat()
+        tPaint.isAntiAlias = true
+        val cPaint = TextPaint()
+        cPaint.color = ReadBookConfig.textColor
+        cPaint.letterSpacing = ReadBookConfig.letterSpacing
+        cPaint.typeface = textFont
+        cPaint.textSize = ReadBookConfig.textSize.sp.toFloat()
+        cPaint.isAntiAlias = true
+        return Pair(tPaint, cPaint)
     }
 
     /**
