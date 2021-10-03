@@ -9,13 +9,19 @@ import android.text.Html
 import android.view.View
 import android.view.View.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.EdgeEffect
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.get
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.ViewPager
+import io.legado.app.help.AppConfig
+import io.legado.app.lib.theme.TintHelper
 import splitties.init.appCtx
 import java.lang.reflect.Field
 
@@ -40,6 +46,47 @@ fun View.hideSoftInput() = run {
 fun View.disableAutoFill() = run {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         this.importantForAutofill = IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+    }
+}
+
+fun View.applyTint(
+    @ColorInt color: Int,
+    isDark: Boolean = AppConfig.isNightTheme(context)
+) {
+    TintHelper.setTintAuto(this, color, false, isDark)
+}
+
+fun View.applyBackgroundTint(
+    @ColorInt color: Int,
+    isDark: Boolean = AppConfig.isNightTheme
+) {
+    if (background == null) {
+        setBackgroundColor(color)
+    } else {
+        TintHelper.setTintAuto(this, color, true, isDark)
+    }
+}
+
+fun RecyclerView.setEdgeEffectColor(@ColorInt color: Int) {
+    edgeEffectFactory = object : RecyclerView.EdgeEffectFactory() {
+        override fun createEdgeEffect(view: RecyclerView, direction: Int): EdgeEffect {
+            val edgeEffect = super.createEdgeEffect(view, direction)
+            edgeEffect.color = color
+            return edgeEffect
+        }
+    }
+}
+
+fun ViewPager.setEdgeEffectColor(@ColorInt color: Int) {
+    try {
+        val clazz = ViewPager::class.java
+        for (name in arrayOf("mLeftEdge", "mRightEdge")) {
+            val field = clazz.getDeclaredField(name)
+            field.isAccessible = true
+            val edge = field.get(this)
+            (edge as EdgeEffect).color = color
+        }
+    } catch (ignored: Exception) {
     }
 }
 

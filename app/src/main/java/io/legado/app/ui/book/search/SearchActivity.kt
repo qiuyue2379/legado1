@@ -107,7 +107,7 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
     }
 
     private fun initSearchView() {
-        ATH.setTint(searchView, primaryTextColor)
+        searchView.applyTint(primaryTextColor)
         searchView.onActionViewExpanded()
         searchView.isSubmitButtonEnabled = true
         searchView.queryHint = getString(R.string.search_book_key)
@@ -140,9 +140,9 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
     }
 
     private fun initRecyclerView() {
-        ATH.applyEdgeEffectColor(binding.recyclerView)
-        ATH.applyEdgeEffectColor(binding.rvBookshelfSearch)
-        ATH.applyEdgeEffectColor(binding.rvHistoryKey)
+        binding.recyclerView.setEdgeEffectColor(primaryColor)
+        binding.rvBookshelfSearch.setEdgeEffectColor(primaryColor)
+        binding.rvHistoryKey.setEdgeEffectColor(primaryColor)
         binding.rvBookshelfSearch.layoutManager = FlexboxLayoutManager(this)
         binding.rvBookshelfSearch.adapter = bookAdapter
         binding.rvHistoryKey.layoutManager = FlexboxLayoutManager(this)

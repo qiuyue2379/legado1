@@ -1,9 +1,11 @@
 package io.legado.app.ui.book.read
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import android.view.View.OnClickListener
@@ -24,8 +26,7 @@ import io.legado.app.model.ReadBook
 import io.legado.app.ui.browser.WebViewActivity
 import io.legado.app.ui.widget.seekbar.SeekBarChangeListener
 import io.legado.app.utils.*
-import splitties.views.onClick
-import splitties.views.onLongClick
+import splitties.views.*
 
 /**
  * 阅读界面菜单
@@ -84,7 +85,6 @@ class ReadMenu @JvmOverloads constructor(
         brightnessBackground.setColor(ColorUtils.adjustAlpha(bgColor, 0.5f))
         llBrightness.background = brightnessBackground
         llBottomBg.setBackgroundColor(bgColor)
-        vwNavigationBar.setBackgroundColor(bgColor)
         fabSearch.backgroundTintList = bottomBackgroundList
         fabSearch.setColorFilter(textColor)
         fabAutoPage.backgroundTintList = bottomBackgroundList
@@ -104,7 +104,6 @@ class ReadMenu @JvmOverloads constructor(
         ivSetting.setColorFilter(textColor)
         tvSetting.setTextColor(textColor)
         vwBg.setOnClickListener(null)
-        vwNavigationBar.setOnClickListener(null)
         llBrightness.setOnClickListener(null)
         seekBrightness.post {
             seekBrightness.progress = AppConfig.readBrightness
@@ -308,17 +307,24 @@ class ReadMenu @JvmOverloads constructor(
                 binding.llBrightness.visible(showBrightnessView)
             }
 
+            @SuppressLint("RtlHardcoded")
             override fun onAnimationEnd(animation: Animation) {
-                binding.vwMenuBg.setOnClickListener { runMenuOut() }
-                binding.vwNavigationBar.run {
-                    layoutParams = layoutParams.apply {
-                        height = if (ReadBookConfig.hideNavigationBar) {
-                            activity?.navigationBarHeight ?: 0
-                        } else {
-                            0
-                        }
+                val navigationBarHeight =
+                    if (ReadBookConfig.hideNavigationBar) {
+                        activity?.navigationBarHeight ?: 0
+                    } else {
+                        0
+                    }
+                binding.run {
+                    vwMenuBg.setOnClickListener { runMenuOut() }
+                    root.padding = 0
+                    when (activity?.navigationBarGravity) {
+                        Gravity.BOTTOM -> root.bottomPadding = navigationBarHeight
+                        Gravity.LEFT -> root.leftPadding = navigationBarHeight
+                        Gravity.RIGHT -> root.rightPadding = navigationBarHeight
                     }
                 }
+                callBack.upSystemUiVisibility()
                 if (!LocalConfig.readMenuHelpVersionIsLast) {
                     callBack.showReadMenuHelp()
                 }

@@ -5,6 +5,8 @@ import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.FrameLayout
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import io.legado.app.R
@@ -19,7 +21,6 @@ import io.legado.app.help.LocalConfig
 import io.legado.app.help.ReadBookConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
-import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.lib.theme.backgroundColor
 import io.legado.app.lib.theme.bottomBackground
@@ -103,12 +104,10 @@ abstract class ReadBookBaseActivity :
         }
         upSystemUiVisibilityO(isInMultiWindow, toolBarHide)
         if (toolBarHide) {
-            ATH.setLightStatusBar(this, ReadBookConfig.durConfig.curStatusIconDark())
+            setLightStatusBar(ReadBookConfig.durConfig.curStatusIconDark())
         } else {
-            ATH.setLightStatusBarAuto(
-                this,
-                ThemeStore.statusBarColor(this, AppConfig.isTransparentStatusBar)
-            )
+            val statusBarColor = ThemeStore.statusBarColor(this, AppConfig.isTransparentStatusBar)
+            setLightStatusBar(ColorUtils.isColorLight(statusBarColor))
         }
     }
 
@@ -140,19 +139,40 @@ abstract class ReadBookBaseActivity :
         when {
             binding.readMenu.isVisible -> super.upNavigationBarColor()
             bottomDialog > 0 -> super.upNavigationBarColor()
-            else -> ATH.setNavigationBarColorAuto(this, ReadBookConfig.bgMeanColor)
+            !AppConfig.immNavigationBar -> super.upNavigationBarColor()
+            else -> setNavigationBarColorAuto(ReadBookConfig.bgMeanColor)
         }
     }
 
+    @SuppressLint("RtlHardcoded")
     private fun upNavigationBar() {
         binding.navigationBar.run {
             if (bottomDialog > 0 || binding.readMenu.isVisible) {
-                layoutParams = layoutParams.apply {
-                    height = if (ReadBookConfig.hideNavigationBar) {
+                val navigationBarHeight =
+                    if (ReadBookConfig.hideNavigationBar) {
                         activity?.navigationBarHeight ?: 0
                     } else {
                         0
                     }
+                when (navigationBarGravity) {
+                    Gravity.BOTTOM -> layoutParams =
+                        (layoutParams as FrameLayout.LayoutParams).apply {
+                            height = navigationBarHeight
+                            width = MATCH_PARENT
+                            gravity = Gravity.BOTTOM
+                        }
+                    Gravity.LEFT -> layoutParams =
+                        (layoutParams as FrameLayout.LayoutParams).apply {
+                            height = MATCH_PARENT
+                            width = navigationBarHeight
+                            gravity = Gravity.LEFT
+                        }
+                    Gravity.RIGHT -> layoutParams =
+                        (layoutParams as FrameLayout.LayoutParams).apply {
+                            height = MATCH_PARENT
+                            width = navigationBarHeight
+                            gravity = Gravity.RIGHT
+                        }
                 }
                 visible()
             } else {

@@ -275,7 +275,7 @@
                         android:textSize="14sp"
                         tools:ignore="TouchTargetSizeCheck" />
 
-                    <io.legado.app.lib.theme.view.ATESeekBar
+                    <io.legado.app.lib.theme.view.ThemeSeekBar
                         android:id="@+id/seek_read_page"
                         android:layout_width="0dp"
                         android:layout_height="25dp"
@@ -484,13 +484,6 @@
                     android:layout_height="match_parent" />
             </LinearLayout>
         </FrameLayout>
-
-        <View
-            android:id="@+id/vwNavigationBar"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:background="@color/background_menu" />
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

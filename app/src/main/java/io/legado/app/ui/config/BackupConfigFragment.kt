@@ -26,8 +26,8 @@ import io.legado.app.help.storage.Restore
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.permission.Permissions
 import io.legado.app.lib.permission.PermissionsCompat
-import io.legado.app.lib.theme.ATH
 import io.legado.app.lib.theme.accentColor
+import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.*
@@ -96,18 +96,18 @@ class BackupConfigFragment : BasePreferenceFragment(),
         addPreferencesFromResource(R.xml.pref_config_backup)
         findPreference<EditTextPreference>(PreferKey.webDavUrl)?.let {
             it.setOnBindEditTextListener { editText ->
-                ATH.setTint(editText, requireContext().accentColor)
+                editText.applyTint(requireContext().accentColor)
             }
 
         }
         findPreference<EditTextPreference>(PreferKey.webDavAccount)?.let {
             it.setOnBindEditTextListener { editText ->
-                ATH.setTint(editText, requireContext().accentColor)
+                editText.applyTint(requireContext().accentColor)
             }
         }
         findPreference<EditTextPreference>(PreferKey.webDavPassword)?.let {
             it.setOnBindEditTextListener { editText ->
-                ATH.setTint(editText, requireContext().accentColor)
+                editText.applyTint(requireContext().accentColor)
                 editText.inputType =
                     InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_CLASS_TEXT
             }
@@ -124,7 +124,7 @@ class BackupConfigFragment : BasePreferenceFragment(),
         super.onViewCreated(view, savedInstanceState)
         activity?.setTitle(R.string.backup_restore)
         preferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
-        ATH.applyEdgeEffectColor(listView)
+        listView.setEdgeEffectColor(primaryColor)
         setHasOptionsMenu(true)
         if (!LocalConfig.backupHelpVersionIsLast) {
             showHelp()
