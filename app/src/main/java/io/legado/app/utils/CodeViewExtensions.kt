@@ -2,8 +2,8 @@
 
 package io.legado.app.utils
 
-import com.amrdeveloper.codeview.CodeView
 import io.legado.app.lib.theme.accentColor
+import io.legado.app.ui.widget.code.CodeView
 import splitties.init.appCtx
 import java.util.regex.Pattern
 
