@@ -25,12 +25,10 @@ import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
+import io.legado.app.ui.widget.dialog.CodeDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
-import io.legado.app.utils.dp
-import io.legado.app.utils.putPrefBoolean
-import io.legado.app.utils.splitNotBlank
+import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import io.legado.app.utils.visible
 
 
 /**
@@ -51,7 +49,7 @@ class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLi
 
     override fun onStart() {
         super.onStart()
-        dialog?.window?.setLayout(
+        setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
@@ -216,9 +214,9 @@ class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLi
                 cbSourceName.text = item.bookSourceName
                 val localSource = viewModel.checkSources[holder.layoutPosition]
                 tvSourceState.text = when {
-                    localSource == null -> "新书源"
+                    localSource == null -> "新增"
                     item.lastUpdateTime > localSource.lastUpdateTime -> "更新"
-                    else -> "已存在"
+                    else -> "已有"
                 }
             }
 
@@ -231,6 +229,10 @@ class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLi
                         viewModel.selectStatus[holder.layoutPosition] = isChecked
                         upSelectText()
                     }
+                }
+                tvSee.setOnClickListener {
+                    val source = viewModel.allSources[holder.layoutPosition]
+                    showDialogFragment(CodeDialog(GSON.toJson(source)))
                 }
             }
         }

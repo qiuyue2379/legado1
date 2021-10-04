@@ -25,12 +25,10 @@ import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
+import io.legado.app.ui.widget.dialog.CodeDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
-import io.legado.app.utils.dp
-import io.legado.app.utils.putPrefBoolean
-import io.legado.app.utils.splitNotBlank
+import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import io.legado.app.utils.visible
 
 /**
  * 导入rss源弹出窗口
@@ -50,7 +48,7 @@ class ImportRssSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLis
 
     override fun onStart() {
         super.onStart()
-        dialog?.window?.setLayout(
+        setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
@@ -214,9 +212,9 @@ class ImportRssSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLis
                 cbSourceName.isChecked = viewModel.selectStatus[holder.layoutPosition]
                 cbSourceName.text = item.sourceName
                 tvSourceState.text = if (viewModel.checkSources[holder.layoutPosition] != null) {
-                    "已存在"
+                    "已有"
                 } else {
-                    "新订阅源"
+                    "新增"
                 }
             }
         }
@@ -228,6 +226,10 @@ class ImportRssSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLis
                         viewModel.selectStatus[holder.layoutPosition] = isChecked
                         upSelectText()
                     }
+                }
+                tvSee.setOnClickListener {
+                    val source = viewModel.allSources[holder.layoutPosition]
+                    showDialogFragment(CodeDialog(GSON.toJson(source)))
                 }
             }
         }

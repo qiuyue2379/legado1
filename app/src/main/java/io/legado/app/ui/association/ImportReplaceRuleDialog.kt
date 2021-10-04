@@ -24,12 +24,10 @@ import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
+import io.legado.app.ui.widget.dialog.CodeDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
-import io.legado.app.utils.dp
-import io.legado.app.utils.putPrefBoolean
-import io.legado.app.utils.splitNotBlank
+import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import io.legado.app.utils.visible
 
 class ImportReplaceRuleDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
 
@@ -46,7 +44,7 @@ class ImportReplaceRuleDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickL
 
     override fun onStart() {
         super.onStart()
-        dialog?.window?.setLayout(
+        setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
@@ -208,12 +206,12 @@ class ImportReplaceRuleDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickL
                 cbSourceName.text = item.name
                 val localRule = viewModel.checkRules[holder.layoutPosition]
                 tvSourceState.text = when {
-                    localRule == null -> "新规则"
+                    localRule == null -> "新增"
                     item.pattern != localRule.pattern
                             || item.replacement != localRule.replacement
                             || item.isRegex != localRule.isRegex
                             || item.scope != localRule.scope -> "更新"
-                    else -> "已存在"
+                    else -> "已有"
                 }
             }
         }
@@ -225,6 +223,10 @@ class ImportReplaceRuleDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickL
                         viewModel.selectStatus[holder.layoutPosition] = isChecked
                         upSelectText()
                     }
+                }
+                tvSee.setOnClickListener {
+                    val source = viewModel.allRules[holder.layoutPosition]
+                    showDialogFragment(CodeDialog(GSON.toJson(source)))
                 }
             }
         }
