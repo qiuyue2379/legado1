@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -29,11 +28,13 @@ import io.legado.app.ui.widget.dialog.CodeDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import splitties.views.onClick
 
 /**
  * 导入rss源弹出窗口
  */
-class ImportRssSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class ImportRssSourceDialog() : BaseDialogFragment(R.layout.dialog_recycler_view),
+    Toolbar.OnMenuItemClickListener {
 
     constructor(source: String, finishOnDismiss: Boolean = false) : this() {
         arguments = Bundle().apply {
@@ -59,14 +60,6 @@ class ImportRssSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLis
         if (arguments?.getBoolean("finishOnDismiss") == true) {
             activity?.finish()
         }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.dialog_recycler_view, container)
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -227,7 +220,12 @@ class ImportRssSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLis
                         upSelectText()
                     }
                 }
-                tvSee.setOnClickListener {
+                root.onClick {
+                    cbSourceName.isChecked = !cbSourceName.isChecked
+                    viewModel.selectStatus[holder.layoutPosition] = cbSourceName.isChecked
+                    upSelectText()
+                }
+                tvOpen.setOnClickListener {
                     val source = viewModel.allSources[holder.layoutPosition]
                     showDialogFragment(CodeDialog(GSON.toJson(source)))
                 }

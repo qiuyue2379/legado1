@@ -23,7 +23,7 @@ class OnLineImportActivity :
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         viewModel.successLive.observe(this) {
             when (it.first) {
-                "bookSource" -> showDialogFragment(
+                "source" -> showDialogFragment(
                     ImportBookSourceDialog(it.second, true)
                 )
                 "rssSource" -> showDialogFragment(
@@ -44,7 +44,7 @@ class OnLineImportActivity :
                 return
             }
             when (it.path) {
-                "/bookSource" -> showDialogFragment(
+                "/source" -> showDialogFragment(
                     ImportBookSourceDialog(url, true)
                 )
                 "/rssSource" -> showDialogFragment(

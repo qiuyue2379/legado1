@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -29,12 +28,14 @@ import io.legado.app.ui.widget.dialog.CodeDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import splitties.views.onClick
 
 
 /**
  * 导入书源弹出窗口
  */
-class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickListener {
+class ImportBookSourceDialog() : BaseDialogFragment(R.layout.dialog_recycler_view),
+    Toolbar.OnMenuItemClickListener {
 
     constructor(source: String, finishOnDismiss: Boolean = false) : this() {
         arguments = Bundle().apply {
@@ -53,14 +54,6 @@ class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLi
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.dialog_recycler_view, container)
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -219,7 +212,6 @@ class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLi
                     else -> "已有"
                 }
             }
-
         }
 
         override fun registerListener(holder: ItemViewHolder, binding: ItemSourceImportBinding) {
@@ -230,7 +222,12 @@ class ImportBookSourceDialog() : BaseDialogFragment(), Toolbar.OnMenuItemClickLi
                         upSelectText()
                     }
                 }
-                tvSee.setOnClickListener {
+                root.onClick {
+                    cbSourceName.isChecked = !cbSourceName.isChecked
+                    viewModel.selectStatus[holder.layoutPosition] = cbSourceName.isChecked
+                    upSelectText()
+                }
+                tvOpen.setOnClickListener {
                     val source = viewModel.allSources[holder.layoutPosition]
                     showDialogFragment(CodeDialog(GSON.toJson(source)))
                 }

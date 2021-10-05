@@ -336,7 +336,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             R.id.menu_export_selection -> exportDir.launch {
                 mode = HandleFileContract.EXPORT
                 fileData = Triple(
-                    "bookSource.json",
+                    "source.json",
                     GSON.toJson(adapter.selection).toByteArray(),
                     "application/json"
                 )
