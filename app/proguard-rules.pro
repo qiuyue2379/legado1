@@ -17,7 +17,7 @@
 #-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
-# hide the original source file name.
+# hide the original bookSource file name.
 #-renamesourcefileattribute SourceFile
 # 混合时不使用大小写混合，混合后的类名为小写
 -dontusemixedcaseclassnames

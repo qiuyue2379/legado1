@@ -14,7 +14,7 @@ import io.legado.app.utils.printOnDebug
 import javax.script.SimpleBindings
 
 /**
- * 可在js里调用,source.xxx()
+ * 可在js里调用,bookSource.xxx()
  */
 @Suppress("unused")
 interface BaseSource : JsExtensions {
@@ -149,7 +149,7 @@ interface BaseSource : JsExtensions {
         val bindings = SimpleBindings()
         bindings.apply(bindingsConfig)
         bindings["java"] = this
-        bindings["source"] = this
+        bindings["bookSource"] = this
         bindings["baseUrl"] = getKey()
         bindings["cookie"] = CookieStore
         bindings["cache"] = CacheManager

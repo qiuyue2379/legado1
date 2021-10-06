@@ -57,7 +57,7 @@ object ImportOldData {
                     context.toastOnUi("导入书籍失败\n${it.localizedMessage}")
                 }
 
-                kotlin.runCatching {// Book source
+                kotlin.runCatching {// Book bookSource
                     val sourceFile =
                         FileUtils.getFile(file, "myBookSource.json")
                     val json = sourceFile.readText()

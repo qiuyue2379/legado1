@@ -4,37 +4,37 @@ package io.legado.app.api.controller
 import android.text.TextUtils
 import io.legado.app.api.ReturnData
 import io.legado.app.data.appDb
-import io.legado.app.data.entities.BookSource
-import io.legado.app.help.BookSourceAnalyzer
+import io.legado.app.data.entities.RssSource
 import io.legado.app.utils.GSON
 import io.legado.app.utils.fromJsonArray
+import io.legado.app.utils.fromJsonObject
 import io.legado.app.utils.msg
 
-object SourceController {
+object RssSourceController {
 
     val sources: ReturnData
         get() {
-            val bookSources = appDb.bookSourceDao.all
+            val source = appDb.rssSourceDao.all
             val returnData = ReturnData()
-            return if (bookSources.isEmpty()) {
-                returnData.setErrorMsg("设备书源列表为空")
-            } else returnData.setData(bookSources)
+            return if (source.isEmpty()) {
+                returnData.setErrorMsg("订阅源列表为空")
+            } else returnData.setData(source)
         }
 
     fun saveSource(postData: String?): ReturnData {
         val returnData = ReturnData()
         postData ?: return returnData.setErrorMsg("数据不能为空")
         kotlin.runCatching {
-            val bookSource = BookSourceAnalyzer.jsonToBookSource(postData)
-            if (bookSource != null) {
-                if (TextUtils.isEmpty(bookSource.bookSourceName) || TextUtils.isEmpty(bookSource.bookSourceUrl)) {
-                    returnData.setErrorMsg("书源名称和URL不能为空")
+            val source = GSON.fromJsonObject<RssSource>(postData)
+            if (source != null) {
+                if (TextUtils.isEmpty(source.sourceName) || TextUtils.isEmpty(source.sourceUrl)) {
+                    returnData.setErrorMsg("源名称和URL不能为空")
                 } else {
-                    appDb.bookSourceDao.insert(bookSource)
+                    appDb.rssSourceDao.insert(source)
                     returnData.setData("")
                 }
             } else {
-                returnData.setErrorMsg("转换书源失败")
+                returnData.setErrorMsg("转换源失败")
             }
         }.onFailure {
             returnData.setErrorMsg(it.msg)
@@ -43,16 +43,16 @@ object SourceController {
     }
 
     fun saveSources(postData: String?): ReturnData {
-        val okSources = arrayListOf<BookSource>()
+        val okSources = arrayListOf<RssSource>()
         kotlin.runCatching {
-            val bookSources = GSON.fromJsonArray<BookSource>(postData)
-            if (bookSources != null) {
-                for (bookSource in bookSources) {
-                    if (bookSource.bookSourceName.isBlank() || bookSource.bookSourceUrl.isBlank()) {
+            val source = GSON.fromJsonArray<RssSource>(postData)
+            if (source != null) {
+                for (rssSource in source) {
+                    if (rssSource.sourceName.isBlank() || rssSource.sourceUrl.isBlank()) {
                         continue
                     }
-                    appDb.bookSourceDao.insert(bookSource)
-                    okSources.add(bookSource)
+                    appDb.rssSourceDao.insert(rssSource)
+                    okSources.add(rssSource)
                 }
             }
         }
@@ -65,16 +65,16 @@ object SourceController {
         if (url.isNullOrEmpty()) {
             return returnData.setErrorMsg("参数url不能为空，请指定书源地址")
         }
-        val bookSource = appDb.bookSourceDao.getBookSource(url)
-            ?: return returnData.setErrorMsg("未找到书源，请检查书源地址")
-        return returnData.setData(bookSource)
+        val source = appDb.rssSourceDao.getByKey(url)
+            ?: return returnData.setErrorMsg("未找到源，请检查源地址")
+        return returnData.setData(source)
     }
 
     fun deleteSources(postData: String?): ReturnData {
         kotlin.runCatching {
-            GSON.fromJsonArray<BookSource>(postData)?.let {
+            GSON.fromJsonArray<RssSource>(postData)?.let {
                 it.forEach { source ->
-                    appDb.bookSourceDao.delete(source)
+                    appDb.rssSourceDao.delete(source)
                 }
             }
         }

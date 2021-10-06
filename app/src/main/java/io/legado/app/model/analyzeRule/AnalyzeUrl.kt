@@ -239,7 +239,7 @@ class AnalyzeUrl(
         bindings["speakText"] = speakText
         bindings["speakSpeed"] = speakSpeed
         bindings["book"] = ruleData as? Book
-        bindings["source"] = source
+        bindings["bookSource"] = source
         bindings["result"] = result
         return SCRIPT_ENGINE.eval(jsStr, bindings)
     }

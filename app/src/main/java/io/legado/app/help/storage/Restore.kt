@@ -111,11 +111,11 @@ object Restore {
             fileToListT<BookGroup>(path, "bookGroup.json")?.let {
                 appDb.bookGroupDao.insert(*it.toTypedArray())
             }
-            fileToListT<BookSource>(path, "source.json")?.let {
+            fileToListT<BookSource>(path, "bookSource.json")?.let {
                 appDb.bookSourceDao.insert(*it.toTypedArray())
             } ?: run {
                 val bookSourceFile =
-                    FileUtils.createFileIfNotExist(path + File.separator + "source.json")
+                    FileUtils.createFileIfNotExist(path + File.separator + "bookSource.json")
                 val json = bookSourceFile.readText()
                 ImportOldData.importOldSource(json)
             }

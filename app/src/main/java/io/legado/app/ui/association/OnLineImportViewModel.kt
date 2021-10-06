@@ -153,7 +153,7 @@ class OnLineImportViewModel(app: Application) : BaseViewModel(app) {
                     val json = rs.text("utf-8")
                     when {
                         json.contains("bookSourceUrl") ->
-                            successLive.postValue(Pair("source", json))
+                            successLive.postValue(Pair("bookSource", json))
                         json.contains("sourceUrl") ->
                             successLive.postValue(Pair("rssSource", json))
                         json.contains("replacement") ->

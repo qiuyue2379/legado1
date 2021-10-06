@@ -633,7 +633,7 @@ class AnalyzeRule(
         bindings["java"] = this
         bindings["cookie"] = CookieStore
         bindings["cache"] = CacheManager
-        bindings["source"] = source
+        bindings["bookSource"] = source
         bindings["book"] = book
         bindings["result"] = result
         bindings["baseUrl"] = baseUrl

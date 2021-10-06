@@ -34,7 +34,7 @@ class ImportReplaceRuleDialog() : BaseDialogFragment(R.layout.dialog_recycler_vi
 
     constructor(source: String, finishOnDismiss: Boolean = false) : this() {
         arguments = Bundle().apply {
-            putString("source", source)
+            putString("bookSource", source)
             putBoolean("finishOnDismiss", finishOnDismiss)
         }
     }
@@ -109,7 +109,7 @@ class ImportReplaceRuleDialog() : BaseDialogFragment(R.layout.dialog_recycler_vi
                 }
             }
         })
-        val source = arguments?.getString("source")
+        val source = arguments?.getString("bookSource")
         if (source.isNullOrEmpty()) {
             dismiss()
             return

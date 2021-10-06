@@ -1,4 +1,4 @@
-package io.legado.app.web
+package io.legado.app.web.socket
 
 
 import fi.iki.elonen.NanoHTTPD
@@ -13,7 +13,7 @@ import splitties.init.appCtx
 import java.io.IOException
 
 
-class SourceDebugWebSocket(handshakeRequest: NanoHTTPD.IHTTPSession) :
+class RssSourceDebugWebSocket(handshakeRequest: NanoHTTPD.IHTTPSession) :
     NanoWSD.WebSocket(handshakeRequest),
     CoroutineScope by MainScope(),
     Debug.Callback {
@@ -51,15 +51,14 @@ class SourceDebugWebSocket(handshakeRequest: NanoHTTPD.IHTTPSession) :
                 val debugBean = GSON.fromJsonObject<Map<String, String>>(message.textPayload)
                 if (debugBean != null) {
                     val tag = debugBean["tag"]
-                    val key = debugBean["key"]
-                    if (tag.isNullOrBlank() || key.isNullOrBlank()) {
+                    if (tag.isNullOrBlank()) {
                         send(appCtx.getString(R.string.cannot_empty))
                         close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "调试结束", false)
                         return@launch
                     }
-                    appDb.bookSourceDao.getBookSource(tag)?.let {
-                        Debug.callback = this@SourceDebugWebSocket
-                        Debug.startDebug(this, it, key)
+                    appDb.rssSourceDao.getByKey(tag)?.let {
+                        Debug.callback = this@RssSourceDebugWebSocket
+                        Debug.startDebug(this, it)
                     }
                 }
             }

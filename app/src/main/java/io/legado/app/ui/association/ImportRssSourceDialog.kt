@@ -38,7 +38,7 @@ class ImportRssSourceDialog() : BaseDialogFragment(R.layout.dialog_recycler_view
 
     constructor(source: String, finishOnDismiss: Boolean = false) : this() {
         arguments = Bundle().apply {
-            putString("source", source)
+            putString("bookSource", source)
             putBoolean("finishOnDismiss", finishOnDismiss)
         }
     }
@@ -113,7 +113,7 @@ class ImportRssSourceDialog() : BaseDialogFragment(R.layout.dialog_recycler_view
                 }
             }
         })
-        val source = arguments?.getString("source")
+        val source = arguments?.getString("bookSource")
         if (source.isNullOrEmpty()) {
             dismiss()
             return

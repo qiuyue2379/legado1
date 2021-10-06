@@ -335,7 +335,7 @@ class AudioPlayService : BaseService(),
                         }
                 } else {
                     removeLoading(chapter.index)
-                    toastOnUi("book or source is null")
+                    toastOnUi("book or bookSource is null")
                 }
             }
         }

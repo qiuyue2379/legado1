@@ -15,7 +15,7 @@ object ZipUtils {
     /**
      * Zip the files.
      *
-     * @param srcFiles    The source of files.
+     * @param srcFiles    The bookSource of files.
      * @param zipFilePath The path of ZIP file.
      * @return `true`: success<br></br>`false`: fail
      * @throws IOException if an I/O error has occurred
@@ -30,7 +30,7 @@ object ZipUtils {
     /**
      * Zip the files.
      *
-     * @param srcFilePaths The paths of source files.
+     * @param srcFilePaths The paths of bookSource files.
      * @param zipFilePath  The path of ZIP file.
      * @param comment      The comment.
      * @return `true`: success<br></br>`false`: fail
@@ -54,7 +54,7 @@ object ZipUtils {
     /**
      * Zip the files.
      *
-     * @param srcFiles The source of files.
+     * @param srcFiles The bookSource of files.
      * @param zipFile  The ZIP file.
      * @param comment  The comment.
      * @return `true`: success<br></br>`false`: fail
@@ -79,7 +79,7 @@ object ZipUtils {
     /**
      * Zip the file.
      *
-     * @param srcFilePath The path of source file.
+     * @param srcFilePath The path of bookSource file.
      * @param zipFilePath The path of ZIP file.
      * @return `true`: success<br></br>`false`: fail
      * @throws IOException if an I/O error has occurred
@@ -95,7 +95,7 @@ object ZipUtils {
     /**
      * Zip the file.
      *
-     * @param srcFilePath The path of source file.
+     * @param srcFilePath The path of bookSource file.
      * @param zipFilePath The path of ZIP file.
      * @param comment     The comment.
      * @return `true`: success<br></br>`false`: fail
@@ -113,7 +113,7 @@ object ZipUtils {
     /**
      * Zip the file.
      *
-     * @param srcFile The source of file.
+     * @param srcFile The bookSource of file.
      * @param zipFile The ZIP file.
      * @param comment The comment.
      * @return `true`: success<br></br>`false`: fail
