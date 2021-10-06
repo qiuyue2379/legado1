@@ -3,7 +3,6 @@ package io.legado.app.data.entities
 import android.os.Parcelable
 import android.text.TextUtils
 import androidx.room.*
-import io.legado.app.constant.AppLog
 import io.legado.app.constant.BookType
 import io.legado.app.data.entities.rule.*
 import io.legado.app.utils.*
@@ -93,7 +92,6 @@ data class BookSource(
                 }
             }.onFailure {
                 kinds.add(ExploreKind("ERROR:${it.localizedMessage}", it.stackTraceToString()))
-                AppLog.put("解析发现规则出错\n${it.localizedMessage}", it)
                 it.printOnDebug()
             }
         }
@@ -106,12 +104,6 @@ data class BookSource(
 
     override fun equals(other: Any?) =
         if (other is BookSource) other.bookSourceUrl == bookSourceUrl else false
-
-    fun getLoginUiStr(): String? {
-        return loginUi?.let {
-            GSON.toJson(it)
-        }
-    }
 
     fun getSearchRule() = ruleSearch ?: SearchRule()
 
