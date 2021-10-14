@@ -14,6 +14,7 @@ import io.legado.app.data.entities.BaseSource
 import io.legado.app.databinding.DialogLoginBinding
 import io.legado.app.databinding.ItemFilletTextBinding
 import io.legado.app.databinding.ItemSourceEditBinding
+import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.about.AppLogDialog
 import io.legado.app.utils.*
@@ -22,10 +23,9 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import splitties.init.appCtx
 import splitties.views.onClick
 
-class RuleUiLoginDialog : BaseDialogFragment(R.layout.dialog_login) {
+class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login) {
 
     private val binding by viewBinding(DialogLoginBinding::bind)
     private val viewModel by activityViewModels<SourceLoginViewModel>()
@@ -92,6 +92,13 @@ class RuleUiLoginDialog : BaseDialogFragment(R.layout.dialog_login) {
                     }
                     login(source, loginData)
                 }
+                R.id.menu_show_login_header -> alert {
+                    setTitle(R.string.login_header)
+                    source.getLoginHeader()?.let { loginHeader ->
+                        setMessage(loginHeader)
+                    }
+                }
+                R.id.menu_del_login_header -> source.removeLoginHeader()
                 R.id.menu_log -> showDialogFragment<AppLogDialog>()
             }
             return@setOnMenuItemClickListener true
@@ -109,13 +116,13 @@ class RuleUiLoginDialog : BaseDialogFragment(R.layout.dialog_login) {
                 source.getLoginJs()?.let {
                     try {
                         source.evalJS(it)
-                        appCtx.toastOnUi(R.string.success)
+                        context?.toastOnUi(R.string.success)
                         withContext(Main) {
                             dismiss()
                         }
                     } catch (e: Exception) {
                         AppLog.put("登录出错\n${e.localizedMessage}", e)
-                        appCtx.toastOnUi("error:${e.localizedMessage}")
+                        context?.toastOnUi("error:${e.localizedMessage}")
                         e.printOnDebug()
                     }
                 }

@@ -25,6 +25,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     MediaPlayer.OnErrorListener,
     MediaPlayer.OnCompletionListener {
 
+    private val bdRegex = "^(\\s|\\p{P})+$".toRegex()
     private val mediaPlayer = MediaPlayer()
     private val ttsFolder: String by lazy {
         externalCacheDir!!.absolutePath + File.separator + "httpTTS"
@@ -32,6 +33,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     private var task: Coroutine<*>? = null
     private var playingIndex = -1
     private var playIndexJob: Job? = null
+    private var errorNo = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -91,8 +93,13 @@ class HttpReadAloudService : BaseReadAloudService(),
             ReadAloud.httpTTS?.let { httpTts ->
                 contentList.forEachIndexed { index, item ->
                     if (isActive) {
+                        val speakText = item.replace(bdRegex, "")
                         val fileName =
-                            md5SpeakFileName(httpTts.url, AppConfig.ttsSpeechRate.toString(), item)
+                            md5SpeakFileName(
+                                httpTts.url,
+                                AppConfig.ttsSpeechRate.toString(),
+                                speakText
+                            )
                         if (hasSpeakFile(fileName)) { //已经下载好的语音缓存
                             if (index == nowSpeak) {
                                 val file = getSpeakFileAsMd5(fileName)
@@ -103,10 +110,15 @@ class HttpReadAloudService : BaseReadAloudService(),
                             return@let
                         } else { //没有下载并且没有缓存文件
                             try {
+                                if (speakText.isEmpty()) {
+                                    ensureActive()
+                                    createSpeakFileAsMd5IfNotExist(fileName)
+                                    return@let
+                                }
                                 createSpeakCacheFile(fileName)
                                 val analyzeUrl = AnalyzeUrl(
                                     httpTts.url,
-                                    speakText = item,
+                                    speakText = speakText,
                                     speakSpeed = AppConfig.ttsSpeechRate,
                                     source = httpTts,
                                     headerMapF = httpTts.getHeaderMap(true)
@@ -119,7 +131,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                                 }
                                 response.body!!.bytes().let { bytes ->
                                     ensureActive()
-                                    val file = getSpeakFileAsMd5IfNotExist(fileName)
+                                    val file = createSpeakFileAsMd5IfNotExist(fileName)
                                     file.writeBytes(bytes)
                                     removeSpeakCacheFile(fileName)
                                     val fis = FileInputStream(file)
@@ -133,7 +145,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                                 downloadAudio()
                             } catch (e: ConnectException) {
                                 removeSpeakCacheFile(fileName)
-                                toastOnUi("网络错误")
+                                toastOnUi("tts接口网络错误")
                             } catch (e: IOException) {
                                 val file = getSpeakFileAsMd5(fileName)
                                 if (file.exists()) {
@@ -141,8 +153,11 @@ class HttpReadAloudService : BaseReadAloudService(),
                                 }
                                 toastOnUi("tts文件解析错误")
                             } catch (e: Exception) {
-                                e.printOnDebug()
                                 removeSpeakCacheFile(fileName)
+                                createSpeakFileAsMd5IfNotExist(fileName)
+                                AppLog.put("tts接口错误\n${e.localizedMessage}", e)
+                                toastOnUi("tts接口错误\n${e.localizedMessage}")
+                                e.printOnDebug()
                             }
                         }
                     }
@@ -187,7 +202,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     private fun getSpeakFileAsMd5(name: String): File =
         FileUtils.getFile(File(speakFilePath()), "$name.mp3")
 
-    private fun getSpeakFileAsMd5IfNotExist(name: String): File =
+    private fun createSpeakFileAsMd5IfNotExist(name: String): File =
         FileUtils.createFileIfNotExist("${speakFilePath()}$name.mp3")
 
     private fun removeCacheFile() {
@@ -266,8 +281,6 @@ class HttpReadAloudService : BaseReadAloudService(),
         upPlayPos()
     }
 
-    private var errorNo = 0
-
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         if (what == -38 && extra == 0) {
             play()
@@ -276,7 +289,7 @@ class HttpReadAloudService : BaseReadAloudService(),
         AppLog.put("朗读错误,($what, $extra)")
         errorNo++
         if (errorNo >= 5) {
-            toastOnUi("朗读连续3次错误, 最后一次错误代码($what, $extra)")
+            toastOnUi("朗读连续5次错误, 最后一次错误代码($what, $extra)")
             ReadAloud.pause(this)
         } else {
             playNext()
