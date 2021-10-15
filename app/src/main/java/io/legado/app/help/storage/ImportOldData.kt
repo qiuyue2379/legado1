@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import io.legado.app.data.appDb
-import io.legado.app.data.entities.BookSource
 import io.legado.app.help.BookSourceAnalyzer
 import io.legado.app.utils.*
 import java.io.File
@@ -59,7 +58,7 @@ object ImportOldData {
 
                 kotlin.runCatching {// Book bookSource
                     val sourceFile =
-                        FileUtils.getFile(file, "myBookSource.json")
+                        file.getFile("myBookSource.json")
                     val json = sourceFile.readText()
                     val importCount = importOldSource(json)
                     context.toastOnUi("成功导入书源${importCount}")
@@ -68,7 +67,7 @@ object ImportOldData {
                 }
 
                 kotlin.runCatching {// Replace rules
-                    val ruleFile = FileUtils.getFile(file, "myBookReplaceRule.json")
+                    val ruleFile = file.getFile("myBookReplaceRule.json")
                     if (ruleFile.exists()) {
                         val json = ruleFile.readText()
                         val importCount = importOldReplaceRule(json)
@@ -90,14 +89,7 @@ object ImportOldData {
     }
 
     fun importOldSource(json: String): Int {
-        val bookSources = mutableListOf<BookSource>()
-        val items: List<Map<String, Any>> = jsonPath.parse(json).read("$")
-        for (item in items) {
-            val jsonItem = jsonPath.parse(item)
-            BookSourceAnalyzer.jsonToBookSource(jsonItem.jsonString())?.let {
-                bookSources.add(it)
-            }
-        }
+        val bookSources = BookSourceAnalyzer.jsonToBookSources(json)
         appDb.bookSourceDao.insert(*bookSources.toTypedArray())
         return bookSources.size
     }

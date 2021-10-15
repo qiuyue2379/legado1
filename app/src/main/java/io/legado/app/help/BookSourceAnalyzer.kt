@@ -14,6 +14,18 @@ object BookSourceAnalyzer {
     private val headerPattern = Pattern.compile("@Header:\\{.+?\\}", Pattern.CASE_INSENSITIVE)
     private val jsPattern = Pattern.compile("\\{\\{.+?\\}\\}", Pattern.CASE_INSENSITIVE)
 
+    fun jsonToBookSources(json: String): List<BookSource> {
+        val bookSources = mutableListOf<BookSource>()
+        val items: List<Map<String, Any>> = jsonPath.parse(json).read("$")
+        for (item in items) {
+            val jsonItem = jsonPath.parse(item)
+            jsonToBookSource(jsonItem.jsonString())?.let {
+                bookSources.add(it)
+            }
+        }
+        return bookSources
+    }
+
     fun jsonToBookSource(json: String): BookSource? {
         val source = BookSource()
         val sourceAny = try {
@@ -29,7 +41,7 @@ object BookSourceAnalyzer {
                     bookSourceName = jsonItem.readString("bookSourceName") ?: ""
                     bookSourceGroup = jsonItem.readString("bookSourceGroup")
                     loginUrl = jsonItem.readString("loginUrl")
-                    loginUi = GSON.fromJsonArray(jsonItem.readString("loginUi"))
+                    loginUi = jsonItem.readString("loginUi")
                     loginCheckJs = jsonItem.readString("loginCheckJs")
                     bookSourceComment = jsonItem.readString("bookSourceComment") ?: ""
                     bookUrlPattern = jsonItem.readString("ruleBookUrlPattern")
@@ -105,7 +117,11 @@ object BookSourceAnalyzer {
                     is String -> sourceAny.loginUrl.toString()
                     else -> JsonPath.parse(sourceAny.loginUrl).readString("url")
                 }
-                source.loginUi = sourceAny.loginUi
+                source.loginUi = if (sourceAny.loginUi is List<*>) {
+                    GSON.toJson(sourceAny.loginUi)
+                } else {
+                    sourceAny.loginUi?.toString()
+                }
                 source.loginCheckJs = sourceAny.loginCheckJs
                 source.bookSourceComment = sourceAny.bookSourceComment
                 source.lastUpdateTime = sourceAny.lastUpdateTime
@@ -158,7 +174,7 @@ object BookSourceAnalyzer {
         var concurrentRate: String? = null,             // 并发率
         var header: String? = null,                     // 请求头
         var loginUrl: Any? = null,                      // 登录规则
-        var loginUi: List<RowUi>? = null,               // 登录UI
+        var loginUi: Any? = null,               // 登录UI
         var loginCheckJs: String? = null,               //登录检测js
         var bookSourceComment: String? = "",            //书源注释
         var lastUpdateTime: Long = 0,                   // 最后更新时间，用于排序

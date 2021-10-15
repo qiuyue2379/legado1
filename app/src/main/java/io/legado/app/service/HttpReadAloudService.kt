@@ -2,7 +2,9 @@ package io.legado.app.service
 
 import android.app.PendingIntent
 import android.media.MediaPlayer
+import io.legado.app.R
 import io.legado.app.constant.AppLog
+import io.legado.app.constant.AppPattern
 import io.legado.app.constant.EventBus
 import io.legado.app.help.AppConfig
 import io.legado.app.help.coroutine.Coroutine
@@ -25,15 +27,14 @@ class HttpReadAloudService : BaseReadAloudService(),
     MediaPlayer.OnErrorListener,
     MediaPlayer.OnCompletionListener {
 
-    private val bdRegex = "^(\\s|\\p{P})+$".toRegex()
     private val mediaPlayer = MediaPlayer()
-    private val ttsFolder: String by lazy {
-        externalCacheDir!!.absolutePath + File.separator + "httpTTS"
+    private val ttsFolderPath: String by lazy {
+        externalCacheDir!!.absolutePath + File.separator + "httpTTS" + File.separator
     }
     private var task: Coroutine<*>? = null
     private var playingIndex = -1
     private var playIndexJob: Job? = null
-    private var errorNo = 0
+
 
     override fun onCreate() {
         super.onCreate()
@@ -86,6 +87,8 @@ class HttpReadAloudService : BaseReadAloudService(),
         }
     }
 
+    private var downloadErrorNo: Int = 0
+
     private fun downloadAudio() {
         task?.cancel()
         task = execute {
@@ -93,7 +96,7 @@ class HttpReadAloudService : BaseReadAloudService(),
             ReadAloud.httpTTS?.let { httpTts ->
                 contentList.forEachIndexed { index, item ->
                     if (isActive) {
-                        val speakText = item.replace(bdRegex, "")
+                        val speakText = item.replace(AppPattern.notReadAloudRegex, "")
                         val fileName =
                             md5SpeakFileName(
                                 httpTts.url,
@@ -112,7 +115,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                             try {
                                 if (speakText.isEmpty()) {
                                     ensureActive()
-                                    createSpeakFileAsMd5IfNotExist(fileName)
+                                    createSilentSound(fileName)
                                     return@let
                                 }
                                 createSpeakCacheFile(fileName)
@@ -139,23 +142,29 @@ class HttpReadAloudService : BaseReadAloudService(),
                                         playAudio(fis.fd)
                                     }
                                 }
+                                downloadErrorNo = 0
                             } catch (e: CancellationException) {
                                 //任务取消,不处理
                             } catch (e: SocketTimeoutException) {
                                 removeSpeakCacheFile(fileName)
-                                toastOnUi("tts接口超时，尝试重新获取")
-                                downloadAudio()
+                                downloadErrorNo++
+                                if (playErrorNo > 5) {
+                                    createSilentSound(fileName)
+                                } else {
+                                    toastOnUi("tts接口超时，尝试重新获取")
+                                    downloadAudio()
+                                }
                             } catch (e: ConnectException) {
                                 removeSpeakCacheFile(fileName)
                                 toastOnUi("tts接口网络错误\n${e.localizedMessage}")
                             } catch (e: IOException) {
                                 removeSpeakCacheFile(fileName)
-                                createSpeakFileAsMd5IfNotExist(fileName)
+                                createSilentSound(fileName)
                                 AppLog.put("tts文件解析错误")
                                 toastOnUi("tts文件解析错误\n${e.localizedMessage}")
                             } catch (e: Exception) {
                                 removeSpeakCacheFile(fileName)
-                                createSpeakFileAsMd5IfNotExist(fileName)
+                                createSilentSound(fileName)
                                 AppLog.put("tts接口错误\n${e.localizedMessage}", e)
                                 toastOnUi("tts接口错误\n${e.localizedMessage}")
                                 e.printOnDebug()
@@ -182,32 +191,36 @@ class HttpReadAloudService : BaseReadAloudService(),
         }
     }
 
-    private fun speakFilePath() = ttsFolder + File.separator
     private fun md5SpeakFileName(url: String, ttsConfig: String, content: String): String {
         return MD5Utils.md5Encode16(textChapter!!.title) + "_" + MD5Utils.md5Encode16("$url-|-$ttsConfig-|-$content")
     }
 
+    private fun createSilentSound(fileName: String) {
+        val file = createSpeakFileAsMd5IfNotExist(fileName)
+        file.writeBytes(resources.openRawResource(R.raw.silent_sound).readBytes())
+    }
+
     private fun hasSpeakFile(name: String) =
-        FileUtils.exist("${speakFilePath()}$name.mp3")
+        FileUtils.exist("${ttsFolderPath}$name.mp3")
 
     private fun hasSpeakCacheFile(name: String) =
-        FileUtils.exist("${speakFilePath()}$name.mp3.cache")
+        FileUtils.exist("${ttsFolderPath}$name.mp3.cache")
 
     private fun createSpeakCacheFile(name: String): File =
-        FileUtils.createFileWithReplace("${speakFilePath()}$name.mp3.cache")
+        FileUtils.createFileWithReplace("${ttsFolderPath}$name.mp3.cache")
 
     private fun removeSpeakCacheFile(name: String) {
-        FileUtils.delete("${speakFilePath()}$name.mp3.cache")
+        FileUtils.delete("${ttsFolderPath}$name.mp3.cache")
     }
 
     private fun getSpeakFileAsMd5(name: String): File =
-        FileUtils.getFile(File(speakFilePath()), "$name.mp3")
+        File("${ttsFolderPath}$name.mp3")
 
     private fun createSpeakFileAsMd5IfNotExist(name: String): File =
-        FileUtils.createFileIfNotExist("${speakFilePath()}$name.mp3")
+        FileUtils.createFileIfNotExist("${ttsFolderPath}$name.mp3")
 
     private fun removeCacheFile() {
-        FileUtils.listDirsAndFiles(speakFilePath())?.forEach {
+        FileUtils.listDirsAndFiles(ttsFolderPath)?.forEach {
             if (Regex(""".+\.mp3$""").matches(it.name)) { //mp3缓存文件
                 val reg =
                     """^${MD5Utils.md5Encode16(textChapter!!.title)}_[a-z0-9]{16}\.mp3$""".toRegex()
@@ -282,14 +295,16 @@ class HttpReadAloudService : BaseReadAloudService(),
         upPlayPos()
     }
 
+    private var playErrorNo = 0
+
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         if (what == -38 && extra == 0) {
             play()
             return true
         }
         AppLog.put("朗读错误,($what, $extra)")
-        errorNo++
-        if (errorNo >= 5) {
+        playErrorNo++
+        if (playErrorNo >= 5) {
             toastOnUi("朗读连续5次错误, 最后一次错误代码($what, $extra)")
             ReadAloud.pause(this)
         } else {
@@ -299,7 +314,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        errorNo = 0
+        playErrorNo = 0
         playNext()
     }
 

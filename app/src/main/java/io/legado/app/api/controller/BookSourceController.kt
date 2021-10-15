@@ -17,7 +17,7 @@ object BookSourceController {
             val bookSources = appDb.bookSourceDao.all
             val returnData = ReturnData()
             return if (bookSources.isEmpty()) {
-                returnData.setErrorMsg("设备书源列表为空")
+                returnData.setErrorMsg("设备源列表为空")
             } else returnData.setData(bookSources)
         }
 
@@ -28,13 +28,13 @@ object BookSourceController {
             val bookSource = BookSourceAnalyzer.jsonToBookSource(postData)
             if (bookSource != null) {
                 if (TextUtils.isEmpty(bookSource.bookSourceName) || TextUtils.isEmpty(bookSource.bookSourceUrl)) {
-                    returnData.setErrorMsg("书源名称和URL不能为空")
+                    returnData.setErrorMsg("源名称和URL不能为空")
                 } else {
                     appDb.bookSourceDao.insert(bookSource)
                     returnData.setData("")
                 }
             } else {
-                returnData.setErrorMsg("转换书源失败")
+                returnData.setErrorMsg("转换源失败")
             }
         }.onFailure {
             returnData.setErrorMsg(it.msg)
@@ -43,18 +43,20 @@ object BookSourceController {
     }
 
     fun saveSources(postData: String?): ReturnData {
+        postData ?: return ReturnData().setErrorMsg("数据为空")
         val okSources = arrayListOf<BookSource>()
-        kotlin.runCatching {
-            val bookSources = GSON.fromJsonArray<BookSource>(postData)
-            if (bookSources != null) {
-                for (bookSource in bookSources) {
-                    if (bookSource.bookSourceName.isBlank() || bookSource.bookSourceUrl.isBlank()) {
-                        continue
-                    }
+        val bookSources = BookSourceAnalyzer.jsonToBookSources(postData)
+        if (bookSources.isNotEmpty()) {
+            bookSources.forEach { bookSource ->
+                if (bookSource.bookSourceName.isNotBlank()
+                    && bookSource.bookSourceUrl.isNotBlank()
+                ) {
                     appDb.bookSourceDao.insert(bookSource)
                     okSources.add(bookSource)
                 }
             }
+        } else {
+            return ReturnData().setErrorMsg("转换源失败")
         }
         return ReturnData().setData(okSources)
     }
@@ -63,10 +65,10 @@ object BookSourceController {
         val url = parameters["url"]?.firstOrNull()
         val returnData = ReturnData()
         if (url.isNullOrEmpty()) {
-            return returnData.setErrorMsg("参数url不能为空，请指定书源地址")
+            return returnData.setErrorMsg("参数url不能为空，请指定源地址")
         }
         val bookSource = appDb.bookSourceDao.getBookSource(url)
-            ?: return returnData.setErrorMsg("未找到书源，请检查书源地址")
+            ?: return returnData.setErrorMsg("未找到源，请检查书源地址")
         return returnData.setData(bookSource)
     }
 
