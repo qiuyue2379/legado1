@@ -36,7 +36,7 @@ public class CharsetMatch implements Comparable<CharsetMatch> {
      * Create a java.io.Reader for reading the Unicode character data corresponding
      * to the original byte data supplied to the Charset detect operation.
      * <p>
-     * CAUTION:  if the bookSource of the byte data was an InputStream, a Reader
+     * CAUTION:  if the source of the byte data was an InputStream, a Reader
      * can be created for only one matching char set using this method.  If more
      * than one charset needs to be tried, the caller will need to reset
      * the InputStream and create InputStreamReaders itself, based on the charset name.
@@ -79,7 +79,7 @@ public class CharsetMatch implements Comparable<CharsetMatch> {
      * zero or less is ignored, and treated as no limit.
      *
      * @param maxLength The maximium length of the String to be created when the
-     *                  bookSource of the data is an input stream, or -1 for
+     *                  source of the data is an input stream, or -1 for
      *                  unlimited length.
      * @return a String created from the converted input data.
      * @stable ICU 3.4

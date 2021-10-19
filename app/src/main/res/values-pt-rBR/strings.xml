@@ -387,7 +387,7 @@
     <string name="no_prev_page">Nenhuma página anterior</string>
     <string name="no_next_page">Nenhuma página seguinte</string>
 
-    <!-- bookSource start-->
+    <!-- source start-->
     <string name="source_name">源名称(Nome da fonte)</string>
     <string name="source_url">源URL(fonteUrl)</string>
     <string name="source_group">源分组(fonteGrupo)</string>
@@ -442,7 +442,7 @@
     <string name="check_key_word">校验关键字(checkKeyWord)</string>
     <string name="rule_actions">操作(actions)</string>
     <string name="rule_is_pay">购买标识(isPay)</string>
-    <!-- bookSource end-->
+    <!-- source end-->
 
     <!--error string start-->
     <string name="error_no_source">Nenhum fonte</string>

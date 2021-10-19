@@ -62,7 +62,7 @@ public class CharsetDetector {
     /**
      * Set the declared encoding for charset detection.
      * The declared encoding of an input text is an encoding obtained
-     * from an http header or xml declaration or similar bookSource that
+     * from an http header or xml declaration or similar source that
      * can be provided as additional information to the charset detector.
      * A match between a declared encoding and a possible detected encoding
      * will raise the quality of that detected encoding by a small delta,
@@ -218,7 +218,7 @@ public class CharsetDetector {
      * <p>
      * Raise an exception if no charsets appear to match the input data.
      *
-     * @param in               The bookSource of the byte data in the unknown charset.
+     * @param in               The source of the byte data in the unknown charset.
      * @param declaredEncoding A declared encoding for the data, if available,
      *                         or null or an empty string if none is available.
      * @stable ICU 3.4
@@ -250,7 +250,7 @@ public class CharsetDetector {
      * <p>
      * Raise an exception if no charsets appear to match the input data.
      *
-     * @param in               The bookSource of the byte data in the unknown charset.
+     * @param in               The source of the byte data in the unknown charset.
      * @param declaredEncoding A declared encoding for the data, if available,
      *                         or null or an empty string if none is available.
      * @stable ICU 3.4

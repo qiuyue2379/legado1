@@ -10,8 +10,8 @@ import io.legado.app.help.AppConfig
 import io.legado.app.lib.theme.getPrimaryDisabledTextColor
 import io.legado.app.lib.theme.getPrimaryTextColor
 import io.legado.app.ui.document.entity.FileItem
-import io.legado.app.ui.document.utils.ConvertUtils
 import io.legado.app.ui.document.utils.FilePickerIcon
+import io.legado.app.utils.ConvertUtils
 import io.legado.app.utils.FileUtils
 
 import java.io.File

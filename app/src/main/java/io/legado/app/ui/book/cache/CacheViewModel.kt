@@ -28,6 +28,7 @@ import me.ag2s.epublib.domain.*
 import me.ag2s.epublib.epub.EpubWriter
 import me.ag2s.epublib.util.ResourceUtil
 import splitties.init.appCtx
+import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -70,7 +71,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             exportProgress.remove(book.bookUrl)
             exportMsg[book.bookUrl] = it.localizedMessage ?: "ERROR"
             upAdapterLiveData.postValue(book.bookUrl)
-            it.printOnDebug()
+            Timber.e(it)
         }.onSuccess {
             exportProgress.remove(book.bookUrl)
             exportMsg[book.bookUrl] = context.getString(R.string.export_success)
@@ -205,7 +206,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             exportProgress.remove(book.bookUrl)
             exportMsg[book.bookUrl] = it.localizedMessage ?: "ERROR"
             upAdapterLiveData.postValue(book.bookUrl)
-            it.printOnDebug()
+            Timber.e(it)
         }.onSuccess {
             exportProgress.remove(book.bookUrl)
             exportMsg[book.bookUrl] = context.getString(R.string.export_success)
@@ -277,11 +278,9 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                             if (file.isFile) {
                                 when {
                                     //正文模板
-                                    file.name.equals(
-                                        "chapter.html",
-                                        true
-                                    ) || file.name.equals("chapter.xhtml", true) -> {
-                                        contentModel = file.readText(context) ?: ""
+                                    file.name.equals("chapter.html", true)
+                                            || file.name.equals("chapter.xhtml", true) -> {
+                                        contentModel = file.readText(context)
                                     }
                                     //封面等其他模板
                                     true == file.name?.endsWith("html", true) -> {
@@ -295,7 +294,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                                                 book.getDisplayIntro(),
                                                 book.kind,
                                                 book.wordCount,
-                                                file.readText(context) ?: "",
+                                                file.readText(context),
                                                 "${folder.name}/${file.name}"
                                             )
                                         )

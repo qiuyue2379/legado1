@@ -25,6 +25,9 @@ class RssSourceEditAdapter : RecyclerView.Adapter<RssSourceEditAdapter.MyViewHol
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val binding = ItemSourceEditBinding
             .inflate(LayoutInflater.from(parent.context), parent, false)
+        binding.editText.addLegadoPattern()
+        binding.editText.addJsonPattern()
+        binding.editText.addJsPattern()
         return MyViewHolder(binding)
     }
 

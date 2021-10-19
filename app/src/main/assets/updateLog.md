@@ -15,7 +15,7 @@
 
 * 修复朗读时可能会崩溃的bug
 
-**2021/10/15**
+**2021/10/16**
 
 * 再次修复朗读卡住问题
 * 导入书单改为多线程
@@ -26,10 +26,28 @@
 * 修复遇到一些存标点段朗读出错后不继续的问题
 * 朗读出错记录错误日志,现在很多界面的菜单里都可以打开日志
 
-**2021/10/12**
+**2021/10/10**
 
 * 阿里云语音自动登录
 * 修复一些bug
+* 优化阿里云登录,需重新登录
+
+```
+source登录相关方法,可在js内通过source.调用,可以参考阿里云语音登录
+login()
+getHeaderMap(hasLoginHeader: Boolean = false)
+getLoginHeader(): String?
+getLoginHeaderMap(): Map<String, String>?
+putLoginHeader(header: String)
+removeLoginHeader()
+setVariable(variable: String?)
+getVariable(): String?
+AnalyzeUrl相关函数,js中通过java.调用
+initUrl() //重新解析url,可以用于登录检测js登录后重新解析url重新访问
+getHeaderMap().putAll(source.getHeaderMap(true)) //重新设置登录头
+getStrResponse( jsStr: String? = null, sourceRegex: String? = null) //返回访问结果,文本类型,书源内部重新登录后可调用此方法重新返回结果
+getResponse(): Response //返回访问结果,网络朗读引擎采用的是这个,调用登录后在调用这方法可以重新访问,参考阿里云登录检测
+```
 
 **2021/10/07**
 
@@ -40,12 +58,20 @@
 
 1. 优化阅读界面导航栏
 2. 规则添加代码高亮
+3. web写源添加订阅源
+4. httpTts朗读添加登录功能
+
+```
+返回语音之前加入了检测是否登录传入result为okhttp的Response,里面有headers和body,检测是否登录的js需返回正确的Response
+```
 
 **2021/10/02**
 
 1. 紧急修复弹出框崩溃bug
 2. 修复字体变粗后不能变回的bug
 3. 修复底部对齐有时无效的bug
+
+* 不要嫌更新得频繁,这是因为最近新加的功能比较多,出bug很正常,而且我是一个人写软件,没有测试人员,只有发出来大家一起找bug了,遇到bug及时反馈,能修复的我都会在第一时间修复
 
 **2021/10/01**
 

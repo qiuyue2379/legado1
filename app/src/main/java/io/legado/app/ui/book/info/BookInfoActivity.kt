@@ -323,7 +323,7 @@ class BookInfoActivity :
             alert(R.string.set_source_variable) {
                 setMessage("源变量可在js中通过source.getVariable()获取")
                 val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                    editView.hint = "bookSource variable"
+                    editView.hint = "source variable"
                     editView.setText(variable)
                 }
                 customView { alertBinding.root }

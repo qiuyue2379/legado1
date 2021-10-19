@@ -714,19 +714,19 @@ public final class OkhttpCacheDataSource implements DataSource {
     }
 
     /**
-     * Opens the next bookSource. If the cache contains data spanning the current read position then
+     * Opens the next source. If the cache contains data spanning the current read position then
      * {@link #cacheReadDataSource} is opened to read from it. Else {@link #upstreamDataSource} is
-     * opened to read from the upstream bookSource and write into the cache.
+     * opened to read from the upstream source and write into the cache.
      *
-     * <p>There must not be a currently open bookSource when this method is called, except in the case
+     * <p>There must not be a currently open source when this method is called, except in the case
      * that {@code checkCache} is true. If {@code checkCache} is true then there must be a currently
-     * open bookSource, and it must be {@link #upstreamDataSource}. It will be closed and a new bookSource
+     * open source, and it must be {@link #upstreamDataSource}. It will be closed and a new source
      * opened if it's possible to switch to reading from or writing to the cache. If a switch isn't
-     * possible then the current bookSource is left unchanged.
+     * possible then the current source is left unchanged.
      *
-     * @param requestDataSpec The original {@link DataSpec} to build upon for the next bookSource.
+     * @param requestDataSpec The original {@link DataSpec} to build upon for the next source.
      * @param checkCache      If true tries to switch to reading from or writing to cache instead of
-     *                        reading from {@link #upstreamDataSource}, which is the currently open bookSource.
+     *                        reading from {@link #upstreamDataSource}, which is the currently open source.
      */
     private void openNextSource(DataSpec requestDataSpec, boolean checkCache) throws IOException {
         @Nullable CacheSpan nextSpan;

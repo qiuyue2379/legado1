@@ -9,7 +9,7 @@ import com.google.android.gms.net.CronetProviderInstaller
 import io.legado.app.BuildConfig
 import io.legado.app.help.AppConfig
 import io.legado.app.help.coroutine.Coroutine
-import io.legado.app.utils.printOnDebug
+
 import org.chromium.net.CronetEngine
 import org.json.JSONObject
 import splitties.init.appCtx
@@ -77,10 +77,6 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
      * 预加载Cronet
      */
     fun preDownload() {
-        if (AppConfig.isGooglePlay) {
-            CronetProviderInstaller.installProvider(appCtx)
-            return
-        }
         Coroutine.async {
             //md5 = getUrlMd5(md5Url)
             if (soFile.exists() && md5 == getFileMD5(soFile)) {
@@ -179,7 +175,7 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
             abiField.isAccessible = true
             cpuAbi = abiField.get(appInfo) as String?
         } catch (e: Exception) {
-            e.printOnDebug()
+            Timber.e(e)
         }
         if (TextUtils.isEmpty(cpuAbi)) {
             cpuAbi = Build.SUPPORTED_ABIS[0]
@@ -230,7 +226,7 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
             }
             return true
         } catch (e: Throwable) {
-            e.printOnDebug()
+            Timber.e(e)
             if (destFile.exists() && !destFile.delete()) {
                 destFile.deleteOnExit()
             }
@@ -239,14 +235,14 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
                 try {
                     inputStream.close()
                 } catch (e: IOException) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
             if (outputStream != null) {
                 try {
                     outputStream.close()
                 } catch (e: IOException) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
         }
@@ -320,20 +316,20 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
             }
             return true
         } catch (e: Exception) {
-            e.printOnDebug()
+            Timber.e(e)
         } finally {
             if (fileInputStream != null) {
                 try {
                     fileInputStream.close()
                 } catch (e: Exception) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
             if (os != null) {
                 try {
                     os.close()
                 } catch (e: Exception) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
         }
@@ -355,15 +351,15 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
             }
             return String.format("%032x", BigInteger(1, md5.digest())).lowercase()
         } catch (e: Exception) {
-            e.printOnDebug()
+            Timber.e(e)
         } catch (e: OutOfMemoryError) {
-            e.printOnDebug()
+            Timber.e(e)
         } finally {
             if (fileInputStream != null) {
                 try {
                     fileInputStream.close()
                 } catch (e: Exception) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
         }

@@ -58,7 +58,7 @@ class AboutFragment : PreferenceFragmentCompat() {
         when (preference?.key) {
             "contributors" -> openUrl(R.string.contributors_url)
             "update_log" -> showUpdateLog()
-            "check_update" ->   checkUpdate()//shopUpdate()
+            "check_update" -> checkUpdate()
             "mail" -> requireContext().sendMail("kunfei.ge@gmail.com")
             "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
@@ -82,6 +82,14 @@ class AboutFragment : PreferenceFragmentCompat() {
     private fun showUpdateLog() {
         val log = String(requireContext().assets.open("updateLog.md").readBytes())
         showDialogFragment(TextDialog(log, TextDialog.Mode.MD))
+    }
+
+    private fun checkUpdate() {
+        AppUpdate.checkFromGitHub(lifecycleScope) { newVersion, updateBody, url, name ->
+            showDialogFragment(
+                UpdateDialog(newVersion, updateBody, url, name)
+            )
+        }
     }
 
     private fun showQqGroups() {
@@ -128,14 +136,6 @@ class AboutFragment : PreferenceFragmentCompat() {
                     showDialogFragment(TextDialog(logFile.readText()))
                 }
             }
-        }
-    }
-
-    private fun checkUpdate() {
-        AppUpdate.checkFromGitHub(lifecycleScope) { newVersion, updateBody, url, name ->
-            showDialogFragment(
-                UpdateDialog(newVersion, updateBody, url, name)
-            )
         }
     }
 

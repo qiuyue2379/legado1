@@ -9,7 +9,8 @@ import io.legado.app.utils.applyTint
 /**
  * @author Aidan Follestad (afollestad)
  */
-class ThemeRadioButton(context: Context, attrs: AttributeSet) : AppCompatRadioButton(context, attrs) {
+class ThemeRadioButton(context: Context, attrs: AttributeSet) :
+    AppCompatRadioButton(context, attrs) {
 
     init {
         if (!isInEditMode) {

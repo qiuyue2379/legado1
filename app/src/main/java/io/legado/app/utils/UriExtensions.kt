@@ -9,6 +9,7 @@ import io.legado.app.R
 import io.legado.app.lib.permission.Permissions
 import io.legado.app.lib.permission.PermissionsCompat
 import io.legado.app.model.NoStackTraceException
+import timber.log.Timber
 import java.io.File
 
 fun Uri.isContentScheme() = this.scheme == "content"
@@ -24,7 +25,6 @@ fun AppCompatActivity.readUri(uri: Uri?, success: (name: String, bytes: ByteArra
             doc ?: throw NoStackTraceException("未获取到文件")
             val name = doc.name ?: throw NoStackTraceException("未获取到文件名")
             val fileBytes = DocumentUtils.readBytes(this, doc.uri)
-            fileBytes ?: throw NoStackTraceException("读取文件出错")
             success.invoke(name, fileBytes)
         } else {
             PermissionsCompat.Builder(this)
@@ -42,7 +42,7 @@ fun AppCompatActivity.readUri(uri: Uri?, success: (name: String, bytes: ByteArra
                 .request()
         }
     } catch (e: Exception) {
-        e.printOnDebug()
+        Timber.e(e)
         toastOnUi(e.localizedMessage ?: "read uri error")
     }
 }
@@ -58,7 +58,6 @@ fun Fragment.readUri(uri: Uri?, success: (name: String, bytes: ByteArray) -> Uni
             doc ?: throw NoStackTraceException("未获取到文件")
             val name = doc.name ?: throw NoStackTraceException("未获取到文件名")
             val fileBytes = DocumentUtils.readBytes(requireContext(), doc.uri)
-            fileBytes ?: throw NoStackTraceException("读取文件出错")
             success.invoke(name, fileBytes)
         } else {
             PermissionsCompat.Builder(this)
@@ -76,30 +75,30 @@ fun Fragment.readUri(uri: Uri?, success: (name: String, bytes: ByteArray) -> Uni
                 .request()
         }
     } catch (e: Exception) {
-        e.printOnDebug()
+        Timber.e(e)
         toastOnUi(e.localizedMessage ?: "read uri error")
     }
 }
 
 @Throws(Exception::class)
-fun Uri.readBytes(context: Context): ByteArray? {
-    if (this.isContentScheme()) {
-        return DocumentUtils.readBytes(context, this)
+fun Uri.readBytes(context: Context): ByteArray {
+    return if (this.isContentScheme()) {
+        DocumentUtils.readBytes(context, this)
     } else {
         val path = RealPathUtil.getPath(context, this)
         if (path?.isNotEmpty() == true) {
-            return File(path).readBytes()
+            File(path).readBytes()
+        } else {
+            throw NoStackTraceException("获取文件真实地址失败\n${this.path}")
         }
     }
-    return null
 }
 
 @Throws(Exception::class)
-fun Uri.readText(context: Context): String? {
-    readBytes(context)?.let {
+fun Uri.readText(context: Context): String {
+    readBytes(context).let {
         return String(it)
     }
-    return null
 }
 
 @Throws(Exception::class)

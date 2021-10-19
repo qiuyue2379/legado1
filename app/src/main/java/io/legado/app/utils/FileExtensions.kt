@@ -10,3 +10,4 @@ fun File.getFile(vararg subDirFiles: String): File {
 fun File.exists(vararg subDirFiles: String): Boolean {
     return getFile(*subDirFiles).exists()
 }
+

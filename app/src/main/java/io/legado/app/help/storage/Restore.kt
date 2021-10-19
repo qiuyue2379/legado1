@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
+import timber.log.Timber
 import java.io.File
 
 
@@ -71,7 +72,7 @@ object Restore {
                 DocumentFile.fromTreeUri(context, Uri.parse(path))?.listFiles()?.forEach { doc ->
                     for (fileName in Backup.backupFileNames) {
                         if (doc.name == fileName) {
-                            DocumentUtils.readText(context, doc.uri)?.let {
+                            DocumentUtils.readText(context, doc.uri).let {
                                 FileUtils.createFileIfNotExist("${Backup.backupPath}${File.separator}$fileName")
                                     .writeText(it)
                             }
@@ -92,7 +93,7 @@ object Restore {
                         }
                     }
                 } catch (e: Exception) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
         }
@@ -168,10 +169,10 @@ object Restore {
                     ThemeConfig.upConfig()
                 }
             } catch (e: Exception) {
-                e.printOnDebug()
+                Timber.e(e)
             }
-            //恢复阅读界面配置
             if (!ignoreReadConfig) {
+                //恢复阅读界面配置
                 try {
                     val file =
                         FileUtils.createFileIfNotExist("$path${File.separator}${ReadBookConfig.configFileName}")
@@ -181,7 +182,7 @@ object Restore {
                         ReadBookConfig.initConfigs()
                     }
                 } catch (e: Exception) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
                 try {
                     val file =
@@ -192,7 +193,7 @@ object Restore {
                         ReadBookConfig.initShareConfig()
                     }
                 } catch (e: Exception) {
-                    e.printOnDebug()
+                    Timber.e(e)
                 }
             }
             Preferences.getSharedPreferences(appCtx, path, "config")?.all?.let { map ->
@@ -262,7 +263,7 @@ object Restore {
             val json = file.readText()
             return GSON.fromJsonArray(json)
         } catch (e: Exception) {
-            e.printOnDebug()
+            Timber.e(e)
         }
         return null
     }

@@ -96,7 +96,7 @@ abstract class BaseReadBookActivity :
                     show(WindowInsets.Type.navigationBars())
                 }
                 if (toolBarHide && ReadBookConfig.hideStatusBar) {
-                   hide(WindowInsets.Type.statusBars())
+                    hide(WindowInsets.Type.statusBars())
                 } else {
                     show(WindowInsets.Type.statusBars())
                 }

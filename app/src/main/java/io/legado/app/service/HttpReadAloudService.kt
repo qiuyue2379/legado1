@@ -14,7 +14,10 @@ import io.legado.app.model.ReadBook
 import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.utils.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Response
+import timber.log.Timber
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream
@@ -36,6 +39,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     private var task: Coroutine<*>? = null
     private var playingIndex = -1
     private var playIndexJob: Job? = null
+    private val mutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
@@ -126,8 +130,10 @@ class HttpReadAloudService : BaseReadAloudService(),
                             source = httpTts,
                             headerMapF = httpTts.getHeaderMap(true)
                         )
+                        var response = mutex.withLock {
+                            analyzeUrl.getResponseAwait()
+                        }
                         ensureActive()
-                        var response = analyzeUrl.getResponseAwait()
                         httpTts.loginCheckJs?.takeIf { checkJs ->
                             checkJs.isNotBlank()
                         }?.let { checkJs ->
@@ -191,7 +197,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                         createSilentSound(fileName)
                         AppLog.put("tts接口错误\n${e.localizedMessage}", e)
                         toastOnUi("tts接口错误\n${e.localizedMessage}")
-                        e.printOnDebug()
+                        Timber.e(e)
                     }
                 }
             }
@@ -208,7 +214,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                 playingIndex = nowSpeak
                 postEvent(EventBus.TTS_PROGRESS, readAloudNumber + 1)
             } catch (e: Exception) {
-                e.printOnDebug()
+                Timber.e(e)
             }
         }
     }

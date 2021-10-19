@@ -22,6 +22,7 @@ object IntentType {
             "m4a", "mp3", "mid", "xmf", "ogg", "wav" -> "video/*"
             "3gp", "mp4" -> "audio/*"
             "jpg", "gif", "png", "jpeg", "bmp" -> "image/*"
+            "txt", "json" -> "text/plain"
             else -> null
         }
     }

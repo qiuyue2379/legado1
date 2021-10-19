@@ -97,7 +97,7 @@ class GroupEditDialog() : BaseDialogFragment(R.layout.dialog_book_group_edit) {
                 ok.invoke()
             }
             noButton()
-        }.show()
+        }
     }
 
 }

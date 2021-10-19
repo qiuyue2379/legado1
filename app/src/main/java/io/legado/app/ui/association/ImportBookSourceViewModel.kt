@@ -9,14 +9,15 @@ import io.legado.app.constant.AppPattern
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.BookSource
 import io.legado.app.help.AppConfig
-import io.legado.app.help.SourceAnalyzer
 import io.legado.app.help.ContentProcessor
+import io.legado.app.help.SourceAnalyzer
 import io.legado.app.help.SourceHelp
 import io.legado.app.help.http.newCallResponseBody
 import io.legado.app.help.http.okHttpClient
 import io.legado.app.help.http.text
 import io.legado.app.model.NoStackTraceException
 import io.legado.app.utils.*
+import timber.log.Timber
 
 class ImportBookSourceViewModel(app: Application) : BaseViewModel(app) {
     var isAddGroup = false
@@ -113,7 +114,7 @@ class ImportBookSourceViewModel(app: Application) : BaseViewModel(app) {
                 else -> throw NoStackTraceException(context.getString(R.string.wrong_format))
             }
         }.onError {
-            it.printOnDebug()
+            Timber.e(it)
             errorLiveData.postValue(it.localizedMessage ?: "")
         }.onSuccess {
             comparisonSource()

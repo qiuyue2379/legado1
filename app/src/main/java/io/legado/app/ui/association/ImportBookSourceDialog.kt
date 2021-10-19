@@ -39,7 +39,7 @@ class ImportBookSourceDialog() : BaseDialogFragment(R.layout.dialog_recycler_vie
 
     constructor(source: String, finishOnDismiss: Boolean = false) : this() {
         arguments = Bundle().apply {
-            putString("bookSource", source)
+            putString("source", source)
             putBoolean("finishOnDismiss", finishOnDismiss)
         }
     }
@@ -114,7 +114,7 @@ class ImportBookSourceDialog() : BaseDialogFragment(R.layout.dialog_recycler_vie
                 }
             }
         })
-        val source = arguments?.getString("bookSource")
+        val source = arguments?.getString("source")
         if (source.isNullOrEmpty()) {
             dismiss()
             return

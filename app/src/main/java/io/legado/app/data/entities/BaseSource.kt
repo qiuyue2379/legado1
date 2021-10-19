@@ -7,11 +7,15 @@ import io.legado.app.help.AppConfig
 import io.legado.app.help.CacheManager
 import io.legado.app.help.JsExtensions
 import io.legado.app.help.http.CookieStore
-import io.legado.app.utils.*
+import io.legado.app.utils.EncoderUtils
+import io.legado.app.utils.GSON
+import io.legado.app.utils.fromJsonArray
+import io.legado.app.utils.fromJsonObject
+import timber.log.Timber
 import javax.script.SimpleBindings
 
 /**
- * 可在js里调用,bookSource.xxx()
+ * 可在js里调用,source.xxx()
  */
 @Suppress("unused")
 interface BaseSource : JsExtensions {
@@ -107,7 +111,7 @@ interface BaseSource : JsExtensions {
                 ?: return null
             return String(decodeBytes)
         } catch (e: Exception) {
-            e.printOnDebug()
+            Timber.e(e)
             return null
         }
     }
@@ -127,7 +131,7 @@ interface BaseSource : JsExtensions {
             CacheManager.put("userInfo_${getKey()}", encodeStr)
             true
         } catch (e: Exception) {
-            e.printOnDebug()
+            Timber.e(e)
             false
         }
     }
@@ -156,7 +160,7 @@ interface BaseSource : JsExtensions {
         val bindings = SimpleBindings()
         bindings.apply(bindingsConfig)
         bindings["java"] = this
-        bindings["bookSource"] = this
+        bindings["source"] = this
         bindings["baseUrl"] = getKey()
         bindings["cookie"] = CookieStore
         bindings["cache"] = CacheManager

@@ -7,9 +7,9 @@ import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.WindowManager
 import android.view.View.OnClickListener
 import android.view.View.OnLongClickListener
+import android.view.WindowManager
 import android.view.animation.Animation
 import android.widget.FrameLayout
 import android.widget.SeekBar

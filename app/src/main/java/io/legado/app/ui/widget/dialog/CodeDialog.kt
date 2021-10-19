@@ -44,6 +44,7 @@ class CodeDialog() : BaseDialogFragment(R.layout.dialog_code_view) {
             binding.codeView.setText(it)
         }
     }
+
     private fun initMenu() {
         binding.toolBar.inflateMenu(R.menu.code_edit)
         binding.toolBar.setOnMenuItemClickListener {

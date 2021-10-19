@@ -28,6 +28,7 @@ import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import timber.log.Timber
 import java.io.File
 
 class BgTextConfigDialog : BaseDialogFragment(R.layout.dialog_read_bg_text) {
@@ -222,7 +223,7 @@ class BgTextConfigDialog : BaseDialogFragment(R.layout.dialog_read_bg_text) {
             if (fontPath.isNotEmpty()) {
                 val fontName = FileUtils.getName(fontPath)
                 val fontBytes = fontPath.parseToUri().readBytes(requireContext())
-                fontBytes?.let {
+                fontBytes.let {
                     val fontExportFile = FileUtils.createFileIfNotExist(configDir, fontName)
                     fontExportFile.writeBytes(it)
                     exportFiles.add(fontExportFile)
@@ -273,7 +274,7 @@ class BgTextConfigDialog : BaseDialogFragment(R.layout.dialog_read_bg_text) {
         }.onSuccess {
             toastOnUi("导出成功, 文件名为 $exportFileName")
         }.onError {
-            it.printOnDebug()
+            Timber.e(it)
             longToast("导出失败:${it.localizedMessage}")
         }
     }
@@ -308,9 +309,9 @@ class BgTextConfigDialog : BaseDialogFragment(R.layout.dialog_read_bg_text) {
     private fun importConfig(uri: Uri) {
         execute {
             @Suppress("BlockingMethodInNonBlockingContext")
-            importConfig(uri.readBytes(requireContext())!!)
+            importConfig(uri.readBytes(requireContext()))
         }.onError {
-            it.printOnDebug()
+            Timber.e(it)
             longToast("导入失败:${it.localizedMessage}")
         }
     }
@@ -324,7 +325,7 @@ class BgTextConfigDialog : BaseDialogFragment(R.layout.dialog_read_bg_text) {
             postEvent(EventBus.UP_CONFIG, true)
             toastOnUi("导入成功")
         }.onError {
-            it.printOnDebug()
+            Timber.e(it)
             longToast("导入失败:${it.localizedMessage}")
         }
     }

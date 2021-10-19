@@ -788,7 +788,7 @@ class ReadBookActivity : BaseReadBookActivity(),
             val book = ReadBook.book ?: throw NoStackTraceException("no book")
             val chapter = appDb.bookChapterDao.getChapter(book.bookUrl, ReadBook.durChapterIndex)
                 ?: throw NoStackTraceException("no chapter")
-            val source = ReadBook.bookSource ?: throw NoStackTraceException("no book bookSource")
+            val source = ReadBook.bookSource ?: throw NoStackTraceException("no book source")
             val payAction = source.getContentRule().payAction
             if (payAction.isNullOrEmpty()) {
                 throw NoStackTraceException("no pay action")

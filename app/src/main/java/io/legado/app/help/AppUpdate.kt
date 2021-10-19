@@ -1,6 +1,5 @@
 package io.legado.app.help
 
-import io.legado.app.constant.AppConst
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.help.http.newCallStrResponse
 import io.legado.app.help.http.okHttpClient
@@ -31,14 +30,14 @@ object AppUpdate {
             val tagName = rootDoc.readString("$.elements[0].versionName")
                 ?: throw NoStackTraceException("获取新版本出错")
             //if (tagName > AppConst.appInfo.versionName) {
-                val updateBody = "有版本更新，请下载!"
-                val downloadUrl = rootDoc.readString("$.elements[0].outputFile")
-                    ?: throw NoStackTraceException("获取新版本出错")
-                val fileName = rootDoc.readString("$.elements[0].outputFile")
-                    ?: throw NoStackTraceException("获取新版本出错")
-                return@async arrayOf(tagName, updateBody, "http://qiu-yue.top:86/apk/app/release/$downloadUrl", fileName)
+            val updateBody = "有版本更新，请下载!"
+            val downloadUrl = rootDoc.readString("$.elements[0].outputFile")
+                ?: throw NoStackTraceException("获取新版本出错")
+            val fileName = rootDoc.readString("$.elements[0].outputFile")
+                ?: throw NoStackTraceException("获取新版本出错")
+            return@async arrayOf(tagName, updateBody, "http://qiu-yue.top:86/apk/app/release/$downloadUrl", fileName)
             //} else {
-             //   throw NoStackTraceException("已是最新版本")
+            //   throw NoStackTraceException("已是最新版本")
             //}
         }.timeout(10000)
             .onSuccess {

@@ -14,6 +14,7 @@ import io.legado.app.utils.*
 import kotlinx.coroutines.runBlocking
 import org.jsoup.nodes.Entities
 import org.mozilla.javascript.NativeObject
+import timber.log.Timber
 import java.net.URL
 import java.util.*
 import java.util.regex.Pattern
@@ -633,7 +634,7 @@ class AnalyzeRule(
         bindings["java"] = this
         bindings["cookie"] = CookieStore
         bindings["cache"] = CacheManager
-        bindings["bookSource"] = source
+        bindings["source"] = source
         bindings["book"] = book
         bindings["result"] = result
         bindings["baseUrl"] = baseUrl
@@ -658,7 +659,7 @@ class AnalyzeRule(
                 analyzeUrl.getStrResponseAwait().body
             }.onFailure {
                 log("ajax(${urlStr}) error\n${it.stackTraceToString()}")
-                it.printOnDebug()
+                Timber.e(it)
             }.getOrElse {
                 it.msg
             }
