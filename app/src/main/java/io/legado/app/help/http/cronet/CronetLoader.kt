@@ -49,12 +49,9 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
         Timber.d("soUrl:$soUrl")
     }
 
-
     /**
      * 判断Cronet是否安装完成
-     * @return
      */
-
     fun install(): Boolean {
         if (cacheInstall) {
             return true
@@ -77,6 +74,10 @@ object CronetLoader : CronetEngine.Builder.LibraryLoader() {
      * 预加载Cronet
      */
     fun preDownload() {
+        if (AppConfig.isGooglePlay) {
+            CronetProviderInstaller.installProvider(appCtx)
+            return
+        }
         Coroutine.async {
             //md5 = getUrlMd5(md5Url)
             if (soFile.exists() && md5 == getFileMD5(soFile)) {

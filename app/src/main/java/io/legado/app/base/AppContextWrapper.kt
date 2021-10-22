@@ -1,4 +1,4 @@
-package io.legado.app.utils
+package io.legado.app.base
 
 import android.content.Context
 import android.content.res.Configuration
@@ -6,43 +6,36 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import io.legado.app.constant.PreferKey
+import io.legado.app.utils.getPrefInt
+import io.legado.app.utils.getPrefString
 import java.util.*
 
 
-object LanguageUtils {
+object AppContextWrapper {
 
-    /**
-     * 设置语言
-     */
-    fun setConfiguration(context: Context): Context {
+    fun wrap(context: Context): Context {
+        var fontScale = context.getPrefInt(PreferKey.fontScale) / 10f
+        if (fontScale !in 0.8f..1.6f) {
+            fontScale = 0f
+        }
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val resources: Resources = context.resources
-            val metrics = resources.displayMetrics
             val configuration: Configuration = resources.configuration
             val targetLocale = getSetLocale(context)
             configuration.setLocale(targetLocale)
             configuration.setLocales(LocaleList(targetLocale))
-            @Suppress("DEPRECATION")
-            resources.updateConfiguration(configuration, metrics)
+            configuration.fontScale = fontScale
             context.createConfigurationContext(configuration)
         } else {
-            setConfigurationOld(context)
-            context
-        }
-    }
-
-    /**
-     * 设置语言
-     */
-    private fun setConfigurationOld(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             val resources: Resources = context.resources
             val targetLocale = getSetLocale(context)
             val configuration: Configuration = resources.configuration
             @Suppress("DEPRECATION")
             configuration.locale = targetLocale
+            configuration.fontScale = fontScale
             @Suppress("DEPRECATION")
             resources.updateConfiguration(configuration, resources.displayMetrics)
+            context
         }
     }
 

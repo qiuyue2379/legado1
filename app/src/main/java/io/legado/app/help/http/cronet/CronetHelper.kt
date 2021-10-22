@@ -1,6 +1,7 @@
 package io.legado.app.help.http.cronet
 
 import com.google.android.gms.net.CronetProviderInstaller
+import io.legado.app.constant.AppLog
 import io.legado.app.help.AppConfig
 import okhttp3.Headers
 import okhttp3.MediaType
@@ -18,7 +19,7 @@ import java.util.concurrent.Executors
 
 val executor: ExecutorService by lazy { Executors.newCachedThreadPool() }
 
-val cronetEngine: ExperimentalCronetEngine by lazy {
+val cronetEngine: ExperimentalCronetEngine? by lazy {
     if (AppConfig.isGooglePlay) {
         CronetProviderInstaller.installProvider(appCtx)
     } else {
@@ -35,25 +36,22 @@ val cronetEngine: ExperimentalCronetEngine by lazy {
         enablePublicKeyPinningBypassForLocalTrustAnchors(true)
         enableBrotli(true)//Brotli压缩
     }
-    val engine = try {
-        builder.build()
-    } catch (e: Exception) {
-        builder.setLibraryLoader(CronetLoader)//设置自定义so库加载
-        builder.build()
+    try {
+        val engine = builder.build()
+        Timber.d("Cronet Version:" + engine.versionString)
+        return@lazy engine
+    } catch (e: UnsatisfiedLinkError) {
+        AppLog.put("初始化cronetEngine出错", e)
+        Timber.e(e, "初始化cronetEngine出错")
+        return@lazy null
     }
-    Timber.d("Cronet Version:" + engine.versionString)
-    //这会导致Jsoup的网络请求出现问题，暂时不接管系统URL
-    //URL.setURLStreamHandlerFactory(CronetURLStreamHandlerFactory(engine))
-    return@lazy engine
-
 }
 
-
-fun buildRequest(request: Request, callback: UrlRequest.Callback): UrlRequest {
+fun buildRequest(request: Request, callback: UrlRequest.Callback): UrlRequest? {
     val url = request.url.toString()
     val headers: Headers = request.headers
     val requestBody = request.body
-    return cronetEngine.newUrlRequestBuilder(url, callback, executor).apply {
+    return cronetEngine?.newUrlRequestBuilder(url, callback, executor)?.apply {
         setHttpMethod(request.method)//设置
         allowDirectExecutor()
         headers.forEachIndexed { index, _ ->
@@ -75,8 +73,7 @@ fun buildRequest(request: Request, callback: UrlRequest.Callback): UrlRequest {
 
         }
 
-    }.build()
-
+    }?.build()
 
 }
 

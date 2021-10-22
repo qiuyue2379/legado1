@@ -3,6 +3,7 @@ package io.legado.app.help.http
 import io.legado.app.help.AppConfig
 import io.legado.app.help.http.cronet.CronetInterceptor
 import io.legado.app.help.http.cronet.CronetLoader
+import io.legado.app.help.http.cronet.cronetEngine
 import okhttp3.ConnectionSpec
 import okhttp3.Credentials
 import okhttp3.Interceptor
@@ -43,8 +44,7 @@ val okHttpClient: OkHttpClient by lazy {
                 .build()
             chain.proceed(request)
         })
-    if (AppConfig.isCronet && CronetLoader.install()) {
-        //提供CookieJar 用于同步Cookie
+    if (AppConfig.isCronet && CronetLoader.install() && cronetEngine != null) {
         builder.addInterceptor(CronetInterceptor(null))
     }
     builder.build()
