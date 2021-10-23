@@ -5,9 +5,10 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import io.legado.app.base.BaseViewModel
 import io.legado.app.model.localBook.LocalBook
-import io.legado.app.utils.DocItem
 import io.legado.app.utils.DocumentUtils
+import io.legado.app.utils.FileDoc
 import io.legado.app.utils.isContentScheme
+import io.legado.app.utils.toastOnUi
 import java.io.File
 import java.util.*
 
@@ -44,20 +45,23 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
     fun scanDoc(
         documentFile: DocumentFile,
         isRoot: Boolean,
-        find: (docItem: DocItem) -> Unit,
+        find: (docItem: FileDoc) -> Unit,
         finally: (() -> Unit)? = null
     ) {
-        val docList = DocumentUtils.listFiles(context, documentFile.uri)
-        docList.forEach { docItem ->
-            if (docItem.isDir) {
-                DocumentFile.fromSingleUri(context, docItem.uri)?.let {
-                    scanDoc(it, false, find)
+        kotlin.runCatching {
+            DocumentUtils.listFiles(documentFile.uri).forEach { docItem ->
+                if (docItem.isDir) {
+                    DocumentFile.fromSingleUri(context, docItem.uri)?.let {
+                        scanDoc(it, false, find)
+                    }
+                } else if (docItem.name.endsWith(".txt", true)
+                    || docItem.name.endsWith(".epub", true)
+                ) {
+                    find(docItem)
                 }
-            } else if (docItem.name.endsWith(".txt", true)
-                || docItem.name.endsWith(".epub", true)
-            ) {
-                find(docItem)
             }
+        }.onFailure {
+            context.toastOnUi("扫描文件夹出错\n${it.localizedMessage}")
         }
         if (isRoot) {
             finally?.invoke()
@@ -67,7 +71,7 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
     fun scanFile(
         file: File,
         isRoot: Boolean,
-        find: (docItem: DocItem) -> Unit,
+        find: (docItem: FileDoc) -> Unit,
         finally: (() -> Unit)? = null
     ) {
         file.listFiles()?.forEach {
@@ -77,9 +81,9 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
                 || it.name.endsWith(".epub", true)
             ) {
                 find(
-                    DocItem(
+                    FileDoc(
                         it.name,
-                        it.extension,
+                        it.isDirectory,
                         it.length(),
                         Date(it.lastModified()),
                         Uri.parse(it.absolutePath)

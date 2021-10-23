@@ -31,7 +31,7 @@ import kotlin.collections.ArrayList
 class FontSelectDialog : BaseDialogFragment(R.layout.dialog_font_select),
     Toolbar.OnMenuItemClickListener,
     FontAdapter.CallBack {
-    private val fontRegex = Regex(".*\\.[ot]tf")
+    private val fontRegex = Regex("(?i).*\\.[ot]tf")
     private val fontFolder by lazy {
         FileUtils.createFolderIfNotExist(appCtx.filesDir, "Fonts")
     }
@@ -40,26 +40,27 @@ class FontSelectDialog : BaseDialogFragment(R.layout.dialog_font_select),
         val curFontPath = callBack?.curFontPath ?: ""
         FontAdapter(requireContext(), curFontPath, this)
     }
-    private val selectFontDir = registerForActivityResult(HandleFileContract()) { uri ->
-        uri ?: return@registerForActivityResult
-        if (uri.toString().isContentScheme()) {
-            putPrefString(PreferKey.fontFolder, uri.toString())
-            val doc = DocumentFile.fromTreeUri(requireContext(), uri)
-            if (doc != null) {
-                context?.contentResolver?.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                loadFontFiles(doc)
-            } else {
-                RealPathUtil.getPath(requireContext(), uri)?.let {
-                    loadFontFilesByPermission(it)
+    private val selectFontDir = registerForActivityResult(HandleFileContract()) {
+        it.uri?.let { uri ->
+            if (uri.toString().isContentScheme()) {
+                putPrefString(PreferKey.fontFolder, uri.toString())
+                val doc = DocumentFile.fromTreeUri(requireContext(), uri)
+                if (doc != null) {
+                    context?.contentResolver?.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    loadFontFiles(doc)
+                } else {
+                    RealPathUtil.getPath(requireContext(), uri)?.let { path ->
+                        loadFontFilesByPermission(path)
+                    }
                 }
-            }
-        } else {
-            uri.path?.let { path ->
-                putPrefString(PreferKey.fontFolder, path)
-                loadFontFilesByPermission(path)
+            } else {
+                uri.path?.let { path ->
+                    putPrefString(PreferKey.fontFolder, path)
+                    loadFontFilesByPermission(path)
+                }
             }
         }
     }
@@ -125,34 +126,17 @@ class FontSelectDialog : BaseDialogFragment(R.layout.dialog_font_select),
         }
     }
 
-    private fun getLocalFonts(): ArrayList<DocItem> {
-        val fontItems = arrayListOf<DocItem>()
-        val fontDir =
-            FileUtils.createFolderIfNotExist(requireContext().externalFiles, "font")
-        fontDir.listFiles { pathName ->
-            pathName.name.lowercase(Locale.getDefault()).matches(fontRegex)
-        }?.forEach {
-            fontItems.add(
-                DocItem(
-                    it.name,
-                    it.extension,
-                    it.length(),
-                    Date(it.lastModified()),
-                    Uri.parse(it.absolutePath)
-                )
-            )
+    private fun getLocalFonts(): ArrayList<FileDoc> {
+        val path = FileUtils.getPath(requireContext().externalFiles, "font")
+        return DocumentUtils.listFiles(path) {
+            it.name.matches(fontRegex)
         }
-        return fontItems
     }
 
     private fun loadFontFiles(doc: DocumentFile) {
         execute {
-            val fontItems = arrayListOf<DocItem>()
-            val docItems = DocumentUtils.listFiles(appCtx, doc.uri)
-            docItems.forEach { item ->
-                if (item.name.lowercase(Locale.getDefault()).matches(fontRegex)) {
-                    fontItems.add(item)
-                }
+            val fontItems = DocumentUtils.listFiles(doc.uri) {
+                it.name.matches(fontRegex)
             }
             mergeFontItems(fontItems, getLocalFonts())
         }.onSuccess {
@@ -174,20 +158,8 @@ class FontSelectDialog : BaseDialogFragment(R.layout.dialog_font_select),
 
     private fun loadFontFiles(path: String) {
         execute {
-            val fontItems = arrayListOf<DocItem>()
-            val file = File(path)
-            file.listFiles { pathName ->
-                pathName.name.lowercase(Locale.getDefault()).matches(fontRegex)
-            }?.forEach {
-                fontItems.add(
-                    DocItem(
-                        it.name,
-                        it.extension,
-                        it.length(),
-                        Date(it.lastModified()),
-                        Uri.parse(it.absolutePath)
-                    )
-                )
+            val fontItems = DocumentUtils.listFiles(path) {
+                it.name.matches(fontRegex)
             }
             mergeFontItems(fontItems, getLocalFonts())
         }.onSuccess {
@@ -198,9 +170,9 @@ class FontSelectDialog : BaseDialogFragment(R.layout.dialog_font_select),
     }
 
     private fun mergeFontItems(
-        items1: ArrayList<DocItem>,
-        items2: ArrayList<DocItem>
-    ): List<DocItem> {
+        items1: ArrayList<FileDoc>,
+        items2: ArrayList<FileDoc>
+    ): List<FileDoc> {
         val items = ArrayList(items1)
         items2.forEach { item2 ->
             var isInFirst = false
@@ -219,7 +191,7 @@ class FontSelectDialog : BaseDialogFragment(R.layout.dialog_font_select),
         }
     }
 
-    override fun onClick(docItem: DocItem) {
+    override fun onClick(docItem: FileDoc) {
         execute {
             FileUtils.deleteFile(fontFolder.absolutePath)
             callBack?.selectFont(docItem.uri.toString())

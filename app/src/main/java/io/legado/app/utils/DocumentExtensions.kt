@@ -6,7 +6,8 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import io.legado.app.model.NoStackTraceException
-import timber.log.Timber
+import splitties.init.appCtx
+import java.io.File
 import java.nio.charset.Charset
 import java.util.*
 
@@ -93,13 +94,14 @@ object DocumentUtils {
         } ?: throw NoStackTraceException("打开文件失败\n${uri}")
     }
 
-    fun listFiles(context: Context, uri: Uri): ArrayList<DocItem> {
-        val docList = arrayListOf<DocItem>()
+    @Throws(Exception::class)
+    fun listFiles(uri: Uri, filter: ((file: FileDoc) -> Boolean)? = null): ArrayList<FileDoc> {
+        val docList = arrayListOf<FileDoc>()
         var cursor: Cursor? = null
         try {
             val childrenUri = DocumentsContract
                 .buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri))
-            cursor = context.contentResolver.query(
+            cursor = appCtx.contentResolver.query(
                 childrenUri, arrayOf(
                     DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                     DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -116,40 +118,56 @@ object DocumentUtils {
                 val dci = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
                 if (cursor.moveToFirst()) {
                     do {
-                        val item = DocItem(
+                        val item = FileDoc(
                             name = cursor.getString(nci),
-                            attr = cursor.getString(mci),
+                            isDir = cursor.getString(mci) == DocumentsContract.Document.MIME_TYPE_DIR,
                             size = cursor.getLong(sci),
                             date = Date(cursor.getLong(dci)),
                             uri = DocumentsContract
                                 .buildDocumentUriUsingTree(uri, cursor.getString(ici))
                         )
-                        docList.add(item)
+                        if (filter == null || filter.invoke(item)) {
+                            docList.add(item)
+                        }
                     } while (cursor.moveToNext())
                 }
             }
-        } catch (e: Exception) {
-            Timber.e(e)
         } finally {
             cursor?.close()
         }
         return docList
     }
 
+    @Throws(Exception::class)
+    fun listFiles(path: String, filter: ((file: File) -> Boolean)? = null): ArrayList<FileDoc> {
+        val docItems = arrayListOf<FileDoc>()
+        val file = File(path)
+        file.listFiles { pathName ->
+            filter?.invoke(pathName) ?: true
+        }?.forEach {
+            docItems.add(
+                FileDoc(
+                    it.name,
+                    it.isDirectory,
+                    it.length(),
+                    Date(it.lastModified()),
+                    Uri.parse(it.absolutePath)
+                )
+            )
+        }
+        return docItems
+    }
+
 }
 
-data class DocItem(
+data class FileDoc(
     val name: String,
-    val attr: String,
+    val isDir: Boolean,
     val size: Long,
     val date: Date,
     val uri: Uri
 ) {
-    val isDir: Boolean by lazy {
-        DocumentsContract.Document.MIME_TYPE_DIR == attr
-    }
-
-    val isContentPath get() = uri.isContentScheme()
+    val isContentScheme get() = uri.isContentScheme()
 }
 
 @Throws(Exception::class)
