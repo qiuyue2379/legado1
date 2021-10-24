@@ -53,11 +53,11 @@ class ImportBookAdapter(context: Context, val callBack: CallBack) :
                     tvTag.text = item.name.substringAfterLast(".")
                     tvSize.text = StringUtils.toSize(item.size)
                     tvDate.text = AppConst.dateFormat.format(item.date)
-                    cbSelect.isChecked = selectedUris.contains(item.uri.toString())
+                    cbSelect.isChecked = selectedUris.contains(item.toString())
                 }
                 tvName.text = item.name
             } else {
-                cbSelect.isChecked = selectedUris.contains(item.uri.toString())
+                cbSelect.isChecked = selectedUris.contains(item.toString())
             }
         }
     }
@@ -66,12 +66,12 @@ class ImportBookAdapter(context: Context, val callBack: CallBack) :
         holder.itemView.setOnClickListener {
             getItem(holder.layoutPosition)?.let {
                 if (it.isDir) {
-                    callBack.nextDoc(it.uri)
+                    callBack.nextDoc(it)
                 } else if (!bookFileNames.contains(it.name)) {
-                    if (!selectedUris.contains(it.uri.toString())) {
-                        selectedUris.add(it.uri.toString())
+                    if (!selectedUris.contains(it.toString())) {
+                        selectedUris.add(it.toString())
                     } else {
-                        selectedUris.remove(it.uri.toString())
+                        selectedUris.remove(it.toString())
                     }
                     notifyItemChanged(holder.layoutPosition, true)
                     callBack.upCountView()
@@ -138,7 +138,7 @@ class ImportBookAdapter(context: Context, val callBack: CallBack) :
     }
 
     interface CallBack {
-        fun nextDoc(uri: Uri)
+        fun nextDoc(fileDoc: FileDoc)
         fun upCountView()
     }
 

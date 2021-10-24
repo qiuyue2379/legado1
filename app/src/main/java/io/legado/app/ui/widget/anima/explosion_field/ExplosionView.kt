@@ -24,8 +24,8 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.media.MediaPlayer
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
+import timber.log.Timber
 import java.util.*
 
 
@@ -77,12 +77,11 @@ class ExplosionView @JvmOverloads constructor(context: Context, attrs: Attribute
         explosion.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 mExplosions.remove(animation)
-                if (view != null) {
+                view?.let {
                     view.scaleX = 1f
                     view.scaleY = 1f
                     view.alpha = 1f
                     view.setOnClickListener(mOnClickListener)//set event
-
                 }
             }
         })
@@ -99,8 +98,6 @@ class ExplosionView @JvmOverloads constructor(context: Context, attrs: Attribute
         view.getGlobalVisibleRect(r)
         val location = IntArray(2)
         getLocationOnScreen(location)
-        //        getLocationInWindow(location);
-        //        view.getLocationInWindow(location);
         r.offset(-location[0], -location[1])
         r.inset(-mExpandInset[0], -mExpandInset[1])
         val startDelay = 100
@@ -128,11 +125,11 @@ class ExplosionView @JvmOverloads constructor(context: Context, attrs: Attribute
             }
 
             override fun onAnimationCancel(animator: Animator) {
-                Log.i("PRUEBA", "CANCEL")
+                Timber.i("CANCEL")
             }
 
             override fun onAnimationRepeat(animator: Animator) {
-                Log.i("PRUEBA", "REPEAT")
+                Timber.i("REPEAT")
             }
         })
 

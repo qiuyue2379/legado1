@@ -96,11 +96,14 @@ object DocumentUtils {
 
     @Throws(Exception::class)
     fun listFiles(uri: Uri, filter: ((file: FileDoc) -> Boolean)? = null): ArrayList<FileDoc> {
+        if (!uri.isContentScheme()) {
+            return listFiles(uri.path!!, filter)
+        }
+        val childrenUri = DocumentsContract
+            .buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri))
         val docList = arrayListOf<FileDoc>()
         var cursor: Cursor? = null
         try {
-            val childrenUri = DocumentsContract
-                .buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri))
             cursor = appCtx.contentResolver.query(
                 childrenUri, arrayOf(
                     DocumentsContract.Document.COLUMN_DOCUMENT_ID,
@@ -139,23 +142,22 @@ object DocumentUtils {
     }
 
     @Throws(Exception::class)
-    fun listFiles(path: String, filter: ((file: File) -> Boolean)? = null): ArrayList<FileDoc> {
-        val docItems = arrayListOf<FileDoc>()
+    fun listFiles(path: String, filter: ((file: FileDoc) -> Boolean)? = null): ArrayList<FileDoc> {
+        val docList = arrayListOf<FileDoc>()
         val file = File(path)
-        file.listFiles { pathName ->
-            filter?.invoke(pathName) ?: true
-        }?.forEach {
-            docItems.add(
-                FileDoc(
-                    it.name,
-                    it.isDirectory,
-                    it.length(),
-                    Date(it.lastModified()),
-                    Uri.parse(it.absolutePath)
-                )
+        file.listFiles()?.forEach {
+            val item = FileDoc(
+                it.name,
+                it.isDirectory,
+                it.length(),
+                Date(it.lastModified()),
+                Uri.fromFile(it)
             )
+            if (filter == null || filter.invoke(item)) {
+                docList.add(item)
+            }
         }
-        return docItems
+        return docList
     }
 
 }
@@ -167,7 +169,40 @@ data class FileDoc(
     val date: Date,
     val uri: Uri
 ) {
+
+    override fun toString(): String {
+        return if (uri.isContentScheme()) uri.toString() else uri.path!!
+    }
+
     val isContentScheme get() = uri.isContentScheme()
+
+    fun readBytes(): ByteArray {
+        return uri.readBytes(appCtx)
+    }
+
+    companion object {
+
+        fun fromDocumentFile(doc: DocumentFile): FileDoc {
+            return FileDoc(
+                name = doc.name ?: "",
+                isDir = doc.isDirectory,
+                size = doc.length(),
+                date = Date(doc.lastModified()),
+                uri = doc.uri
+            )
+        }
+
+        fun fromFile(file: File): FileDoc {
+            return FileDoc(
+                name = file.name,
+                isDir = file.isDirectory,
+                size = file.length(),
+                date = Date(file.lastModified()),
+                uri = Uri.fromFile(file)
+            )
+        }
+
+    }
 }
 
 @Throws(Exception::class)
