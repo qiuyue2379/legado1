@@ -61,7 +61,7 @@ class AudioPlayActivity :
         }
     }
     private val sourceEditResult =
-        registerForActivityResult(StartActivityForResult(BookSourceEditActivity::class.java)) {
+        registerForActivityResult(StartActivityContract(BookSourceEditActivity::class.java)) {
             it ?: return@registerForActivityResult
             if (it.resultCode == RESULT_OK) {
                 viewModel.upSource()
