@@ -1,7 +1,6 @@
 package io.legado.app.ui.book.source.manage
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -121,8 +120,8 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
         when (item.itemId) {
             R.id.menu_add_book_source -> startActivity<BookSourceEditActivity>()
             R.id.menu_import_qr -> qrResult.launch(null)
-            R.id.menu_share_source -> viewModel.shareSelection(adapter.selection) {
-                startActivity(Intent.createChooser(it, getString(R.string.share_selected_source)))
+            R.id.menu_share_source -> viewModel.saveToFile(adapter.selection) {
+                share(it)
             }
             R.id.menu_group_manage -> showDialogFragment<GroupManageDialog>()
             R.id.menu_import_local -> importDoc.launch {
@@ -333,13 +332,11 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
             R.id.menu_bottom_sel -> viewModel.bottomSource(*adapter.selection.toTypedArray())
             R.id.menu_add_group -> selectionAddToGroups()
             R.id.menu_remove_group -> selectionRemoveFromGroups()
-            R.id.menu_export_selection -> exportDir.launch {
-                mode = HandleFileContract.EXPORT
-                fileData = Triple(
-                    "bookSource.json",
-                    GSON.toJson(adapter.selection).toByteArray(),
-                    "application/json"
-                )
+            R.id.menu_export_selection -> viewModel.saveToFile(adapter.selection) { file ->
+                exportDir.launch {
+                    mode = HandleFileContract.EXPORT
+                    fileData = Triple("bookSource.json", file, "application/json")
+                }
             }
         }
         return true
