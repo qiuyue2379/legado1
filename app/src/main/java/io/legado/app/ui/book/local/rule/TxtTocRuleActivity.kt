@@ -16,6 +16,7 @@ import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.databinding.DialogTocRegexEditBinding
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
+import io.legado.app.ui.widget.SelectActionBar
 import io.legado.app.ui.widget.recycler.DragSelectTouchHelper
 import io.legado.app.ui.widget.recycler.ItemTouchCallback
 import io.legado.app.ui.widget.recycler.VerticalDivider
@@ -28,7 +29,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class TxtTocRuleActivity : VMBaseActivity<ActivityTxtTocRuleBinding, TxtTocRuleViewModel>(),
-    TxtTocRuleAdapter.CallBack {
+    TxtTocRuleAdapter.CallBack,
+    SelectActionBar.CallBack {
 
     override val viewModel: TxtTocRuleViewModel by viewModels()
     override val binding: ActivityTxtTocRuleBinding by viewBinding(ActivityTxtTocRuleBinding::inflate)
@@ -39,6 +41,7 @@ class TxtTocRuleActivity : VMBaseActivity<ActivityTxtTocRuleBinding, TxtTocRuleV
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         initView()
+        initBottomActionBar()
         initData()
     }
 
@@ -55,6 +58,11 @@ class TxtTocRuleActivity : VMBaseActivity<ActivityTxtTocRuleBinding, TxtTocRuleV
         val itemTouchCallback = ItemTouchCallback(adapter)
         itemTouchCallback.isCanDrag = true
         ItemTouchHelper(itemTouchCallback).attachToRecyclerView(binding.recyclerView)
+    }
+
+    private fun initBottomActionBar() {
+        binding.selectActionBar.setMainActionText(R.string.delete)
+        binding.selectActionBar.setCallBack(this)
     }
 
     private fun initData() {
@@ -103,25 +111,48 @@ class TxtTocRuleActivity : VMBaseActivity<ActivityTxtTocRuleBinding, TxtTocRuleV
         }
     }
 
+    override fun onClickSelectBarMainAction() {
+        delSourceDialog()
+    }
+
+    override fun revertSelection() {
+        adapter.revertSelection()
+    }
+
+    override fun selectAll(selectAll: Boolean) {
+        if (selectAll) {
+            adapter.selectAll()
+        } else {
+            adapter.revertSelection()
+        }
+    }
+
     override fun update(vararg source: TxtTocRule) {
         viewModel.update(*source)
     }
 
     override fun toTop(source: TxtTocRule) {
-
+        viewModel.toTop(source)
     }
 
     override fun toBottom(source: TxtTocRule) {
-
+        viewModel.toBottom(source)
     }
 
     override fun upOrder() {
-
+        viewModel.upOrder()
     }
 
     override fun upCountView() {
         binding.selectActionBar
             .upCountView(adapter.selection.size, adapter.itemCount)
+    }
+
+    private fun delSourceDialog() {
+        alert(titleResource = R.string.draw, messageResource = R.string.sure_del) {
+            okButton { viewModel.del(*adapter.selection.toTypedArray()) }
+            noButton()
+        }
     }
 
     @SuppressLint("InflateParams")
