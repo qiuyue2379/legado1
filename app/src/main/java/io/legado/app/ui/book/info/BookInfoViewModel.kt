@@ -29,17 +29,22 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     var durChapterIndex = 0
     var inBookshelf = false
     var bookSource: BookSource? = null
-    var changeSourceCoroutine: Coroutine<*>? = null
+    private var changeSourceCoroutine: Coroutine<*>? = null
 
     fun initData(intent: Intent) {
         execute {
             val name = intent.getStringExtra("name") ?: ""
             val author = intent.getStringExtra("author") ?: ""
+            val bookUrl = intent.getStringExtra("bookUrl") ?: ""
             appDb.bookDao.getBook(name, author)?.let { book ->
                 inBookshelf = true
                 setBook(book)
-            } ?: appDb.searchBookDao.getFirstByNameAuthor(name, author)?.toBook()?.let { book ->
-                setBook(book)
+            } ?: let {
+                val searchBook = appDb.searchBookDao.getSearchBook(bookUrl)
+                        ?: appDb.searchBookDao.getFirstByNameAuthor(name, author)
+                searchBook?.toBook()?.let { book ->
+                    setBook(book)
+                }
             }
         }
     }
