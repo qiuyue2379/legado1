@@ -227,4 +227,7 @@ dependencies {
     //转换繁体
     implementation('com.github.liuyueyi.quick-chinese-transfer:quick-transfer-core:0.2.3')
 
+    // LeakCanary
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+
 }
