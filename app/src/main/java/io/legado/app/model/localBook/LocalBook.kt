@@ -13,6 +13,7 @@ import io.legado.app.help.BookHelp
 import io.legado.app.model.TocEmptyException
 import io.legado.app.utils.*
 import splitties.init.appCtx
+import timber.log.Timber
 import java.io.File
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -58,6 +59,7 @@ object LocalBook {
                 }
             }
         } catch (e: Exception) {
+            Timber.e(e)
             e.localizedMessage
         }
     }
@@ -70,13 +72,6 @@ object LocalBook {
             path = uri.toString()
             val doc = DocumentFile.fromSingleUri(appCtx, uri)!!
             updateTime = doc.lastModified()
-            val bookFile = cacheFolder.getFile(doc.name!!)
-            if (!bookFile.exists()) {
-                bookFile.createNewFile()
-                doc.readBytes(appCtx).let { bytes ->
-                    bookFile.writeBytes(bytes)
-                }
-            }
             doc.name!!
         } else {
             path = uri.path!!

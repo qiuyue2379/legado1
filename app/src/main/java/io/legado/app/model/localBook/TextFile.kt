@@ -1,18 +1,22 @@
 package io.legado.app.model.localBook
 
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
+import android.system.Os
+import android.system.OsConstants.SEEK_SET
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.TxtTocRule
 import io.legado.app.help.DefaultData
-import io.legado.app.utils.*
+import io.legado.app.utils.EncodingDetect
+import io.legado.app.utils.MD5Utils
+import io.legado.app.utils.StringUtils
+import io.legado.app.utils.isContentScheme
 import splitties.init.appCtx
 import java.io.File
+import java.io.FileDescriptor
 import java.io.FileInputStream
 import java.io.FileNotFoundException
-import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -22,27 +26,33 @@ class TextFile(private val book: Book) {
     private val tocRules = arrayListOf<TxtTocRule>()
     private lateinit var charset: Charset
 
-    @Throws(Exception::class)
+    @Throws(FileNotFoundException::class)
     fun getChapterList(): ArrayList<BookChapter> {
-        val bookFile = getBookFile(book)
-        if (book.charset == null) {
-            book.charset = EncodingDetect.getEncode(bookFile)
-        }
-        charset = book.fileCharset()
-        val rulePattern = if (book.tocUrl.isNotEmpty()) {
-            Pattern.compile(book.tocUrl, Pattern.MULTILINE)
-        } else {
-            tocRules.addAll(getTocRules())
-            null
-        }
-        return getBookInputStream(book).use {
-            analyze(it, book, rulePattern)
+        return getBookFD(book).let { fd ->
+            try {
+                val buffer = ByteArray(BUFFER_SIZE)
+                Os.read(fd, buffer, 0, BUFFER_SIZE)
+                if (book.charset == null) {
+                    book.charset = EncodingDetect.getEncode(buffer)
+                }
+                charset = book.fileCharset()
+                val rulePattern = if (book.tocUrl.isNotEmpty()) {
+                    Pattern.compile(book.tocUrl, Pattern.MULTILINE)
+                } else {
+                    tocRules.addAll(getTocRules())
+                    null
+                }
+                analyze(fd, book, rulePattern)
+            } finally {
+                if (fd.valid()) {
+                    Os.close(fd)
+                }
+            }
         }
     }
 
-    @Throws(Exception::class)
     private fun analyze(
-        bookIs: InputStream,
+        bookFd: FileDescriptor,
         book: Book,
         pattern: Pattern?
     ): ArrayList<BookChapter> {
@@ -50,8 +60,8 @@ class TextFile(private val book: Book) {
         var tocRule: TxtTocRule? = null
         val buffer = ByteArray(BUFFER_SIZE)
         val rulePattern = pattern ?: let {
-            bookIs.skip(0)
-            val length = bookIs.read(buffer, 0, buffer.size)
+            Os.lseek(bookFd, 0, SEEK_SET)
+            val length = Os.read(bookFd, buffer, 0, BUFFER_SIZE)
             val content = String(buffer, 0, length, charset)
             tocRule = getTocRule(content)
             tocRule?.let {
@@ -60,7 +70,7 @@ class TextFile(private val book: Book) {
         }
         //加载章节
         //获取到的块起始点，在文件中的位置
-        bookIs.skip(0)
+        Os.lseek(bookFd, 0, SEEK_SET)
         var curOffset: Long = 0
         //block的个数
         var blockPos = 0
@@ -69,7 +79,7 @@ class TextFile(private val book: Book) {
         var allLength = 0
 
         //获取文件中的数据到buffer，直到没有数据为止
-        while (bookIs.read(buffer, 0, BUFFER_SIZE).also { length = it } > 0) {
+        while (Os.read(bookFd, buffer, 0, BUFFER_SIZE).also { length = it } > 0) {
             blockPos++
             //如果存在Chapter
             if (rulePattern != null) {
@@ -80,7 +90,7 @@ class TextFile(private val book: Book) {
                     blockContent = blockContent.substring(0, lastN)
                     length = blockContent.toByteArray(charset).size
                     allLength += length
-                    bookIs.skip(allLength.toLong())
+                    Os.lseek(bookFd, allLength.toLong(), SEEK_SET)
                 }
                 //当前Block下使过的String的指针
                 var seekPos = 0
@@ -96,7 +106,7 @@ class TextFile(private val book: Book) {
                     if (curOffset + chapterLength - lastStart > 50000 && pattern == null) {
                         //移除不匹配的规则
                         tocRules.remove(tocRule)
-                        return analyze(bookIs, book, null)
+                        return analyze(bookFd, book, null)
                     }
                     //如果 seekPos == 0 && nextChapterPos != 0 表示当前block处前面有一段内容
                     //第一种情况一定是序章 第二种情况是上一个章节的内容
@@ -152,7 +162,7 @@ class TextFile(private val book: Book) {
                 if (seekPos == 0 && length > 50000 && pattern == null) {
                     //移除不匹配的规则
                     tocRules.remove(tocRule)
-                    return analyze(bookIs, book, null)
+                    return analyze(bookFd, book, null)
                 }
             } else { //进行本地虚拟分章
                 //章节在buffer的偏移量
@@ -249,6 +259,7 @@ class TextFile(private val book: Book) {
         //没有标题的时候，每个章节的最大长度
         private const val MAX_LENGTH_WITH_NO_CHAPTER = 10 * 1024
 
+        @Throws(FileNotFoundException::class)
         fun getChapterList(book: Book): ArrayList<BookChapter> {
             return TextFile(book).getChapterList()
         }
@@ -257,9 +268,13 @@ class TextFile(private val book: Book) {
         fun getContent(book: Book, bookChapter: BookChapter): String {
             val count = (bookChapter.end!! - bookChapter.start!!).toInt()
             val content = ByteArray(count)
-            getBookInputStream(book).use {
-                it.skip(bookChapter.start!!)
-                it.read(content, 0, count)
+            getBookFD(book).let { fd ->
+                try {
+                    Os.lseek(fd, bookChapter.start!!, SEEK_SET)
+                    Os.read(fd, content, 0, count)
+                } finally {
+                    Os.close(fd)
+                }
             }
             return String(content, book.fileCharset())
                 .substringAfter(bookChapter.title)
@@ -267,31 +282,12 @@ class TextFile(private val book: Book) {
         }
 
         @Throws(FileNotFoundException::class)
-        private fun getBookInputStream(book: Book): InputStream {
+        private fun getBookFD(book: Book): FileDescriptor {
             if (book.bookUrl.isContentScheme()) {
                 val uri = Uri.parse(book.bookUrl)
-                return appCtx.contentResolver.openInputStream(uri)!!
+                return appCtx.contentResolver.openFileDescriptor(uri, "r")!!.fileDescriptor
             }
-            return FileInputStream(File(book.bookUrl))
-        }
-
-        private fun getBookFile(book: Book): File {
-            if (book.bookUrl.isContentScheme()) {
-                val uri = Uri.parse(book.bookUrl)
-                val bookFile = LocalBook.cacheFolder.getFile(book.originName)
-                val doc = DocumentFile.fromSingleUri(appCtx, uri)!!
-                if (bookFile.exists() && bookFile.lastModified() >= doc.lastModified()) {
-                    return bookFile
-                }
-                if (!bookFile.exists()) {
-                    bookFile.createNewFile()
-                    DocumentUtils.readBytes(appCtx, uri).let {
-                        bookFile.writeBytes(it)
-                    }
-                }
-                return bookFile
-            }
-            return File(book.bookUrl)
+            return FileInputStream(File(book.bookUrl)).fd
         }
 
         private fun getTocRules(): List<TxtTocRule> {
