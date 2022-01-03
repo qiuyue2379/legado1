@@ -1,12 +1,14 @@
 // © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
-/**
- * ******************************************************************************
- * Copyright (C) 2005-2016, International Business Machines Corporation and    *
- * others. All Rights Reserved.                                                *
- * ******************************************************************************
+/*
+  ******************************************************************************
+  Copyright (C) 2005-2016, International Business Machines Corporation and    *
+  others. All Rights Reserved.                                                *
+  ******************************************************************************
  */
 package io.legado.app.lib.icu4j;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -150,6 +152,7 @@ public class CharsetDetector {
      * <code>null</code> if there are no matches.
      * @stable ICU 3.4
      */
+    @Nullable
     public CharsetMatch detect() {
 //   TODO:  A better implementation would be to copy the detect loop from
 //          detectAll(), and cut it short as soon as a match with a high confidence
@@ -329,7 +332,7 @@ public class CharsetDetector {
      *               it by removing what appears to be html markup.
      */
     private void MungeInput() {
-        int srci = 0;
+        int srci;
         int dsti = 0;
         byte b;
         boolean inMarkup = false;
@@ -493,6 +496,7 @@ public class CharsetDetector {
         list.add(new CSRecognizerInfo(new CharsetRecog_sbcs.CharsetRecog_IBM420_ar_rtl(), false));
         list.add(new CSRecognizerInfo(new CharsetRecog_sbcs.CharsetRecog_IBM420_ar_ltr(), false));
 
+        //noinspection Java9CollectionFactory
         ALL_CS_RECOGNIZERS = Collections.unmodifiableList(list);
     }
 
