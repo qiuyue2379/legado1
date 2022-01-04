@@ -227,43 +227,43 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!--        <View-->
-        <!--            android:layout_width="0dp"-->
-        <!--            android:layout_height="match_parent"-->
-        <!--            android:layout_weight="2" />-->
-        <!--        &lt;!&ndash;设置按钮&ndash;&gt;-->
-        <!--        <LinearLayout-->
-        <!--            android:id="@+id/ll_setting"-->
-        <!--            android:layout_width="50dp"-->
-        <!--            android:layout_height="50dp"-->
-        <!--            android:background="?android:attr/selectableItemBackgroundBorderless"-->
-        <!--            android:clickable="true"-->
-        <!--            android:contentDescription="@string/setting"-->
-        <!--            android:focusable="true"-->
-        <!--            android:orientation="vertical"-->
-        <!--            android:paddingBottom="7dp">-->
+<!--        <View-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="2" />-->
+<!--        &lt;!&ndash;设置按钮&ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:id="@+id/ll_setting"-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:background="?android:attr/selectableItemBackgroundBorderless"-->
+<!--            android:clickable="true"-->
+<!--            android:contentDescription="@string/setting"-->
+<!--            android:focusable="true"-->
+<!--            android:orientation="vertical"-->
+<!--            android:paddingBottom="7dp">-->
 
-        <!--            <androidx.appcompat.widget.AppCompatImageView-->
-        <!--                android:id="@+id/iv_setting"-->
-        <!--                android:layout_width="match_parent"-->
-        <!--                android:layout_height="0dp"-->
-        <!--                android:layout_weight="1"-->
-        <!--                android:contentDescription="@string/aloud_config"-->
-        <!--                android:src="@drawable/ic_settings"-->
-        <!--                app:tint="@color/primaryText"-->
-        <!--                tools:ignore="NestedWeights" />-->
+<!--            <androidx.appcompat.widget.AppCompatImageView-->
+<!--                android:id="@+id/iv_setting"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="0dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:contentDescription="@string/aloud_config"-->
+<!--                android:src="@drawable/ic_settings"-->
+<!--                app:tint="@color/primaryText"-->
+<!--                tools:ignore="NestedWeights" />-->
 
-        <!--            <TextView-->
-        <!--                android:id="@+id/tv_setting"-->
-        <!--                android:layout_width="wrap_content"-->
-        <!--                android:layout_height="wrap_content"-->
-        <!--                android:layout_gravity="center_horizontal"-->
-        <!--                android:layout_marginTop="3dp"-->
-        <!--                android:maxLines="1"-->
-        <!--                android:text="@string/setting"-->
-        <!--                android:textColor="@color/primaryText"-->
-        <!--                android:textSize="12sp" />-->
-        <!--        </LinearLayout>-->
+<!--            <TextView-->
+<!--                android:id="@+id/tv_setting"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center_horizontal"-->
+<!--                android:layout_marginTop="3dp"-->
+<!--                android:maxLines="1"-->
+<!--                android:text="@string/setting"-->
+<!--                android:textColor="@color/primaryText"-->
+<!--                android:textSize="12sp" />-->
+<!--        </LinearLayout>-->
 
         <View
             android:layout_width="0dp"

@@ -151,5 +151,6 @@ class MyFragment : BaseFragment(R.layout.fragment_my_config) {
             return super.onPreferenceTreeClick(preference)
         }
 
+
     }
 }

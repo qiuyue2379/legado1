@@ -39,3 +39,4 @@ fun NavigationView.disableScrollbar() {
     val navigationMenuView = getChildAt(0) as? NavigationMenuView
     navigationMenuView?.isVerticalScrollBarEnabled = false
 }
+

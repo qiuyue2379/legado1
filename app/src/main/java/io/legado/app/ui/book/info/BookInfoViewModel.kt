@@ -41,7 +41,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
                 setBook(book)
             } ?: let {
                 val searchBook = appDb.searchBookDao.getSearchBook(bookUrl)
-                        ?: appDb.searchBookDao.getFirstByNameAuthor(name, author)
+                    ?: appDb.searchBookDao.getFirstByNameAuthor(name, author)
                 searchBook?.toBook()?.let { book ->
                     setBook(book)
                 }

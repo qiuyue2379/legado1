@@ -920,10 +920,10 @@ class ReadBookActivity : BaseReadBookActivity(),
                         binding.readView.curPage.selectStartMoveIndex(0, positions[1], positions[2])
                         when (positions[3]) {
                             0  -> binding.readView.curPage.selectEndMoveIndex(
-                                    0, positions[1], positions[2] + viewModel.searchContentQuery.length - 1
+                                0, positions[1], positions[2] + viewModel.searchContentQuery.length - 1
                             )
                             1  -> binding.readView.curPage.selectEndMoveIndex(
-                                    0, positions[1] + 1, positions[4]
+                                0, positions[1] + 1, positions[4]
                             )
                             //consider change page, jump to scroll position
                             -1 -> binding.readView.curPage.selectEndMoveIndex(1, 0, positions[4])

@@ -70,19 +70,33 @@ class BookshelfViewModel(application: Application) : BaseViewModel(application) 
         }
     }
 
-    fun exportBookshelf(books: List<Book>?, success: (json: String) -> Unit) {
+    fun exportBookshelf(books: List<Book>?, success: (file: File) -> Unit) {
         execute {
-            val exportList = arrayListOf<Map<String, String?>>()
-            books?.forEach {
-                val bookMap = hashMapOf<String, String?>()
-                bookMap["name"] = it.name
-                bookMap["author"] = it.author
-                bookMap["intro"] = it.getDisplayIntro()
-                exportList.add(bookMap)
-            }
-            GSON.toJson(exportList)
+            books?.let {
+                val path = "${context.filesDir}/books.json"
+                FileUtils.delete(path)
+                val file = FileUtils.createFileWithReplace(path)
+                @Suppress("BlockingMethodInNonBlockingContext")
+                FileOutputStream(file).use { out ->
+                    val writer = JsonWriter(OutputStreamWriter(out, "UTF-8"))
+                    writer.setIndent("  ")
+                    writer.beginArray()
+                    books.forEach {
+                        val bookMap = hashMapOf<String, String?>()
+                        bookMap["name"] = it.name
+                        bookMap["author"] = it.author
+                        bookMap["intro"] = it.getDisplayIntro()
+                        GSON.toJson(bookMap, bookMap::class.java, writer)
+                    }
+                    writer.endArray()
+                    writer.close()
+                }
+                file
+            } ?: throw NoStackTraceException("书籍不能为空")
         }.onSuccess {
             success(it)
+        }.onError {
+            context.toastOnUi("导出书籍出错\n${it.localizedMessage}")
         }
     }
 

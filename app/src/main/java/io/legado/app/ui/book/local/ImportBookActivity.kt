@@ -154,7 +154,7 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
             }
             Build.VERSION.SDK_INT > Build.VERSION_CODES.Q -> {
                 binding.tvEmptyMsg.visible()
-                selectFolder.launch {}
+                selectFolder.launch()
             }
             else -> initRootPath(lastPath)
         }

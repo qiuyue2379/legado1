@@ -31,8 +31,8 @@ object DrawableUtils {
 
         return TransitionDrawable(drawables)
     }
-}
 
+}
 
 fun Drawable.setTintListMutate(
     tint: ColorStateList,

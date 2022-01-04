@@ -14,8 +14,8 @@ def version = "3." + releaseTime()
 def gitCommits = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion '31.0.0'
+    compileSdkVersion 32
+    buildToolsVersion '32.0.0'
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -34,8 +34,8 @@ android {
     defaultConfig {
         applicationId "io.qiuyue.app"
         minSdkVersion 21
-        targetSdkVersion 31
-        versionCode gitCommits
+        targetSdkVersion 32
+        versionCode 10000 + gitCommits
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         project.ext.set("archivesBaseName", name + "_" + version)
@@ -60,8 +60,8 @@ android {
             if (project.hasProperty("RELEASE_STORE_FILE")) {
                 signingConfig signingConfigs.myConfig
             }
-
             applicationIdSuffix '.release'
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -201,9 +201,6 @@ dependencies {
     implementation("org.nanohttpd:nanohttpd:$nanoHttpdVersion")
     implementation("org.nanohttpd:nanohttpd-websocket:$nanoHttpdVersion")
 
-    //代码编辑
-    //implementation('com.github.AmrDeveloper:CodeView:1.0.1')
-
     //二维码
     implementation('com.github.jenly1314:zxing-lite:2.1.1')
 
@@ -222,6 +219,9 @@ dependencies {
 
     //转换繁体
     implementation('com.github.liuyueyi.quick-chinese-transfer:quick-transfer-core:0.2.3')
+
+    //代码编辑com.github.AmrDeveloper:CodeView已集成到应用内
+    //epubLib集成到应用内
 
     // LeakCanary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
