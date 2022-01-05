@@ -35,17 +35,19 @@ object BookContent {
         redirectUrl: String,
         baseUrl: String,
         body: String?,
-        nextChapterUrl: String? = null
+        nextChapterUrl: String?,
+        needSave: Boolean = true
     ): String {
         body ?: throw NoStackTraceException(
             appCtx.getString(R.string.error_get_web_content, baseUrl)
         )
         Debug.log(bookSource.bookSourceUrl, "≡获取成功:${baseUrl}")
         Debug.log(bookSource.bookSourceUrl, body, state = 40)
-        val mNextChapterUrl = if (!nextChapterUrl.isNullOrEmpty()) {
-            nextChapterUrl
-        } else {
+        val mNextChapterUrl = if (nextChapterUrl.isNullOrEmpty()) {
             appDb.bookChapterDao.getChapter(book.bookUrl, bookChapter.index + 1)?.url
+                ?: appDb.bookChapterDao.getChapter(book.bookUrl, 0)?.url
+        } else {
+            nextChapterUrl
         }
         val content = StringBuilder()
         val nextUrlList = arrayListOf(baseUrl)
@@ -121,7 +123,9 @@ object BookContent {
         if (contentStr.isBlank()) {
             throw ContentEmptyException("内容为空")
         }
-        BookHelp.saveContent(scope, bookSource, book, bookChapter, contentStr)
+        if (needSave) {
+            BookHelp.saveContent(scope, bookSource, book, bookChapter, contentStr)
+        }
         return contentStr
     }
 
