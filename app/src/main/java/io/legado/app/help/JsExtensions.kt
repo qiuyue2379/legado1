@@ -126,25 +126,26 @@ interface JsExtensions {
     }
 
     /**
-     * 缓存网络文件
+     * 缓存以文本方式保存的文件 如.js .txt等
      */
     fun cacheFile(urlStr: String): String? {
         return cacheFile(urlStr, 0)
     }
 
     /**
-     * 缓存网络文件
+     * 缓存以文本方式保存的文件 如.js .txt等
      * @param url 网络文件的链接
      * @param saveTime 缓存时间，单位：秒
      * @return 返回缓存后的文件内容
      */
-    fun cacheFile(url: String, saveTime: Int = 0): String? {
-        val key = md5Encode16(url)
-        val cache = CacheManager.get(key)
-        if (cache.isNullOrBlank()) {
-            log("首次下载${url}...")
-            val value = ajax(url) ?: ""
-            CacheManager.put(key, value as Any, saveTime)
+    fun cacheFile(urlStr: String, saveTime: Int = 0): String? {
+        val key = md5Encode16(urlStr)
+        val cache = CacheManager.getString(key)
+        if(cache.isNullOrBlank()) {
+            log("首次下载 ${urlStr}")
+            val value = ajax(urlStr) ?: return null
+            CacheManager.putString2File(key, value, saveTime)
+            return value
         }
         return cache
     }
