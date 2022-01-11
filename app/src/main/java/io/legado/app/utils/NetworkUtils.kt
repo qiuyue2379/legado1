@@ -109,6 +109,7 @@ object NetworkUtils {
     fun getAbsoluteURL(baseURL: String?, relativePath: String): String {
         if (baseURL.isNullOrEmpty()) return relativePath
         if (relativePath.isAbsUrl()) return relativePath
+        if (relativePath.startsWith("javascript")) return ""
         var relativeUrl = relativePath
         try {
             val absoluteUrl = URL(baseURL.substringBefore(","))
@@ -126,6 +127,7 @@ object NetworkUtils {
      */
     fun getAbsoluteURL(baseURL: URL?, relativePath: String): String {
         if (baseURL == null) return relativePath
+        if (relativePath.startsWith("javascript")) return ""
         var relativeUrl = relativePath
         try {
             val parseUrl = URL(baseURL, relativePath)
@@ -138,31 +140,35 @@ object NetworkUtils {
     }
 
     fun getBaseUrl(url: String?): String? {
-        if (url == null || !url.startsWith("http")) return null
-        val index = url.indexOf("/", 9)
-        return if (index == -1) {
-            url
-        } else url.substring(0, index)
+        url ?: return null
+        if (url.startsWith("http://", true)
+            || url.startsWith("https://", true)
+        ) {
+            val index = url.indexOf("/", 9)
+            return if (index == -1) {
+                url
+            } else url.substring(0, index)
+        }
+        return null
     }
 
     /**
      * 获取二级域名，供cookie保存和读取
-     *
-     * http://1.2.3.4 => http://1.2.3.4
-     * https://www.example.com =>  https://example.com
-     * http://www.biquge.com.cn => http://biquge.com.cn
-     * http://www.content.example.com => http://example.com
+     * http://1.2.3.4 => 1.2.3.4
+     * https://www.example.com =>  example.com
+     * http://www.biquge.com.cn => biquge.com.cn
+     * http://www.content.example.com => example.com
      */
-    fun getSubDomain(url: String?): String {
-        val baseUrl = getBaseUrl(url) ?: return ""
-        val mURL = URL(baseUrl)
-        val schema: String = mURL.protocol
-        val host: String = mURL.host
-        //判断是否为ip
-        if (isIPAddress(host)) return baseUrl
-        //PublicSuffixDatabase处理域名
-        val domain = PublicSuffixDatabase.get().getEffectiveTldPlusOne(host)
-        return if (domain == null) baseUrl else "${schema}://${domain}"
+    fun getSubDomain(url: String): String {
+        val baseUrl = getBaseUrl(url) ?: return url
+        return kotlin.runCatching {
+            val mURL = URL(baseUrl)
+            val host: String = mURL.host
+            //判断是否为ip
+            if (isIPAddress(host)) return baseUrl
+            //PublicSuffixDatabase处理域名
+            PublicSuffixDatabase.get().getEffectiveTldPlusOne(host) ?: baseUrl
+        }.getOrDefault(baseUrl)
     }
 
     /**

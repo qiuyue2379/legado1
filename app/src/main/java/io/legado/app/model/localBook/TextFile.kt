@@ -49,6 +49,9 @@ class TextFile(private val book: Book) {
     private val tocRules = arrayListOf<Pattern>()
     private var charset: Charset = book.fileCharset()
 
+    /**
+     * 获取目录
+     */
     @Throws(FileNotFoundException::class)
     fun getChapterList(): ArrayList<BookChapter> {
         val rulePattern: Pattern? = if (book.charset == null || book.tocUrl.isEmpty()) {
@@ -78,6 +81,9 @@ class TextFile(private val book: Book) {
         } ?: analyze()
     }
 
+    /**
+     * 按规则解析目录
+     */
     private fun analyze(pattern: Pattern): ArrayList<BookChapter> {
         val toc = arrayListOf<BookChapter>()
         LocalBook.getBookInputStream(book).use { bis ->
@@ -119,12 +125,12 @@ class TextFile(private val book: Book) {
                     //获取章节内容
                     val chapterContent = blockContent.substring(seekPos, chapterStart)
                     val chapterLength = chapterContent.toByteArray(charset).size
-                    val lastStart = toc.lastOrNull()?.start ?: 0
+                    val lastStart = toc.lastOrNull()?.start ?: curOffset
                     if (curOffset + chapterLength - lastStart > 50000) {
                         bis.close()
                         return analyze()
                     }
-                    //如果 seekPos == 0 && nextChapterPos != 0 表示当前block处前面有一段内容
+                    //如果 seekPos == 0 && chapterStart != 0 表示当前block处前面有一段内容
                     //第一种情况一定是序章 第二种情况是上一个章节的内容
                     if (seekPos == 0 && chapterStart != 0) { //获取当前章节的内容
                         if (toc.isEmpty()) { //如果当前没有章节，那么就是序章
@@ -132,7 +138,7 @@ class TextFile(private val book: Book) {
                             if (StringUtils.trim(chapterContent).isNotEmpty()) {
                                 val qyChapter = BookChapter()
                                 qyChapter.title = "前言"
-                                qyChapter.start = 0
+                                qyChapter.start = curOffset
                                 qyChapter.end = chapterLength.toLong()
                                 toc.add(qyChapter)
                             }
@@ -167,25 +173,18 @@ class TextFile(private val book: Book) {
                         } else { //如果章节不存在则创建章节
                             val curChapter = BookChapter()
                             curChapter.title = matcher.group()
-                            curChapter.start = 0
-                            curChapter.end = 0
+                            curChapter.start = curOffset
+                            curChapter.end = curOffset
                             toc.add(curChapter)
                         }
                     }
                     //设置指针偏移
                     seekPos += chapterContent.length
                 }
-                if (seekPos == 0 && length > 50000) {
-                    bis.close()
-                    return analyze()
-                }
-
                 //block的偏移点
                 curOffset += length.toLong()
-
                 //设置上一章的结尾
-                val lastChapter = toc.last()
-                lastChapter.end = curOffset
+                toc.lastOrNull()?.end = curOffset
             }
         }
         toc.forEachIndexed { index, bookChapter ->
@@ -203,16 +202,20 @@ class TextFile(private val book: Book) {
         return toc
     }
 
+    /**
+     * 无规则拆分目录
+     */
     private fun analyze(): ArrayList<BookChapter> {
         nextTocRule()?.let {
             return analyze(it)
         }
         val toc = arrayListOf<BookChapter>()
         LocalBook.getBookInputStream(book).use { bis ->
-            //加载章节
-            var curOffset: Long = 0
             //block的个数
             var blockPos = 0
+            //加载章节
+            var curOffset: Long = 0
+            var chapterPos = 0
             //读取的长度
             var length: Int
             val buffer = ByteArray(bufferSize)
@@ -226,14 +229,14 @@ class TextFile(private val book: Book) {
             while (bis.read(buffer, bufferStart, bufferSize - bufferStart)
                     .also { length = it } > 0
             ) {
-                bufferStart = 0
                 blockPos++
                 //章节在buffer的偏移量
                 var chapterOffset = 0
                 //当前剩余可分配的长度
+                length += bufferStart
                 var strLength = length
                 //分章的位置
-                var chapterPos = 0
+                chapterPos = 0
                 while (strLength > 0) {
                     ++chapterPos
                     //是否长度超过一章
@@ -248,27 +251,38 @@ class TextFile(private val book: Book) {
                         }
                         val chapter = BookChapter()
                         chapter.title = "第${blockPos}章($chapterPos)"
-                        chapter.start = curOffset + chapterOffset
-                        chapter.end = curOffset + end
+                        chapter.start = toc.lastOrNull()?.end ?: curOffset
+                        chapter.end = chapter.start!! + end - chapterOffset
                         toc.add(chapter)
                         //减去已经被分配的长度
                         strLength -= (end - chapterOffset)
                         //设置偏移的位置
                         chapterOffset = end
                     } else {
-                        val chapter = BookChapter()
-                        chapter.title = "第" + blockPos + "章" + "(" + chapterPos + ")"
-                        chapter.start = curOffset + chapterOffset
-                        chapter.end = curOffset + length
-                        toc.add(chapter)
+                        buffer.copyInto(buffer, 0, length - strLength, length)
+                        length -= strLength
+                        bufferStart = strLength
                         strLength = 0
                     }
                 }
-
                 //block的偏移点
                 curOffset += length.toLong()
-
             }
+            //设置结尾章节
+            if (bufferStart > 100) {
+                val chapter = BookChapter()
+                chapter.title = "第${blockPos}章(${chapterPos + 1})"
+                chapter.start = toc.lastOrNull()?.end ?: curOffset
+                chapter.end = chapter.start!! + bufferStart
+                toc.add(chapter)
+            } else {
+                toc.lastOrNull()?.let {
+                    it.end = it.end!! + bufferStart
+                }
+            }
+        }
+        if (toc.isEmpty()) {
+            return analyze()
         }
         toc.forEachIndexed { index, bookChapter ->
             bookChapter.index = index
@@ -285,20 +299,29 @@ class TextFile(private val book: Book) {
         return toc
     }
 
+    /**
+     * 初始化并获取匹配次数最多的规则
+     */
     private fun getTocRule(content: String): Pattern? {
         tocRules.addAll(getTocRules(content, getTocRules().reversed()))
         tocRules.addAll(getTocRules(content, appDb.txtTocRuleDao.disabled.reversed()))
         return tocRules.firstOrNull()
     }
 
+    /**
+     * 获取下一个规则并移除上一个
+     */
     private fun nextTocRule(): Pattern? {
         tocRules.removeFirstOrNull()
         return tocRules.firstOrNull()
     }
 
+    /**
+     * 获取所有匹配次数大于1的目录规则
+     */
     private fun getTocRules(content: String, rules: List<TxtTocRule>): ArrayList<Pattern> {
         val list = arrayListOf<Pattern>()
-        var maxCs = 0
+        var maxCs = 1
         for (tocRule in rules) {
             val pattern = Pattern.compile(tocRule.rule, Pattern.MULTILINE)
             val matcher = pattern.matcher(content)
@@ -309,13 +332,16 @@ class TextFile(private val book: Book) {
             if (cs >= maxCs) {
                 maxCs = cs
                 list.add(0, pattern)
-            } else if (cs > 0) {
+            } else if (cs > 1) {
                 list.add(pattern)
             }
         }
         return list
     }
 
+    /**
+     * 获取启用的目录规则
+     */
     private fun getTocRules(): List<TxtTocRule> {
         var rules = appDb.txtTocRuleDao.enabled
         if (rules.isEmpty()) {

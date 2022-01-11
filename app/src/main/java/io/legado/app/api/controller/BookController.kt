@@ -8,6 +8,7 @@ import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.help.BookHelp
+import io.legado.app.help.CacheManager
 import io.legado.app.help.ContentProcessor
 import io.legado.app.help.glide.ImageLoader
 import io.legado.app.help.storage.AppWebDav
@@ -46,6 +47,9 @@ object BookController {
             }
         }
 
+    /**
+     * 获取封面
+     */
     fun getCover(parameters: Map<String, List<String>>): ReturnData {
         val returnData = ReturnData()
         val coverPath = parameters["path"]?.firstOrNull()
@@ -155,6 +159,9 @@ object BookController {
         return returnData
     }
 
+    /**
+     * 保存书籍
+     */
     fun saveBook(postData: String?): ReturnData {
         val book = GSON.fromJsonObject<Book>(postData)
         val returnData = ReturnData()
@@ -170,6 +177,9 @@ object BookController {
         return returnData.setErrorMsg("格式不对")
     }
 
+    /**
+     * 保存进度
+     */
     private fun saveBookReadIndex(book: Book, index: Int) {
         book.durChapterIndex = index
         book.durChapterTime = System.currentTimeMillis()
@@ -186,6 +196,9 @@ object BookController {
         }
     }
 
+    /**
+     * 添加本地书籍
+     */
     fun addLocalBook(parameters: Map<String, List<String>>): ReturnData {
         val returnData = ReturnData()
         try {
@@ -218,6 +231,20 @@ object BookController {
             )
         }
         return returnData.setData(true)
+    }
+
+    fun saveWebReadConfig(postData: String?): ReturnData {
+        val returnData = ReturnData()
+        postData?.let {
+            CacheManager.put("webReadConfig", postData)
+        }
+        return returnData.setData("")
+    }
+
+    fun getWebReadConfig(): ReturnData {
+        val returnData = ReturnData()
+        val data = CacheManager.get("webReadConfig") ?: "{}"
+        return returnData.setData(data)
     }
 
 }
