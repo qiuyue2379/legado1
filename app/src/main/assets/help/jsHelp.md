@@ -12,6 +12,7 @@
 > title 变量-当前标题,String  
 > src 内容,源码  
 > nextChapterUrl 变量 下一章节url
+
 ## 当前类对象的可使用的部分方法
 
 ### [AnalyzeUrl](https://github.com/gedoor/legado/blob/master/app/src/main/java/io/legado/app/model/analyzeRule/AnalyzeUrl.kt) 部分函数
@@ -41,6 +42,7 @@ java.setContent(content: Any?, baseUrl: String? = null):
 java.getElement(ruleStr: String)
 java.getElements(ruleStr: String)
 ```
+
 ### [js扩展类](https://github.com/gedoor/legado/blob/master/app/src/main/java/io/legado/app/help/JsExtensions.kt) 部分函数
 * 变量存取
 ```
@@ -93,8 +95,11 @@ java.deleteFile(path: String)
 * @param transformation AES加密的方式 例如AES/ECB/PKCS5Padding
 * @param iv ECB模式的偏移向量
 java.aesDecodeToString(str: String, key: String, transformation: String, iv: String)
+
 java.aesBase64DecodeToString(str: String, key: String, transformation: String, iv: String)
+
 java.aesEncodeToString(str: String, key: String, transformation: String, iv: String)
+
 java.aesEncodeToBase64String(str: String, key: String, transformation: String, iv: String)
 ```
 * 3DES
@@ -105,6 +110,7 @@ java.aesEncodeToBase64String(str: String, key: String, transformation: String, i
 * @param padding 补码方式 NoPadding/PKCS5Padding/
 * @param iv 加盐
 java.tripleDESEncodeBase64Str(data: String,key: String,mode: String,padding: String,iv: String): String?
+
 java.tripleDESDecodeStr(data: String,key: String,mode: String,padding: String,iv: String): String?
 ```
 * 摘要
@@ -112,6 +118,7 @@ java.tripleDESDecodeStr(data: String,key: String,mode: String,padding: String,iv
 * @param data 被摘要数据
 * @param algorithm 签名算法 MD5/SHA1/SHA256/SHA512
 java.digestHex(data: String,algorithm: String,): String?
+
 java.digestBase64Str(data: String,algorithm: String,): String?
 ```
 * md5
@@ -119,6 +126,7 @@ java.digestBase64Str(data: String,algorithm: String,): String?
 java.md5Encode(str)
 java.md5Encode16(str)
 ```
+
 ## book对象的可用属性
 > 使用方法: 在js中或{{}}中使用book.属性的方式即可获取.如在正文内容后加上 ##{{book.name+"正文卷"+title}} 可以净化 书名+正文卷+章节名称（如 我是大明星正文卷第二章我爸是豪门总裁） 这一类的字符.
 ```
@@ -151,6 +159,7 @@ order // 手动排序
 originOrder //书源排序
 variable // 自定义书籍变量信息(用于书源规则检索书籍信息)
  ```
+
 ## chapter对象的部分可用属性
 > 使用方法: 在js中或{{}}中使用chapter.属性的方式即可获取.如在正文内容后加上 ##{{chapter.title+chapter.index}} 可以净化 章节标题+序号(如 第二章 天仙下凡2) 这一类的字符.
  ```
@@ -180,9 +189,16 @@ source.getVariable()
 * 登录头操作
 ```
 source.getLoginHeader()
-source.getLoginHeaderMap(): Map<String, String>?
+source.getLoginHeaderMap().get(key: String)
 source.putLoginHeader(header: String)
 source.removeLoginHeader()
+```
+* 用户登录信息操作
+> 使用`登录UI`规则，并成功登录，阅读自动加密保存登录UI规则中除type为button的信息
+```
+source.getLoginInfo()
+source.getLoginInfoMap().get(key: String)
+source.removeLoginInfo()
 ```
 ## cookie对象的部分可用函数
 ```
