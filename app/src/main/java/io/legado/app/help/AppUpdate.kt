@@ -1,5 +1,6 @@
 package io.legado.app.help
 
+import io.legado.app.R
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.help.http.newCallStrResponse
 import io.legado.app.help.http.okHttpClient
@@ -18,7 +19,7 @@ object AppUpdate {
         callback: (newVersion: String, updateBody: String, url: String, fileName: String) -> Unit
     ) {
         Coroutine.async(scope) {
-            val lastReleaseUrl = "http://qiu-yue.top:86/apk/app/release/output-metadata.json"
+            val lastReleaseUrl = appCtx.getString(R.string.latest_release_api)
             val body = okHttpClient.newCallStrResponse {
                 url(lastReleaseUrl)
             }.body
