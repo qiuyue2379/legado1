@@ -12,6 +12,7 @@ import io.legado.app.R
 import io.legado.app.base.BasePreferenceFragment
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
+import io.legado.app.model.CheckSource
 import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.help.BookHelp
@@ -52,25 +53,26 @@ class OtherConfigFragment : BasePreferenceFragment(),
         AppConfig.defaultBookTreeUri?.let {
             upPreferenceSummary(PreferKey.defaultBookTreeUri, it)
         }
+        upPreferenceSummary(PreferKey.checkSource, CheckSource.summary)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.setTitle(R.string.other_setting)
-        preferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+        preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
         listView.setEdgeEffectColor(primaryColor)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        preferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+        preferenceManager.sharedPreferences?.unregisterOnSharedPreferenceChangeListener(this)
     }
 
-    override fun onPreferenceTreeClick(preference: Preference?): Boolean {
-        when (preference?.key) {
+    override fun onPreferenceTreeClick(preference: Preference): Boolean {
+        when (preference.key) {
             PreferKey.userAgent -> showUserAgentDialog()
             PreferKey.defaultBookTreeUri -> localBookTreeSelect.launch {
-                title = "选择保存书籍的文件夹"
+                title = getString(R.string.select_book_folder)
                 mode = HandleFileContract.DIR_SYS
             }
             PreferKey.preDownloadNum -> NumberPickerDialog(requireContext())
@@ -98,7 +100,8 @@ class OtherConfigFragment : BasePreferenceFragment(),
                     AppConfig.webPort = it
                 }
             PreferKey.cleanCache -> clearCache()
-            "uploadRule" -> DirectLinkUploadConfig().show(childFragmentManager, "uploadRuleConfig")
+            PreferKey.uploadRule -> showDialogFragment<DirectLinkUploadConfig>()
+            PreferKey.checkSource -> showDialogFragment<CheckSourceConfig>()
         }
         return super.onPreferenceTreeClick(preference)
     }
@@ -133,6 +136,9 @@ class OtherConfigFragment : BasePreferenceFragment(),
             PreferKey.userAgent -> listView.post {
                 upPreferenceSummary(PreferKey.userAgent, AppConfig.userAgent)
             }
+            PreferKey.checkSource -> listView.post {
+                upPreferenceSummary(PreferKey.checkSource, CheckSource.summary)
+            }
         }
     }
 
@@ -155,9 +161,9 @@ class OtherConfigFragment : BasePreferenceFragment(),
 
     @SuppressLint("InflateParams")
     private fun showUserAgentDialog() {
-        alert("UserAgent") {
+        alert(getString(R.string.user_agent)) {
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                editView.hint = "UserAgent"
+                editView.hint = getString(R.string.user_agent)
                 editView.setText(AppConfig.userAgent)
             }
             customView { alertBinding.root }
