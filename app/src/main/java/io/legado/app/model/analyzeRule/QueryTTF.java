@@ -235,7 +235,7 @@ public class QueryTTF {
 
     public final Map<Integer, String> codeToGlyph = new HashMap<>();
     public final Map<String, Integer> glyphToCode = new HashMap<>();
-    private int limitMix = 0;
+    private int limitMix = Integer.MAX_VALUE;
     private int limitMax = 0;
 
     /**
@@ -472,14 +472,14 @@ public class QueryTTF {
         for (int key = 0; key < 130000; ++key) {
             if (key == 0xFF) key = 0x3400;
             int gid = getGlyfIndex(key);
-            if (gid == 0) continue;
+            if (gid == 0 || gid >= glyf.size()) continue;
             StringBuilder sb = new StringBuilder();
             // 字型数据转String，方便存HashMap
             for (short b : glyf.get(gid).xCoordinates) sb.append(b);
             for (short b : glyf.get(gid).yCoordinates) sb.append(b);
             String val = sb.toString();
-            if (limitMix == 0) limitMix = key;
-            limitMax = key;
+            if (limitMix > key) limitMix = key;
+            if (limitMax < key) limitMax = key;
             codeToGlyph.put(key, val);
             if (glyphToCode.containsKey(val)) continue;
             glyphToCode.put(val, key);
@@ -556,15 +556,11 @@ public class QueryTTF {
         } else if (fmt == 12) {
             CmapFormat12 tab = (CmapFormat12) table;
             if (code > tab.groups.get(tab.numGroups - 1).getMiddle()) return 0;
-            // 二分法查找数值索引
-            int start = 0, middle, end = tab.numGroups - 1;
-            while (start + 1 < end) {
-                middle = (start + end) / 2;
-                if (tab.groups.get(middle).getLeft() <= code) start = middle;
-                else end = middle;
-            }
-            if (tab.groups.get(start).getLeft() <= code && code <= tab.groups.get(start).getMiddle()) {
-                glyfID = tab.groups.get(start).getRight() + code - tab.groups.get(start).getLeft();
+            for (int i = 0; i < tab.numGroups; i++) {
+                if (tab.groups.get(i).getLeft() <= code && code <= tab.groups.get(i).getMiddle()) {
+                    glyfID = tab.groups.get(i).getRight() + code - tab.groups.get(i).getLeft();
+                    break;
+                }
             }
         }
         return glyfID;
@@ -576,8 +572,8 @@ public class QueryTTF {
      * @param code 传入Unicode十进制值
      * @return 返回bool查询结果
      */
-    public boolean inLimit(char code) {
-        return (limitMix <= code) && (code < limitMax);
+    public boolean inLimit(int code) {
+        return (limitMix <= code) && (code <= limitMax);
     }
 
     /**
