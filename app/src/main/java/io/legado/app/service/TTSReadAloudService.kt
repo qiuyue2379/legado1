@@ -5,11 +5,13 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import io.legado.app.R
 import io.legado.app.constant.AppConst
+import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.EventBus
 import io.legado.app.help.AppConfig
 import io.legado.app.help.MediaHelp
 import io.legado.app.lib.dialogs.SelectItem
+import io.legado.app.model.NoStackTraceException
 import io.legado.app.model.ReadBook
 import io.legado.app.utils.*
 import java.util.*
@@ -65,18 +67,24 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
 
     @Synchronized
     override fun play() {
-        if (contentList.isNotEmpty() && ttsInitFinish && requestFocus()) {
+        if (!ttsInitFinish) return
+        if (!requestFocus()) return
+        if (contentList.isEmpty()) {
+            AppLog.putDebug("朗读列表为空")
+            ReadBook.readAloud()
+        } else {
             super.play()
-            execute {
+            kotlin.runCatching {
                 MediaHelp.playSilentSound(this@TTSReadAloudService)
-            }.onFinally {
-                textToSpeech?.let {
-                    it.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
-                    for (i in nowSpeak until contentList.size) {
-                        val text = contentList[i].replace(AppPattern.notReadAloudRegex, "")
-                        it.speak(text, TextToSpeech.QUEUE_ADD, null, AppConst.APP_TAG + i)
-                    }
+                val tts = textToSpeech ?: throw NoStackTraceException("tts is null")
+                tts.speak("", TextToSpeech.QUEUE_FLUSH, null, null)
+                for (i in nowSpeak until contentList.size) {
+                    val text = contentList[i].replace(AppPattern.notReadAloudRegex, "")
+                    tts.speak(text, TextToSpeech.QUEUE_ADD, null, AppConst.APP_TAG + i)
                 }
+            }.onFailure {
+                AppLog.put("tts朗读出错", it)
+                toastOnUi(it.localizedMessage)
             }
         }
     }

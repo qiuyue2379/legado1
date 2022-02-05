@@ -929,6 +929,7 @@
     <string name="seconds">秒</string>
     <string name="less_than">小于</string>
     <string name="check_source_config_summary">校验超时: %1$s秒\n校验项目:%2$s</string>
+    <string name="record_debug_log">记录调试日志</string>
     <!-- string end -->
 
 </resources>

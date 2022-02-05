@@ -63,19 +63,27 @@ class HttpReadAloudService : BaseReadAloudService(),
     }
 
     override fun play() {
-        if (contentList.isEmpty()) return
-        ReadAloud.httpTTS?.let {
-            val fileName =
-                md5SpeakFileName(it.url, AppConfig.ttsSpeechRate.toString(), contentList[nowSpeak])
-            if (nowSpeak == 0) {
-                downloadAudio()
-            } else {
-                val file = getSpeakFileAsMd5(fileName)
-                if (file.exists()) {
-                    playAudio(FileInputStream(file).fd)
-                } else {
+        if (contentList.isEmpty()) {
+            AppLog.putDebug("朗读列表为空")
+            ReadBook.readAloud()
+        } else {
+            super.play()
+            kotlin.runCatching {
+                val tts = ReadAloud.httpTTS ?: throw NoStackTraceException("httpTts is null")
+                val fileName =
+                    md5SpeakFileName(tts.url, AppConfig.ttsSpeechRate.toString(), contentList[nowSpeak])
+                if (nowSpeak == 0) {
                     downloadAudio()
+                } else {
+                    val file = getSpeakFileAsMd5(fileName)
+                    if (file.exists()) {
+                        playAudio(FileInputStream(file).fd)
+                    } else {
+                        downloadAudio()
+                    }
                 }
+            }.onFailure {
+                toastOnUi("朗读出错:${it.localizedMessage}")
             }
         }
     }
