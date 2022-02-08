@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.snackbar.Snackbar
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
+import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
@@ -207,63 +208,67 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
     private fun upBookSource(searchKey: String? = null) {
         sourceFlowJob?.cancel()
         sourceFlowJob = launch {
-            when {
-                searchKey.isNullOrEmpty() -> {
-                    appDb.bookSourceDao.flowAll()
-                }
-                searchKey == getString(R.string.enabled) -> {
-                    appDb.bookSourceDao.flowEnabled()
-                }
-                searchKey == getString(R.string.disabled) -> {
-                    appDb.bookSourceDao.flowDisabled()
-                }
-                searchKey == getString(R.string.need_login) -> {
-                    appDb.bookSourceDao.flowLogin()
-                }
-                searchKey.startsWith("group:") -> {
-                    val key = searchKey.substringAfter("group:")
-                    appDb.bookSourceDao.flowGroupSearch("%$key%")
-                }
-                else -> {
-                    appDb.bookSourceDao.flowSearch("%$searchKey%")
-                }
-            }.collect { data ->
-                val sourceList =
-                    if (sortAscending) when (sort) {
-                        Sort.Weight -> data.sortedBy { it.weight }
-                        Sort.Name -> data.sortedWith { o1, o2 ->
-                            o1.bookSourceName.cnCompare(o2.bookSourceName)
-                        }
-                        Sort.Url -> data.sortedBy { it.bookSourceUrl }
-                        Sort.Update -> data.sortedByDescending { it.lastUpdateTime }
-                        Sort.Respond -> data.sortedBy { it.respondTime }
-                        Sort.Enable -> data.sortedWith { o1, o2 ->
-                            var sort = -o1.enabled.compareTo(o2.enabled)
-                            if (sort == 0) {
-                                sort = o1.bookSourceName.cnCompare(o2.bookSourceName)
-                            }
-                            sort
-                        }
-                        else -> data
+            runCatching {
+                when {
+                    searchKey.isNullOrEmpty() -> {
+                        appDb.bookSourceDao.flowAll()
                     }
-                    else when (sort) {
-                        Sort.Weight -> data.sortedByDescending { it.weight }
-                        Sort.Name -> data.sortedWith { o1, o2 ->
-                            o2.bookSourceName.cnCompare(o1.bookSourceName)
-                        }
-                        Sort.Url -> data.sortedByDescending { it.bookSourceUrl }
-                        Sort.Update -> data.sortedBy { it.lastUpdateTime }
-                        Sort.Respond -> data.sortedByDescending { it.respondTime }
-                        Sort.Enable -> data.sortedWith { o1, o2 ->
-                            var sort = o1.enabled.compareTo(o2.enabled)
-                            if (sort == 0) {
-                                sort = o1.bookSourceName.cnCompare(o2.bookSourceName)
-                            }
-                            sort
-                        }
-                        else -> data.reversed()
+                    searchKey == getString(R.string.enabled) -> {
+                        appDb.bookSourceDao.flowEnabled()
                     }
-                adapter.setItems(sourceList, adapter.diffItemCallback)
+                    searchKey == getString(R.string.disabled) -> {
+                        appDb.bookSourceDao.flowDisabled()
+                    }
+                    searchKey == getString(R.string.need_login) -> {
+                        appDb.bookSourceDao.flowLogin()
+                    }
+                    searchKey.startsWith("group:") -> {
+                        val key = searchKey.substringAfter("group:")
+                        appDb.bookSourceDao.flowGroupSearch("%$key%")
+                    }
+                    else -> {
+                        appDb.bookSourceDao.flowSearch("%$searchKey%")
+                    }
+                }.collect { data ->
+                    val sourceList =
+                        if (sortAscending) when (sort) {
+                            Sort.Weight -> data.sortedBy { it.weight }
+                            Sort.Name -> data.sortedWith { o1, o2 ->
+                                o1.bookSourceName.cnCompare(o2.bookSourceName)
+                            }
+                            Sort.Url -> data.sortedBy { it.bookSourceUrl }
+                            Sort.Update -> data.sortedByDescending { it.lastUpdateTime }
+                            Sort.Respond -> data.sortedBy { it.respondTime }
+                            Sort.Enable -> data.sortedWith { o1, o2 ->
+                                var sort = -o1.enabled.compareTo(o2.enabled)
+                                if (sort == 0) {
+                                    sort = o1.bookSourceName.cnCompare(o2.bookSourceName)
+                                }
+                                sort
+                            }
+                            else -> data
+                        }
+                        else when (sort) {
+                            Sort.Weight -> data.sortedByDescending { it.weight }
+                            Sort.Name -> data.sortedWith { o1, o2 ->
+                                o2.bookSourceName.cnCompare(o1.bookSourceName)
+                            }
+                            Sort.Url -> data.sortedByDescending { it.bookSourceUrl }
+                            Sort.Update -> data.sortedBy { it.lastUpdateTime }
+                            Sort.Respond -> data.sortedByDescending { it.respondTime }
+                            Sort.Enable -> data.sortedWith { o1, o2 ->
+                                var sort = o1.enabled.compareTo(o2.enabled)
+                                if (sort == 0) {
+                                    sort = o1.bookSourceName.cnCompare(o2.bookSourceName)
+                                }
+                                sort
+                            }
+                            else -> data.reversed()
+                        }
+                    adapter.setItems(sourceList, adapter.diffItemCallback)
+                }
+            }.onFailure {
+                AppLog.put("更新书源出错", it)
             }
         }
     }
@@ -360,7 +365,10 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
                     }
                 }
                 CheckSource.start(this@BookSourceActivity, adapter.selection)
-                checkMessageRefreshJob().start()
+                val firstItem = adapter.getItems().indexOf(adapter.selection.firstOrNull())
+                val lastItem = adapter.getItems().indexOf(adapter.selection.lastOrNull())
+                Debug.isChecking = firstItem >= 0 && lastItem >= 0
+                checkMessageRefreshJob(firstItem, lastItem).start()
             }
             neutralButton(R.string.check_source_config) {
                 checkSource()
@@ -478,26 +486,20 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
         }
     }
 
-    private fun checkMessageRefreshJob(): Job {
-        val firstIndex = adapter.getItems().indexOf(adapter.selection.firstOrNull())
-        val lastIndex = adapter.getItems().indexOf(adapter.selection.lastOrNull())
-        var refreshCount = 0
-        Debug.isChecking = firstIndex >= 0 && lastIndex >= 0
+    private fun checkMessageRefreshJob(firstItem: Int, lastItem: Int): Job {
         return async(start = CoroutineStart.LAZY) {
             flow {
                 while (true) {
-                    refreshCount += 1
-                    emit(refreshCount)
+                    emit(Debug.isChecking)
                     delay(300L)
                 }
             }.collect {
                 adapter.notifyItemRangeChanged(
-                    firstIndex,
-                    lastIndex + 1,
+                    firstItem,
+                    lastItem + 1,
                     bundleOf(Pair("checkSourceMessage", null))
                 )
-                if (!Debug.isChecking) {
-                    Debug.finishChecking()
+                if (!it) {
                     this.cancel()
                 }
             }
