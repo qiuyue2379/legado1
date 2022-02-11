@@ -6,19 +6,26 @@ import androidx.recyclerview.widget.DiffUtil
 import io.legado.app.R
 import io.legado.app.base.adapter.ItemViewHolder
 import io.legado.app.base.adapter.RecyclerAdapter
+import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.databinding.ItemChapterListBinding
+import io.legado.app.help.AppConfig
+import io.legado.app.help.ContentProcessor
+import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.theme.ThemeUtils
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.utils.getCompatColor
 import io.legado.app.utils.gone
 import io.legado.app.utils.visible
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
+import java.util.concurrent.ConcurrentHashMap
 
 class ChapterListAdapter(context: Context, val callback: Callback) :
     RecyclerAdapter<BookChapter, ItemChapterListBinding>(context) {
 
     val cacheFileNames = hashSetOf<String>()
+    val displayTileMap = ConcurrentHashMap<Int, String>()
     val diffCallBack = object : DiffUtil.ItemCallback<BookChapter>() {
 
         override fun areItemsTheSame(
@@ -43,8 +50,42 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
 
     }
 
+    private val replaceRules
+        get() = callback.book?.let {
+            ContentProcessor.get(it.name, it.origin).getTitleReplaceRules()
+        }
+    private val useReplace
+        get() = AppConfig.tocUiUseReplace && callback.book?.getUseReplaceRule() == true
+    private var upDisplayTileJob: Coroutine<*>? = null
+
+    fun upDisplayTile() {
+        upDisplayTileJob?.cancel()
+        upDisplayTileJob = Coroutine.async(callback.scope) {
+            val replaceRules = replaceRules
+            val useReplace = useReplace
+            getItems().forEach {
+                if (!isActive) {
+                    return@async
+                }
+                if (displayTileMap[it.index] == null) {
+                    displayTileMap[it.index] = it.getDisplayTitle(replaceRules, useReplace)
+                }
+            }
+        }
+    }
+
     override fun getViewBinding(parent: ViewGroup): ItemChapterListBinding {
         return ItemChapterListBinding.inflate(inflater, parent, false)
+    }
+
+    private fun getDisplayTile(chapter: BookChapter): String {
+        var displayTile = displayTileMap[chapter.index]
+        if (displayTile != null) {
+            return displayTile
+        }
+        displayTile = chapter.getDisplayTitle(replaceRules, useReplace)
+        displayTileMap[chapter.index] = displayTile
+        return displayTile
     }
 
     override fun convert(
@@ -62,7 +103,7 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
                 } else {
                     tvChapterName.setTextColor(context.getCompatColor(R.color.primaryText))
                 }
-                tvChapterName.text = item.getDisplayTitle()
+                tvChapterName.text = getDisplayTile(item)
                 if (item.isVolume) {
                     //卷名，如第一卷 突出显示
                     tvChapterItem.setBackgroundColor(context.getCompatColor(R.color.btn_bg_press))
@@ -105,6 +146,7 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
 
     interface Callback {
         val scope: CoroutineScope
+        val book: Book?
         val isLocalBook: Boolean
         fun openChapter(bookChapter: BookChapter)
         fun durChapterIndex(): Int

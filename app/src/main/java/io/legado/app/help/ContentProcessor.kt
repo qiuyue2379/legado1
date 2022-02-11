@@ -9,6 +9,7 @@ import io.legado.app.data.entities.ReplaceRule
 import io.legado.app.utils.toastOnUi
 import splitties.init.appCtx
 import java.lang.ref.WeakReference
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
 
 class ContentProcessor private constructor(
@@ -37,21 +38,30 @@ class ContentProcessor private constructor(
 
     }
 
-    private val replaceRules = arrayListOf<ReplaceRule>()
+    private val titleReplaceRules = CopyOnWriteArrayList<ReplaceRule>()
+    private val contentReplaceRules = CopyOnWriteArrayList<ReplaceRule>()
 
     init {
         upReplaceRules()
     }
 
-    @Synchronized
     fun upReplaceRules() {
-        replaceRules.clear()
-        replaceRules.addAll(appDb.replaceRuleDao.findEnabledByScope(bookName, bookOrigin))
+        titleReplaceRules.run {
+            clear()
+            addAll(appDb.replaceRuleDao.findEnabledByTitleScope(bookName, bookOrigin))
+        }
+        contentReplaceRules.run {
+            clear()
+            addAll(appDb.replaceRuleDao.findEnabledByContentScope(bookName, bookOrigin))
+        }
     }
 
-    @Synchronized
-    fun getReplaceRules(): Array<ReplaceRule> {
-        return replaceRules.toTypedArray()
+    fun getTitleReplaceRules(): List<ReplaceRule> {
+        return titleReplaceRules
+    }
+
+    fun getContentReplaceRules(): List<ReplaceRule> {
+        return contentReplaceRules
     }
 
     fun getContent(
@@ -94,7 +104,7 @@ class ContentProcessor private constructor(
         }
         if (includeTitle) {
             //重新添加标题
-            mContent = chapter.getDisplayTitle(getReplaceRules()) + "\n" + mContent
+            mContent = chapter.getDisplayTitle(getTitleReplaceRules()) + "\n" + mContent
         }
         val contents = arrayListOf<String>()
         mContent.split("\n").forEach { str ->
@@ -114,7 +124,7 @@ class ContentProcessor private constructor(
 
     fun replaceContent(content: String): String {
         var mContent = content
-        getReplaceRules().forEach { item ->
+        getContentReplaceRules().forEach { item ->
             if (item.pattern.isNotEmpty()) {
                 try {
                     mContent = if (item.isRegex) {
