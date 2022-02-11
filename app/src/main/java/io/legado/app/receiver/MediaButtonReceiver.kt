@@ -86,13 +86,16 @@ class MediaButtonReceiver : BroadcastReceiver() {
                 LifecycleHelp.isExistActivity(AudioPlayActivity::class.java) ->
                     postEvent(EventBus.MEDIA_BUTTON, true)
                 else -> if (AppConfig.mediaButtonOnExit || LifecycleHelp.activitySize() > 0 || !isMediaKey) {
+                    ReadAloud.upReadAloudClass()
                     if (ReadBook.book != null) {
                         ReadBook.readAloud()
                     } else {
                         appDb.bookDao.lastReadBook?.let {
                             ReadBook.resetData(it)
-                            ReadBook.curTextChapter ?: ReadBook.loadContent(false)
-                            ReadBook.readAloud()
+                            ReadBook.clearTextChapter()
+                            ReadBook.loadContent(false) {
+                                ReadBook.readAloud()
+                            }
                         }
                     }
                 }
