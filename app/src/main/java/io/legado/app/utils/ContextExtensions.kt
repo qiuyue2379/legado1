@@ -27,6 +27,8 @@ import androidx.preference.PreferenceManager
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import io.legado.app.R
 import io.legado.app.constant.AppConst
+import io.legado.app.help.IntentHelp
+import splitties.systemservices.clipboardManager
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -60,6 +62,20 @@ inline fun <reified T : Service> Context.servicePendingIntent(
         FLAG_UPDATE_CURRENT
     }
     return getService(this, 0, intent, flags)
+}
+
+@SuppressLint("UnspecifiedImmutableFlag")
+fun Context.activityPendingIntent(
+    intent: Intent,
+    action: String
+): PendingIntent? {
+    intent.action = action
+    val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        FLAG_UPDATE_CURRENT or FLAG_MUTABLE
+    } else {
+        FLAG_UPDATE_CURRENT
+    }
+    return getActivity(this, 0, intent, flags)
 }
 
 @SuppressLint("UnspecifiedImmutableFlag")
@@ -145,8 +161,8 @@ fun Context.restart() {
     intent?.let {
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK
-                    or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                or Intent.FLAG_ACTIVITY_CLEAR_TOP
         )
         startActivity(intent)
         //杀掉以前进程
@@ -206,7 +222,6 @@ fun Context.share(file: File, type: String = "text/*") {
         )
     )
 }
-
 @SuppressLint("SetWorldReadable")
 fun Context.shareWithQr(
     text: String,
@@ -235,27 +250,19 @@ fun Context.shareWithQr(
         }
     }
 }
-
 fun Context.sendToClip(text: String) {
-    val clipboard =
-        getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
     val clipData = ClipData.newPlainText(null, text)
-    clipboard?.let {
-        clipboard.setPrimaryClip(clipData)
-        longToastOnUi(R.string.copy_complete)
-    }
+    clipboardManager.setPrimaryClip(clipData)
+    longToastOnUi(R.string.copy_complete)
 }
-
 fun Context.getClipText(): String? {
-    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
-    clipboard?.primaryClip?.let {
+    clipboardManager.primaryClip?.let {
         if (it.itemCount > 0) {
             return it.getItemAt(0).text.toString().trim()
         }
     }
     return null
 }
-
 fun Context.sendMail(mail: String) {
     try {
         val intent = Intent(Intent.ACTION_SENDTO)
@@ -266,7 +273,6 @@ fun Context.sendMail(mail: String) {
         toastOnUi(e.localizedMessage ?: "Error")
     }
 }
-
 /**
  * 获取电量
  */
@@ -276,36 +282,24 @@ val Context.sysBattery: Int
         val batteryStatus = registerReceiver(null, iFilter)
         return batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
     }
-
 val Context.externalFiles: File
     get() = this.getExternalFilesDir(null) ?: this.filesDir
-
 val Context.externalCache: File
     get() = this.externalCacheDir ?: this.cacheDir
-
 fun Context.openUrl(url: String) {
-    openUrl(Uri.parse(url))
-}
-
-fun Context.openUrl(uri: Uri) {
-    val intent = Intent(Intent.ACTION_VIEW)
-    intent.data = uri
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    if (intent.resolveActivity(packageManager) != null) {
-        try {
-            startActivity(intent)
-        } catch (e: Exception) {
-            toastOnUi(e.localizedMessage ?: "open url error")
-        }
-    } else {
-        try {
-            startActivity(Intent.createChooser(intent, "请选择浏览器"))
-        } catch (e: Exception) {
-            toastOnUi(e.localizedMessage ?: "open url error")
-        }
+    try {
+        startActivity(IntentHelp.getBrowserIntent(url))
+    } catch (e: Exception) {
+        toastOnUi(e.localizedMessage ?: "open url error")
     }
 }
-
+fun Context.openUrl(uri: Uri) {
+    try {
+        startActivity(IntentHelp.getBrowserIntent(uri))
+    } catch (e: Exception) {
+        toastOnUi(e.localizedMessage ?: "open url error")
+    }
+}
 fun Context.openFileUri(uri: Uri, type: String? = null) {
     val intent = Intent()
     intent.action = Intent.ACTION_VIEW
@@ -321,12 +315,10 @@ fun Context.openFileUri(uri: Uri, type: String? = null) {
         toastOnUi(e.msg)
     }
 }
-
 val Context.isPad: Boolean
     get() {
         return resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_LARGE
     }
-
 val Context.channel: String
     get() {
         try {
