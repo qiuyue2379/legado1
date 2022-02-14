@@ -11,6 +11,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.ItemTouchHelper
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
+import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.RssSource
@@ -32,6 +33,9 @@ import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 
 /**
@@ -243,8 +247,11 @@ class RssSourceActivity : VMBaseActivity<ActivityRssSourceBinding, RssSourceView
                 else -> {
                     appDb.rssSourceDao.flowSearch("%$searchKey%")
                 }
+            }.conflate().catch {
+                AppLog.put("订阅源管理界面更新数据出错", it)
             }.collect {
                 adapter.setItems(it, adapter.diffItemCallback)
+                delay(100)
             }
         }
     }

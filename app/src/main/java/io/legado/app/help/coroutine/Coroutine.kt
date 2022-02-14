@@ -4,7 +4,9 @@ import kotlinx.coroutines.*
 import timber.log.Timber
 import kotlin.coroutines.CoroutineContext
 
-
+/**
+ * 链式协程
+ */
 @Suppress("unused")
 class Coroutine<T>(
     val scope: CoroutineScope,
@@ -141,23 +143,20 @@ class Coroutine<T>(
                 val value = executeBlock(scope, context, timeMillis ?: 0L, block)
                 ensureActive()
                 success?.let { dispatchCallback(this, value, it) }
-            } catch (e: CancellationException) {
-                Timber.e("任务取消")
             } catch (e: Throwable) {
                 Timber.e(e)
+                if (e is CancellationException && e !is TimeoutCancellationException) {
+                    return@launch
+                }
                 val consume: Boolean = errorReturn?.value?.let { value ->
-                    if (isActive) {
-                        success?.let { dispatchCallback(this, value, it) }
-                    }
+                    success?.let { dispatchCallback(this, value, it) }
                     true
                 } ?: false
-                if (!consume && isActive) {
+                if (!consume) {
                     error?.let { dispatchCallback(this, e, it) }
                 }
             } finally {
-                if (isActive) {
-                    finally?.let { dispatchVoidCallback(this, it) }
-                }
+                finally?.let { dispatchVoidCallback(this, it) }
             }
         }
     }
