@@ -118,6 +118,14 @@ data class BookSource(
 
     fun getContentRule() = ruleContent ?: ContentRule()
 
+    fun getDisPlayNameGroup(): String {
+        return if (bookSourceGroup.isNullOrBlank()) {
+            bookSourceName
+        } else {
+            String.format("%s (%s)", bookSourceName, bookSourceGroup)
+        }
+    }
+
     fun addGroup(groups: String): BookSource {
         bookSourceGroup?.splitNotBlank(AppPattern.splitGroupRegex)?.toHashSet()?.let {
             it.addAll(groups.splitNotBlank(AppPattern.splitGroupRegex))
@@ -154,22 +162,22 @@ data class BookSource(
 
     fun equal(source: BookSource) =
         equal(bookSourceName, source.bookSourceName)
-                && equal(bookSourceUrl, source.bookSourceUrl)
-                && equal(bookSourceGroup, source.bookSourceGroup)
-                && bookSourceType == source.bookSourceType
-                && equal(bookUrlPattern, source.bookUrlPattern)
-                && equal(bookSourceComment, source.bookSourceComment)
-                && enabled == source.enabled
-                && enabledExplore == source.enabledExplore
-                && equal(header, source.header)
-                && loginUrl == source.loginUrl
-                && equal(exploreUrl, source.exploreUrl)
-                && equal(searchUrl, source.searchUrl)
-                && getSearchRule() == source.getSearchRule()
-                && getExploreRule() == source.getExploreRule()
-                && getBookInfoRule() == source.getBookInfoRule()
-                && getTocRule() == source.getTocRule()
-                && getContentRule() == source.getContentRule()
+            && equal(bookSourceUrl, source.bookSourceUrl)
+            && equal(bookSourceGroup, source.bookSourceGroup)
+            && bookSourceType == source.bookSourceType
+            && equal(bookUrlPattern, source.bookUrlPattern)
+            && equal(bookSourceComment, source.bookSourceComment)
+            && enabled == source.enabled
+            && enabledExplore == source.enabledExplore
+            && equal(header, source.header)
+            && loginUrl == source.loginUrl
+            && equal(exploreUrl, source.exploreUrl)
+            && equal(searchUrl, source.searchUrl)
+            && getSearchRule() == source.getSearchRule()
+            && getExploreRule() == source.getExploreRule()
+            && getBookInfoRule() == source.getBookInfoRule()
+            && getTocRule() == source.getTocRule()
+            && getContentRule() == source.getContentRule()
 
     private fun equal(a: String?, b: String?) = a == b || (a.isNullOrEmpty() && b.isNullOrEmpty())
 
