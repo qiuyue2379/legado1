@@ -26,8 +26,8 @@ import kotlin.math.min
 
 @Suppress("unused")
 object BookHelp {
-    val downloadDir: File = appCtx.externalFiles
-    const val cacheFolderName = "book_cache"
+    private val downloadDir: File = appCtx.externalFiles
+    private const val cacheFolderName = "book_cache"
     private const val cacheImageFolderName = "images"
     private val downloadImages = CopyOnWriteArraySet<String>()
 
@@ -72,7 +72,7 @@ object BookHelp {
         postEvent(EventBus.SAVE_CONTENT, bookChapter)
     }
 
-    private fun saveText(
+    fun saveText(
         book: Book,
         bookChapter: BookChapter,
         content: String
@@ -208,23 +208,20 @@ object BookHelp {
      * 读取章节内容
      */
     fun getContent(book: Book, bookChapter: BookChapter): String? {
-        if (book.isLocalTxt() || book.isUmd()) {
-            return LocalBook.getContent(book, bookChapter)
-        } else if (book.isEpub() && !hasContent(book, bookChapter)) {
+        val file = downloadDir.getFile(
+            cacheFolderName,
+            book.getFolderName(),
+            bookChapter.getFileName()
+        )
+        if (file.exists()) {
+            return file.readText()
+        }
+        if (book.isLocalBook()) {
             val string = LocalBook.getContent(book, bookChapter)
-            string?.let {
-                saveText(book, bookChapter, it)
+            if (string != null && book.isEpub()) {
+                saveText(book, bookChapter, string)
             }
             return string
-        } else {
-            val file = downloadDir.getFile(
-                cacheFolderName,
-                book.getFolderName(),
-                bookChapter.getFileName()
-            )
-            if (file.exists()) {
-                return file.readText()
-            }
         }
         return null
     }
@@ -254,16 +251,12 @@ object BookHelp {
      * 删除章节内容
      */
     fun delContent(book: Book, bookChapter: BookChapter) {
-        if (book.isLocalTxt()) {
-            return
-        } else {
-            FileUtils.createFileIfNotExist(
-                downloadDir,
-                cacheFolderName,
-                book.getFolderName(),
-                bookChapter.getFileName()
-            ).delete()
-        }
+        FileUtils.createFileIfNotExist(
+            downloadDir,
+            cacheFolderName,
+            book.getFolderName(),
+            bookChapter.getFileName()
+        ).delete()
     }
 
     /**
@@ -366,9 +359,9 @@ object BookHelp {
         val chapterName1 = StringUtils.fullToHalf(chapterName).replace(regexA, "")
         return StringUtils.stringToInt(
             (
-                    chapterNamePattern1.matcher(chapterName1).takeIf { it.find() }
-                        ?: chapterNamePattern2.matcher(chapterName1).takeIf { it.find() }
-                    )?.group(1)
+                chapterNamePattern1.matcher(chapterName1).takeIf { it.find() }
+                    ?: chapterNamePattern2.matcher(chapterName1).takeIf { it.find() }
+                )?.group(1)
                 ?: "-1"
         )
     }
@@ -380,6 +373,7 @@ object BookHelp {
         return@lazy "[^\\w\\u4E00-\\u9FEF〇\\u3400-\\u4DBF\\u20000-\\u2A6DF\\u2A700-\\u2EBEF]".toRegex()
     }
 
+    @Suppress("RegExpUnnecessaryNonCapturingGroup")
     private val regexB by lazy {
         //章节序号，排除处于结尾的状况，避免将章节名替换为空字串
         return@lazy "^.*?第(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+)[章节篇回集话](?!$)|^(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+[,:、])*(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+)(?:[,:、](?!$)|\\.(?=[^\\d]))".toRegex()
