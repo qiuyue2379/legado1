@@ -59,8 +59,8 @@ class TocRegexDialog() : BaseDialogFragment(R.layout.dialog_toc_regex),
         binding.toolBar.setTitle(R.string.txt_toc_regex)
         binding.toolBar.inflateMenu(R.menu.txt_toc_regex)
         binding.toolBar.menu.applyTint(requireContext())
-        binding.toolBar.menu.findItem(R.id.menu_limit_content_length)
-            ?.isChecked = ReadBook.book?.getLimitContentLength() == true
+        binding.toolBar.menu.findItem(R.id.menu_split_long_chapter)
+            ?.isChecked = ReadBook.book?.getSplitLongChapter() == true
         binding.toolBar.setOnMenuItemClickListener(this)
         initView()
         initData()
@@ -115,8 +115,8 @@ class TocRegexDialog() : BaseDialogFragment(R.layout.dialog_toc_regex),
             R.id.menu_add -> editRule()
             R.id.menu_default -> viewModel.importDefault()
             R.id.menu_import -> showImportDialog()
-            R.id.menu_limit_content_length -> {
-                ReadBook.book?.setLimitContentLength(!item.isChecked)
+            R.id.menu_split_long_chapter -> {
+                ReadBook.book?.setSplitLongChapter(!item.isChecked)
                 item.isChecked = !item.isChecked
                 if (!item.isChecked) context?.longToastOnUi(R.string.need_more_time_load_content)
             }

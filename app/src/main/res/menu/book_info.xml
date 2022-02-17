@@ -56,8 +56,8 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/menu_limit_content_length"
-        android:title="@string/limit_content_length"
+        android:id="@+id/menu_split_long_chapter"
+        android:title="@string/split_long_chapter"
         android:checkable="true"
         app:showAsAction="never" />
 

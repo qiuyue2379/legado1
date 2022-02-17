@@ -337,7 +337,7 @@
     <string name="tip_margin_change">Margin adjustment</string>
     <string name="allow_update">Enable update</string>
     <string name="disable_update">Disable update</string>
-    <string name="limit_content_length">限制正文长度</string>
+    <string name="split_long_chapter">拆分超长章节</string>
     <string name="need_more_time_load_content">正文长度过长时，加载正文可能会花费更多时间</string>
     <string name="revert_selection">Inverse</string>
     <string name="search_book_key">Search book name/author</string>
@@ -915,6 +915,7 @@
     <string name="tts_speech_reduce">语速减</string>
     <string name="tts_speech_add">语速加</string>
     <string name="open_sys_dir_picker_error">打开系统文件夹选择器出错,自动打开应用文件夹选择器</string>
+    <string name="open_sys_doc_picker_error">打开系统文件选择器出错,自动打开应用文件选择器</string>
     <string name="expand_text_menu">展开文本选择菜单</string>
     <string name="book_tree_uri_t">书籍保存位置</string>
     <string name="book_tree_uri_s">从其它应用打开的书籍保存位置</string>
@@ -936,6 +937,9 @@
     <string name="use_replace">使用替换</string>
     <string name="scope_title">作用于标题</string>
     <string name="scope_content">作用于正文</string>
+    <string name="menu_refresh_dur">刷新当前章节</string>
+    <string name="menu_refresh_after">刷新之后章节</string>
+    <string name="menu_refresh_all">刷新全部章节</string>
     <!-- string end -->
 
 </resources>
