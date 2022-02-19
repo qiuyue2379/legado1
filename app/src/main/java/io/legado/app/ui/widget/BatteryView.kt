@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.text.StaticLayout
 import android.util.AttributeSet
 import androidx.annotation.ColorInt
 import androidx.appcompat.widget.AppCompatTextView
@@ -29,9 +30,10 @@ class BatteryView @JvmOverloads constructor(
                 postInvalidate()
             }
         }
+    private var battery: Int = 0
 
     init {
-        setPadding(4.dp, 2.dp, 6.dp, 2.dp)
+        setPadding(4.dp, 3.dp, 6.dp, 3.dp)
         batteryPaint.strokeWidth = 1.dp.toFloat()
         batteryPaint.isAntiAlias = true
         batteryPaint.color = paint.color
@@ -50,24 +52,35 @@ class BatteryView @JvmOverloads constructor(
     }
 
     @SuppressLint("SetTextI18n")
-    fun setBattery(battery: Int) {
-        text = "$battery"
+    fun setBattery(battery: Int, text: String? = null) {
+        this.battery = battery
+        if (text.isNullOrEmpty()) {
+            setText(battery.toString())
+        } else {
+            setText("$text  $battery")
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!isBattery) return
+        layout.getLineBounds(0, outFrame)
+        val batteryStart = layout
+            .getPrimaryHorizontal(text.length - battery.toString().length)
+            .toInt() + 3.dp
+        val batteryEnd =
+            batteryStart + StaticLayout.getDesiredWidth(battery.toString(), paint).toInt() + 4.dp
         outFrame.set(
-            1.dp,
-            1.dp,
-            width - 3.dp,
-            height - 1.dp
+            batteryStart,
+            2.dp,
+            batteryEnd,
+            height - 2.dp
         )
         val dj = (outFrame.bottom - outFrame.top) / 3
         polar.set(
-            outFrame.right,
+            batteryEnd,
             outFrame.top + dj,
-            width - 1.dp,
+            batteryEnd + 2.dp,
             outFrame.bottom - dj
         )
         batteryPaint.style = Paint.Style.STROKE
