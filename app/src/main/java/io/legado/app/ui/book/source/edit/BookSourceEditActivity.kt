@@ -434,6 +434,7 @@ class BookSourceEditActivity :
         val items = arrayListOf("插入URL参数", "书源教程", "js教程", "正则教程", "选择文件")
         selector(getString(R.string.help), items) { _, index ->
             when (index) {
+                0 -> insertText(AppConst.urlOption)
                 1 -> showHelp("ruleHelp")
                 2 -> showHelp("jsHelp")
                 3 -> showHelp("regexHelp")

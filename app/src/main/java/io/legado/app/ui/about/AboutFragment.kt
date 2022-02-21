@@ -20,12 +20,6 @@ import io.legado.app.utils.*
 class AboutFragment : PreferenceFragmentCompat() {
 
     private val qqGroups = linkedMapOf(
-        Pair("(QQ群VIP中转)1017837876", "0d9-zpmqbYfK3i_wt8uCvQoB2lmXadrg"),
-        Pair("(QQ群VIP1)701903217", "-iolizL4cbJSutKRpeImHlXlpLDZnzeF"),
-        Pair("(QQ群VIP2)263949160", "xwfh7_csb2Gf3Aw2qexEcEtviLfLfd4L"),
-        Pair("(QQ群VIP3)680280282", "_N0i7yZObjKSeZQvzoe2ej7j02kLnOOK"),
-        Pair("(QQ群VIP4)682555679", "VF2UwvUCuaqlo6pddWTe_kw__a1_Fr8O"),
-        Pair("(QQ群VIP5)161622578", "S81xdnhJ5EBC389LTUvoyiyM-wr71pvJ"),
         Pair("(QQ群1)805192012", "6GlFKjLeIk5RhQnR3PNVDaKB6j10royo"),
         Pair("(QQ群2)773736122", "5Bm5w6OgLupXnICbYvbgzpPUgf0UlsJF"),
         Pair("(QQ群3)981838750", "g_Sgmp2nQPKqcZQ5qPcKLHziwX_mpps9"),
@@ -37,6 +31,9 @@ class AboutFragment : PreferenceFragmentCompat() {
         Pair("(QQ群9)892108780", "Ci_O3aysKjEBfplOWeCud-rxl71TjU2Q"),
         Pair("(QQ群10)812720266", "oW9ksY0sAWUEq0hfM5irN5aOdvKVgMEE")
     )
+
+    private val qqChannel =
+        "https://qun.qq.com/qqweb/qunpro/share?_wv=3&_wwv=128&inviteCode=25d870&from=246610&biz=ka"
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.about)
@@ -66,6 +63,7 @@ class AboutFragment : PreferenceFragmentCompat() {
             "qq" -> showQqGroups()
             "gzGzh" -> requireContext().sendToClip(getString(R.string.legado_gzh))
             "crashLog" -> showCrashLogs()
+            "qqChannel" -> context?.openUrl(qqChannel)
             "tg" -> openUrl(R.string.tg_url)
             "discord" -> openUrl(R.string.discord_url)
         }

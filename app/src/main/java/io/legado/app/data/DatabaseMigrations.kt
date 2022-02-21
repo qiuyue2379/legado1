@@ -343,5 +343,4 @@ object DatabaseMigrations {
             database.execSQL("ALTER TABLE `chapters` ADD `isVolume` INTEGER NOT NULL DEFAULT 0")
         }
     }
-
 }

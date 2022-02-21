@@ -16,7 +16,6 @@ import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 /**
  * 换封面
  */
@@ -91,6 +90,7 @@ class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
             }
             binding.toolBar.menu.applyTint(requireContext())
         }
+
     }
 
     override fun onMenuItemClick(item: MenuItem?): Boolean {

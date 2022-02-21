@@ -124,8 +124,8 @@ object ChapterProvider {
                     absStartX = it.first
                     durY = it.second
                 }
-                durY += titleBottomSpacing
             }
+            durY += titleBottomSpacing
         }
         contents.forEach { content ->
             if (book.getImageStyle() == Book.imgStyleText) {

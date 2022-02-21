@@ -18,9 +18,9 @@ object Utf8BomUtils {
 
     fun removeUTF8BOM(bytes: ByteArray): ByteArray {
         val containsBOM = (bytes.size > 3
-                && bytes[0] == UTF8_BOM_BYTES[0]
-                && bytes[1] == UTF8_BOM_BYTES[1]
-                && bytes[2] == UTF8_BOM_BYTES[2])
+            && bytes[0] == UTF8_BOM_BYTES[0]
+            && bytes[1] == UTF8_BOM_BYTES[1]
+            && bytes[2] == UTF8_BOM_BYTES[2])
         if (containsBOM) {
             val copy = ByteArray(bytes.size - 3)
             System.arraycopy(bytes, 3, copy, 0, bytes.size - 3)

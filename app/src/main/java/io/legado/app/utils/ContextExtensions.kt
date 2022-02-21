@@ -222,6 +222,7 @@ fun Context.share(file: File, type: String = "text/*") {
         )
     )
 }
+
 @SuppressLint("SetWorldReadable")
 fun Context.shareWithQr(
     text: String,
@@ -250,11 +251,13 @@ fun Context.shareWithQr(
         }
     }
 }
+
 fun Context.sendToClip(text: String) {
     val clipData = ClipData.newPlainText(null, text)
     clipboardManager.setPrimaryClip(clipData)
     longToastOnUi(R.string.copy_complete)
 }
+
 fun Context.getClipText(): String? {
     clipboardManager.primaryClip?.let {
         if (it.itemCount > 0) {
@@ -263,6 +266,7 @@ fun Context.getClipText(): String? {
     }
     return null
 }
+
 fun Context.sendMail(mail: String) {
     try {
         val intent = Intent(Intent.ACTION_SENDTO)
@@ -273,6 +277,7 @@ fun Context.sendMail(mail: String) {
         toastOnUi(e.localizedMessage ?: "Error")
     }
 }
+
 /**
  * 获取电量
  */
@@ -282,10 +287,13 @@ val Context.sysBattery: Int
         val batteryStatus = registerReceiver(null, iFilter)
         return batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
     }
+
 val Context.externalFiles: File
     get() = this.getExternalFilesDir(null) ?: this.filesDir
+
 val Context.externalCache: File
     get() = this.externalCacheDir ?: this.cacheDir
+
 fun Context.openUrl(url: String) {
     try {
         startActivity(IntentHelp.getBrowserIntent(url))
@@ -293,6 +301,7 @@ fun Context.openUrl(url: String) {
         toastOnUi(e.localizedMessage ?: "open url error")
     }
 }
+
 fun Context.openUrl(uri: Uri) {
     try {
         startActivity(IntentHelp.getBrowserIntent(uri))
@@ -300,6 +309,7 @@ fun Context.openUrl(uri: Uri) {
         toastOnUi(e.localizedMessage ?: "open url error")
     }
 }
+
 fun Context.openFileUri(uri: Uri, type: String? = null) {
     val intent = Intent()
     intent.action = Intent.ACTION_VIEW
@@ -315,10 +325,12 @@ fun Context.openFileUri(uri: Uri, type: String? = null) {
         toastOnUi(e.msg)
     }
 }
+
 val Context.isPad: Boolean
     get() {
         return resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_LARGE
     }
+
 val Context.channel: String
     get() {
         try {
