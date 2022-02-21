@@ -16,9 +16,9 @@ import io.legado.app.utils.visible
 import splitties.views.onLongClick
 
 
-class ChangeSourceAdapter(
+class ChangeChapterSourceAdapter(
     context: Context,
-    val viewModel: ChangeSourceViewModel,
+    val viewModel: ChangeChapterSourceViewModel,
     val callBack: CallBack
 ) : DiffRecyclerAdapter<SearchBook, ItemChangeSourceBinding>(context) {
 
@@ -29,7 +29,7 @@ class ChangeSourceAdapter(
 
         override fun areContentsTheSame(oldItem: SearchBook, newItem: SearchBook): Boolean {
             return oldItem.originName == newItem.originName
-                    && oldItem.getDisplayLastChapterTitle() == newItem.getDisplayLastChapterTitle()
+                && oldItem.getDisplayLastChapterTitle() == newItem.getDisplayLastChapterTitle()
         }
 
     }

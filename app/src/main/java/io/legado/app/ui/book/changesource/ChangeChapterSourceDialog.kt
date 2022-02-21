@@ -27,12 +27,13 @@ import io.legado.app.ui.book.source.manage.BookSourceActivity
 import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-class ChangeSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
+class ChangeChapterSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
     Toolbar.OnMenuItemClickListener,
-    ChangeSourceAdapter.CallBack {
+    ChangeChapterSourceAdapter.CallBack {
 
     constructor(name: String, author: String) : this() {
         arguments = Bundle().apply {
@@ -44,13 +45,12 @@ class ChangeSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
     private val binding by viewBinding(DialogChangeSourceBinding::bind)
     private val groups = linkedSetOf<String>()
     private val callBack: CallBack? get() = activity as? CallBack
-    private val viewModel: ChangeSourceViewModel by viewModels()
-    private val adapter by lazy { ChangeSourceAdapter(requireContext(), viewModel, this) }
+    private val viewModel: ChangeChapterSourceViewModel by viewModels()
+    private val adapter by lazy { ChangeChapterSourceAdapter(requireContext(), viewModel, this) }
     private val editSourceResult =
         registerForActivityResult(StartActivityContract(BookSourceEditActivity::class.java)) {
             viewModel.startSearch()
         }
-
 
     override fun onStart() {
         super.onStart()
@@ -65,7 +65,6 @@ class ChangeSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
         initRecyclerView()
         initSearchView()
         initLiveData()
-        viewModel.loadDbSearchBook()
     }
 
     private fun showTitle() {
@@ -143,8 +142,12 @@ class ChangeSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
             }
             binding.toolBar.menu.applyTint(requireContext())
         }
-        viewModel.searchBooksLiveData.observe(viewLifecycleOwner) {
-            adapter.setItems(it)
+        launch {
+            viewModel.searchDataFlow
+                .collect {
+                    adapter.setItems(it)
+                    delay(1000)
+                }
         }
         launch {
             appDb.bookSourceDao.flowGroupEnabled().collect {
@@ -165,7 +168,7 @@ class ChangeSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
             R.id.menu_check_author -> {
                 AppConfig.changeSourceCheckAuthor = !item.isChecked
                 item.isChecked = !item.isChecked
-                viewModel.loadDbSearchBook()
+                viewModel.refresh()
             }
             R.id.menu_load_toc -> {
                 putPrefBoolean(PreferKey.changeSourceLoadToc, !item.isChecked)
@@ -186,7 +189,7 @@ class ChangeSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
                         putPrefString("searchGroup", item.title.toString())
                     }
                     viewModel.startOrStopSearch()
-                    viewModel.loadDbSearchBook()
+                    viewModel.refresh()
                 }
             }
         }

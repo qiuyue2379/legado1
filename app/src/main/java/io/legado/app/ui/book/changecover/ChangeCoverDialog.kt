@@ -13,8 +13,13 @@ import io.legado.app.lib.theme.primaryColor
 import io.legado.app.utils.applyTint
 import io.legado.app.utils.setLayout
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
+/**
+ * 换封面
+ */
 class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
     Toolbar.OnMenuItemClickListener,
     CoverAdapter.CallBack {
@@ -45,6 +50,7 @@ class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
         viewModel.initData(arguments)
         initMenu()
         initView()
+        initData()
     }
 
     private fun initMenu() {
@@ -56,7 +62,16 @@ class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
     private fun initView() {
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
         binding.recyclerView.adapter = adapter
-        viewModel.loadDbSearchBook()
+    }
+
+    private fun initData() {
+        launch {
+            viewModel.dataFlow
+                .collect {
+                    adapter.setItems(it)
+                    delay(1000)
+                }
+        }
     }
 
     override fun observeLiveBus() {
@@ -75,9 +90,6 @@ class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
                 }
             }
             binding.toolBar.menu.applyTint(requireContext())
-        }
-        viewModel.searchBooksLiveData.observe(viewLifecycleOwner) {
-            adapter.setItems(it)
         }
     }
 
