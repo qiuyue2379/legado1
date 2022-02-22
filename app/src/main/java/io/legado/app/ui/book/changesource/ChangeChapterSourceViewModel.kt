@@ -4,17 +4,18 @@ import android.app.Application
 import android.os.Bundle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import cn.hutool.core.collection.ConcurrentHashSet
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
+import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.SearchBook
 import io.legado.app.help.AppConfig
 import io.legado.app.help.coroutine.CompositeCoroutine
+import io.legado.app.model.NoStackTraceException
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.getPrefBoolean
 import io.legado.app.utils.getPrefString
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import splitties.init.appCtx
 import timber.log.Timber
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import kotlin.math.min
 
@@ -35,14 +38,17 @@ import kotlin.math.min
 class ChangeChapterSourceViewModel(application: Application) : BaseViewModel(application) {
     private val threadCount = AppConfig.threadCount
     private var searchPool: ExecutorCoroutineDispatcher? = null
+    private val searchGroup get() = appCtx.getPrefString("searchGroup") ?: ""
     val searchStateData = MutableLiveData<Boolean>()
     var name: String = ""
     var author: String = ""
+    var chapterIndex: Int = 0
+    var chapterTitle: String = ""
     private var tasks = CompositeCoroutine()
     private var screenKey: String = ""
     private var bookSourceList = arrayListOf<BookSource>()
-    private val searchBooks = ConcurrentHashSet<SearchBook>()
-    private val searchGroup get() = appCtx.getPrefString("searchGroup") ?: ""
+    private val searchBooks = Collections.synchronizedList(arrayListOf<SearchBook>())
+    private val tocMap = ConcurrentHashMap<String, List<BookChapter>>()
     private var searchCallback: SourceCallback? = null
     val searchDataFlow = callbackFlow {
 
@@ -93,6 +99,10 @@ class ChangeChapterSourceViewModel(application: Application) : BaseViewModel(app
             bundle.getString("author")?.let {
                 author = it.replace(AppPattern.authorRegex, "")
             }
+            bundle.getString("chapterTitle")?.let {
+                chapterTitle = it
+            }
+            chapterIndex = bundle.getInt("chapterIndex")
         }
     }
 
@@ -203,6 +213,7 @@ class ChangeChapterSourceViewModel(application: Application) : BaseViewModel(app
     private fun loadBookToc(source: BookSource, book: Book) {
         WebBook.getChapterList(viewModelScope, source, book, context = searchPool!!)
             .onSuccess(IO) { chapters ->
+                tocMap[book.bookUrl] = chapters
                 book.latestChapterTitle = chapters.last().title
                 val searchBook: SearchBook = book.toSearchBook()
                 searchCallback?.searchSuccess(searchBook)
@@ -258,6 +269,49 @@ class ChangeChapterSourceViewModel(application: Application) : BaseViewModel(app
     override fun onCleared() {
         super.onCleared()
         searchPool?.close()
+    }
+
+    fun getToc(
+        searchBook: SearchBook,
+        success: (toc: List<BookChapter>) -> Unit,
+        error: (msg: String) -> Unit
+    ) {
+        execute {
+            return@execute tocMap[searchBook.bookUrl]
+                ?: let {
+                    val book = searchBook.toBook()
+                    val source = appDb.bookSourceDao.getBookSource(book.origin)
+                        ?: throw NoStackTraceException("书源不存在")
+                    if (book.tocUrl.isEmpty()) {
+                        WebBook.getBookInfoAwait(this, source, book)
+                    }
+                    val toc = WebBook.getChapterListAwait(this, source, book)
+                    tocMap[book.bookUrl] = toc
+                    toc
+                }
+        }.onSuccess {
+            success(it)
+        }.onError {
+            error(it.localizedMessage ?: "获取目录出错")
+        }
+    }
+
+    fun getContent(
+        book: Book,
+        chapter: BookChapter,
+        nextChapterUrl: String?,
+        success: (content: String) -> Unit,
+        error: (msg: String) -> Unit
+    ) {
+        execute {
+            val bookSource = appDb.bookSourceDao.getBookSource(book.origin)
+                ?: throw NoStackTraceException("书源不存在")
+            WebBook.getContentAwait(this, bookSource, book, chapter, nextChapterUrl, false)
+        }.onSuccess {
+            success.invoke(it)
+        }.onError {
+            error.invoke(it.localizedMessage ?: "获取正文出错")
+        }
     }
 
     fun disableSource(searchBook: SearchBook) {

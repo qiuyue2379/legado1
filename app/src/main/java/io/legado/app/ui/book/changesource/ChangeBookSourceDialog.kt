@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.os.bundleOf
@@ -19,7 +20,7 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.SearchBook
-import io.legado.app.databinding.DialogChangeSourceBinding
+import io.legado.app.databinding.DialogBookChangeSourceBinding
 import io.legado.app.help.AppConfig
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
@@ -31,7 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_change_source),
+class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_book_change_source),
     Toolbar.OnMenuItemClickListener,
     ChangeBookSourceAdapter.CallBack {
 
@@ -42,7 +43,7 @@ class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_change_sourc
         }
     }
 
-    private val binding by viewBinding(DialogChangeSourceBinding::bind)
+    private val binding by viewBinding(DialogBookChangeSourceBinding::bind)
     private val groups = linkedSetOf<String>()
     private val callBack: CallBack? get() = activity as? CallBack
     private val viewModel: ChangeBookSourceViewModel by viewModels()
@@ -54,7 +55,7 @@ class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_change_sourc
 
     override fun onStart() {
         super.onStart()
-        setLayout(0.9f, 0.9f)
+        setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
