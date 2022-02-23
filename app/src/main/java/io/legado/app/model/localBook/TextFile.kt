@@ -57,12 +57,14 @@ class TextFile(private val book: Book) {
      */
     @Throws(FileNotFoundException::class)
     fun getChapterList(): ArrayList<BookChapter> {
-        if (book.charset == null || book.tocUrl.isEmpty()) {
+        if (book.charset == null || book.tocUrl.isBlank()) {
             LocalBook.getBookInputStream(book).use { bis ->
                 val buffer = ByteArray(bufferSize)
                 var blockContent: String
                 var length = bis.read(buffer)
-                book.charset = EncodingDetect.getEncode(buffer)
+                if (book.charset.isNullOrBlank()) {
+                    book.charset = EncodingDetect.getEncode(buffer.copyOf(length))
+                }
                 charset = book.fileCharset()
                 blockContent = String(buffer, 0, length, charset)
                 if (book.tocUrl.isBlank()) {
@@ -91,6 +93,9 @@ class TextFile(private val book: Book) {
      * 按规则解析目录
      */
     private fun analyze(pattern: Pattern?): ArrayList<BookChapter> {
+        if (pattern?.pattern().isNullOrEmpty()) {
+            return analyze()
+        }
         pattern ?: return analyze()
         val toc = arrayListOf<BookChapter>()
         LocalBook.getBookInputStream(book).use { bis ->
@@ -310,7 +315,7 @@ class TextFile(private val book: Book) {
                 curOffset += length.toLong()
             }
             //设置结尾章节
-            if (bufferStart > 100) {
+            if (bufferStart > 100 || toc.isEmpty()) {
                 val chapter = BookChapter()
                 chapter.title = "第${blockPos}章(${chapterPos})"
                 chapter.start = toc.lastOrNull()?.end ?: curOffset
