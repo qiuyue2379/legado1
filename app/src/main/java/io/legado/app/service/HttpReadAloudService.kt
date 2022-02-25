@@ -35,7 +35,7 @@ class HttpReadAloudService : BaseReadAloudService(),
 
     private val mediaPlayer = MediaPlayer()
     private val ttsFolderPath: String by lazy {
-        externalCacheDir!!.absolutePath + File.separator + "httpTTS" + File.separator
+        cacheDir.absolutePath + File.separator + "httpTTS" + File.separator
     }
     private val cacheFiles = hashSetOf<String>()
     private var task: Coroutine<*>? = null
@@ -110,15 +110,11 @@ class HttpReadAloudService : BaseReadAloudService(),
             clearSpeakCache()
             removeCacheFile()
             val httpTts = ReadAloud.httpTTS ?: return@execute
-            contentList.forEachIndexed { index, item ->
+            contentList.forEachIndexed { index, content ->
                 ensureActive()
-                val speakText = item.replace(AppPattern.notReadAloudRegex, "")
                 val fileName =
-                    md5SpeakFileName(
-                        httpTts.url,
-                        AppConfig.ttsSpeechRate.toString(),
-                        speakText
-                    )
+                    md5SpeakFileName(httpTts.url, AppConfig.ttsSpeechRate.toString(), content)
+                val speakText = content.replace(AppPattern.notReadAloudRegex, "")
                 if (hasSpeakFile(fileName)) { //已经下载好的语音缓存
                     if (index == nowSpeak) {
                         val file = getSpeakFileAsMd5(fileName)
@@ -232,7 +228,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     }
 
     private fun md5SpeakFileName(url: String, ttsConfig: String, content: String): String {
-        return MD5Utils.md5Encode16(textChapter!!.title) + "_" + MD5Utils.md5Encode16("$url-|-$ttsConfig-|-$content")
+        return MD5Utils.md5Encode("$url-|-$ttsConfig-|-$content")
     }
 
     private fun createSilentSound(fileName: String) {
@@ -261,6 +257,9 @@ class HttpReadAloudService : BaseReadAloudService(),
     private fun createSpeakFileAsMd5IfNotExist(name: String): File =
         FileUtils.createFileIfNotExist("${ttsFolderPath}$name.mp3")
 
+    /**
+     * 移除缓存文件
+     */
     private fun removeCacheFile() {
         val cacheRegex = Regex(""".+\.mp3$""")
         val reg = """^${MD5Utils.md5Encode16(textChapter!!.title)}_[a-z0-9]{16}\.mp3$""".toRegex()
@@ -270,7 +269,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                     FileUtils.deleteFile(it.absolutePath)
                 }
             } else {
-                if (Date().time - it.lastModified() > 30000) {
+                if (Date().time - it.lastModified() > 600000) {
                     FileUtils.deleteFile(it.absolutePath)
                 }
             }

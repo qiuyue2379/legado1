@@ -31,6 +31,7 @@ import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 
 
@@ -176,14 +177,13 @@ class ChangeChapterSourceDialog() : BaseDialogFragment(R.layout.dialog_chapter_c
             binding.toolBar.menu.applyTint(requireContext())
         }
         launch {
-            viewModel.searchDataFlow
-                .collect {
-                    searchBookAdapter.setItems(it)
-                    delay(1000)
-                }
+            viewModel.searchDataFlow.conflate().collect {
+                searchBookAdapter.setItems(it)
+                delay(1000)
+            }
         }
         launch {
-            appDb.bookSourceDao.flowGroupEnabled().collect {
+            appDb.bookSourceDao.flowGroupEnabled().conflate().collect {
                 groups.clear()
                 it.map { group ->
                     groups.addAll(group.splitNotBlank(AppPattern.splitGroupRegex))

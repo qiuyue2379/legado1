@@ -272,7 +272,7 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
                 }
             }.catch {
                 AppLog.put("书源界面更新书源出错", it)
-            }.collect { data ->
+            }.conflate().collect { data ->
                 adapter.setItems(data, adapter.diffItemCallback)
                 delay(500)
             }
@@ -295,14 +295,13 @@ class BookSourceActivity : VMBaseActivity<ActivityBookSourceBinding, BookSourceV
 
     private fun initLiveDataGroup() {
         launch {
-            appDb.bookSourceDao.flowGroup()
-                .collect {
-                    groups.clear()
-                    it.forEach { group ->
-                        groups.addAll(group.splitNotBlank(AppPattern.splitGroupRegex))
-                    }
-                    upGroupMenu()
+            appDb.bookSourceDao.flowGroup().conflate().collect {
+                groups.clear()
+                it.forEach { group ->
+                    groups.addAll(group.splitNotBlank(AppPattern.splitGroupRegex))
                 }
+                upGroupMenu()
+            }
         }
     }
 

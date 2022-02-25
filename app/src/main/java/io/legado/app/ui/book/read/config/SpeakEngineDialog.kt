@@ -29,6 +29,7 @@ import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.login.SourceLoginActivity
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 
 /**
@@ -70,7 +71,7 @@ class SpeakEngineDialog(val callBack: CallBack) : BaseDialogFragment(R.layout.di
 
     override fun onStart() {
         super.onStart()
-        setLayout(0.92f, 0.9f)
+        setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 0.9f)
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
@@ -133,7 +134,7 @@ class SpeakEngineDialog(val callBack: CallBack) : BaseDialogFragment(R.layout.di
 
     private fun initData() {
         launch {
-            appDb.httpTTSDao.flowAll().collect {
+            appDb.httpTTSDao.flowAll().conflate().collect {
                 adapter.setItems(it)
             }
         }

@@ -49,7 +49,6 @@ class WebDav(urlStr: String) {
     val path get() = url.toString()
     var displayName: String? = null
     var size: Long = 0
-    var exists = false
     var parent = ""
     var urlName = ""
     var contentType = ""
@@ -139,6 +138,16 @@ class WebDav(urlStr: String) {
             }
         }
         return list
+    }
+
+    /**
+     * 文件是否存在
+     */
+    suspend fun exists(): Boolean {
+        val response = propFindResponse() ?: return false
+        val document = Jsoup.parse(response)
+        val elements = document.getElementsByTag("d:response")
+        return elements.isNotEmpty()
     }
 
     /**
