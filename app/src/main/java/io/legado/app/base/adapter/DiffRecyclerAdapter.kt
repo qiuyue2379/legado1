@@ -46,27 +46,19 @@ abstract class DiffRecyclerAdapter<ITEM, VB : ViewBinding>(protected val context
         recyclerView.adapter = this
     }
 
-    @Synchronized
     fun setItems(items: List<ITEM>?) {
         kotlin.runCatching {
-            if (items == null) {
-                asyncListDiffer.submitList(null)
-            } else {
-                asyncListDiffer.submitList(ArrayList(items))
-            }
+            asyncListDiffer.submitList(items?.toMutableList())
         }
     }
 
-    @Synchronized
     fun setItem(position: Int, item: ITEM) {
         kotlin.runCatching {
-            val list = ArrayList(asyncListDiffer.currentList)
-            list[position] = item
-            asyncListDiffer.submitList(list)
+            asyncListDiffer.currentList[position] = item
+            notifyItemChanged(position)
         }
     }
 
-    @Synchronized
     fun updateItem(item: ITEM) {
         kotlin.runCatching {
             val index = asyncListDiffer.currentList.indexOf(item)
@@ -77,7 +69,6 @@ abstract class DiffRecyclerAdapter<ITEM, VB : ViewBinding>(protected val context
         }
     }
 
-    @Synchronized
     fun updateItem(position: Int, payload: Any) {
         kotlin.runCatching {
             val size = itemCount
@@ -87,7 +78,6 @@ abstract class DiffRecyclerAdapter<ITEM, VB : ViewBinding>(protected val context
         }
     }
 
-    @Synchronized
     fun updateItems(fromPosition: Int, toPosition: Int, payloads: Any) {
         kotlin.runCatching {
             val size = itemCount
