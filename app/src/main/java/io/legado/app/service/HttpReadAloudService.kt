@@ -1,7 +1,11 @@
 package io.legado.app.service
 
 import android.app.PendingIntent
-import android.media.MediaPlayer
+import android.net.Uri
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.Player
 import io.legado.app.R
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
@@ -19,50 +23,42 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.Response
 import org.mozilla.javascript.WrappedException
-
 import java.io.File
-import java.io.FileDescriptor
-import java.io.FileInputStream
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.util.*
 import javax.script.ScriptException
 
+/**
+ * 在线朗读
+ */
 class HttpReadAloudService : BaseReadAloudService(),
-    MediaPlayer.OnPreparedListener,
-    MediaPlayer.OnErrorListener,
-    MediaPlayer.OnCompletionListener {
+    Player.Listener {
 
-    private val mediaPlayer = MediaPlayer()
+    private val exoPlayer: ExoPlayer by lazy {
+        ExoPlayer.Builder(this).build()
+    }
     private val ttsFolderPath: String by lazy {
         cacheDir.absolutePath + File.separator + "httpTTS" + File.separator
     }
     private val cacheFiles = hashSetOf<String>()
     private var task: Coroutine<*>? = null
-    private var playingIndex = -1
     private var playIndexJob: Job? = null
     private val mutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
-        mediaPlayer.setOnErrorListener(this)
-        mediaPlayer.setOnPreparedListener(this)
-        mediaPlayer.setOnCompletionListener(this)
+        exoPlayer.addListener(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         task?.cancel()
-        mediaPlayer.release()
-    }
-
-    override fun newReadAloud(play: Boolean) {
-        mediaPlayer.reset()
-        playingIndex = -1
-        super.newReadAloud(play)
+        exoPlayer.release()
     }
 
     override fun play() {
+        exoPlayer.stop()
         if (contentList.isEmpty()) {
             AppLog.putDebug("朗读列表为空")
             ReadBook.readAloud()
@@ -71,13 +67,17 @@ class HttpReadAloudService : BaseReadAloudService(),
             kotlin.runCatching {
                 val tts = ReadAloud.httpTTS ?: throw NoStackTraceException("httpTts is null")
                 val fileName =
-                    md5SpeakFileName(tts.url, AppConfig.ttsSpeechRate.toString(), contentList[nowSpeak])
+                    md5SpeakFileName(
+                        tts.url,
+                        AppConfig.ttsSpeechRate.toString(),
+                        contentList[nowSpeak]
+                    )
                 if (nowSpeak == 0) {
                     downloadAudio()
                 } else {
                     val file = getSpeakFileAsMd5(fileName)
                     if (file.exists()) {
-                        playAudio(FileInputStream(file).fd)
+                        playAudio(file)
                     } else {
                         downloadAudio()
                     }
@@ -89,7 +89,7 @@ class HttpReadAloudService : BaseReadAloudService(),
     }
 
     override fun playStop() {
-        mediaPlayer.stop()
+        exoPlayer.stop()
     }
 
     private fun playNext() {
@@ -118,8 +118,7 @@ class HttpReadAloudService : BaseReadAloudService(),
                 if (hasSpeakFile(fileName)) { //已经下载好的语音缓存
                     if (index == nowSpeak) {
                         val file = getSpeakFileAsMd5(fileName)
-                        val fis = FileInputStream(file)
-                        playAudio(fis.fd)
+                        playAudio(file)
                     }
                 } else if (hasSpeakCache(fileName)) { //缓存文件还在，可能还没下载完
                     return@forEachIndexed
@@ -160,9 +159,8 @@ class HttpReadAloudService : BaseReadAloudService(),
                             val file = createSpeakFileAsMd5IfNotExist(fileName)
                             file.writeBytes(bytes)
                             removeSpeakCache(fileName)
-                            val fis = FileInputStream(file)
                             if (index == nowSpeak) {
-                                playAudio(fis.fd)
+                                playAudio(file)
                             }
                         }
                         downloadErrorNo = 0
@@ -213,22 +211,24 @@ class HttpReadAloudService : BaseReadAloudService(),
     }
 
     @Synchronized
-    private fun playAudio(fd: FileDescriptor) {
-        if (playingIndex != nowSpeak && requestFocus()) {
-            try {
-                mediaPlayer.reset()
-                mediaPlayer.setDataSource(fd)
-                mediaPlayer.prepareAsync()
-                playingIndex = nowSpeak
-                postEvent(EventBus.TTS_PROGRESS, readAloudNumber + 1)
-            } catch (e: Exception) {
-                e.printOnDebug()
+    private fun playAudio(file: File) {
+        if (requestFocus()) {
+            launch {
+                kotlin.runCatching {
+                    val mediaItem = MediaItem.fromUri(Uri.fromFile(file))
+                    exoPlayer.setMediaItem(mediaItem)
+                    exoPlayer.playWhenReady = true
+                    exoPlayer.prepare()
+                }.onFailure {
+                    it.printOnDebug()
+                }
             }
         }
     }
 
     private fun md5SpeakFileName(url: String, ttsConfig: String, content: String): String {
-        return MD5Utils.md5Encode("$url-|-$ttsConfig-|-$content")
+        return MD5Utils.md5Encode16(textChapter?.title ?: "") + "_" +
+            MD5Utils.md5Encode16("$url-|-$ttsConfig-|-$content")
     }
 
     private fun createSilentSound(fileName: String) {
@@ -261,17 +261,10 @@ class HttpReadAloudService : BaseReadAloudService(),
      * 移除缓存文件
      */
     private fun removeCacheFile() {
-        val cacheRegex = Regex(""".+\.mp3$""")
-        val reg = """^${MD5Utils.md5Encode16(textChapter!!.title)}_[a-z0-9]{16}\.mp3$""".toRegex()
+        val titleMd5 = MD5Utils.md5Encode16(textChapter?.title ?: "")
         FileUtils.listDirsAndFiles(ttsFolderPath)?.forEach {
-            if (cacheRegex.matches(it.name)) { //mp3缓存文件
-                if (!reg.matches(it.name)) {
-                    FileUtils.deleteFile(it.absolutePath)
-                }
-            } else {
-                if (Date().time - it.lastModified() > 600000) {
-                    FileUtils.deleteFile(it.absolutePath)
-                }
+            if (!it.name.startsWith(titleMd5) && Date().time - it.lastModified() > 600000) {
+                FileUtils.deleteFile(it.absolutePath)
             }
         }
     }
@@ -281,19 +274,15 @@ class HttpReadAloudService : BaseReadAloudService(),
         super.pauseReadAloud(pause)
         kotlin.runCatching {
             playIndexJob?.cancel()
-            mediaPlayer.pause()
+            exoPlayer.pause()
         }
     }
 
     override fun resumeReadAloud() {
         super.resumeReadAloud()
         kotlin.runCatching {
-            if (playingIndex == -1) {
-                play()
-            } else {
-                mediaPlayer.start()
-                upPlayPos()
-            }
+            exoPlayer.play()
+            upPlayPos()
         }
     }
 
@@ -302,22 +291,22 @@ class HttpReadAloudService : BaseReadAloudService(),
         val textChapter = textChapter ?: return
         playIndexJob = launch {
             postEvent(EventBus.TTS_PROGRESS, readAloudNumber + 1)
-            if (mediaPlayer.duration <= 0) {
+            if (exoPlayer.duration <= 0) {
                 return@launch
             }
             val speakTextLength = contentList[nowSpeak].length
             if (speakTextLength <= 0) {
                 return@launch
             }
-            val sleep = mediaPlayer.duration / speakTextLength
-            val start = speakTextLength * mediaPlayer.currentPosition / mediaPlayer.duration
+            val sleep = exoPlayer.duration / speakTextLength
+            val start = speakTextLength * exoPlayer.currentPosition / exoPlayer.duration
             for (i in start..contentList[nowSpeak].length) {
                 if (readAloudNumber + i > textChapter.getReadLength(pageIndex + 1)) {
                     pageIndex++
                     ReadBook.moveToNextPage()
                     postEvent(EventBus.TTS_PROGRESS, readAloudNumber + i)
                 }
-                delay(sleep.toLong())
+                delay(sleep)
             }
         }
     }
@@ -327,39 +316,45 @@ class HttpReadAloudService : BaseReadAloudService(),
      */
     override fun upSpeechRate(reset: Boolean) {
         task?.cancel()
-        mediaPlayer.stop()
-        playingIndex = -1
+        exoPlayer.stop()
         downloadAudio()
     }
 
-    override fun onPrepared(mp: MediaPlayer?) {
-        super.play()
-        if (pause) return
-        mediaPlayer.start()
-        upPlayPos()
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        super.onPlaybackStateChanged(playbackState)
+        when (playbackState) {
+            Player.STATE_IDLE -> {
+                // 空闲
+            }
+            Player.STATE_BUFFERING -> {
+                // 缓冲中
+            }
+            Player.STATE_READY -> {
+                // 准备好
+                if (pause) return
+                exoPlayer.play()
+                upPlayPos()
+            }
+            Player.STATE_ENDED -> {
+                // 结束
+                playErrorNo = 0
+                playNext()
+            }
+        }
     }
 
     private var playErrorNo = 0
 
-    override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-        if (what == -38 && extra == 0) {
-            play()
-            return true
-        }
-        AppLog.put("朗读错误($what, $extra)\n${contentList[nowSpeak]}")
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+        AppLog.put("朗读错误\n${contentList[nowSpeak]}", error)
         playErrorNo++
         if (playErrorNo >= 5) {
-            toastOnUi("朗读连续5次错误, 最后一次错误代码($what, $extra)")
+            toastOnUi("朗读连续5次错误, 最后一次错误代码(${error.localizedMessage})")
             ReadAloud.pause(this)
         } else {
             playNext()
         }
-        return true
-    }
-
-    override fun onCompletion(mp: MediaPlayer?) {
-        playErrorNo = 0
-        playNext()
     }
 
     override fun aloudServicePendingIntent(actionStr: String): PendingIntent? {
