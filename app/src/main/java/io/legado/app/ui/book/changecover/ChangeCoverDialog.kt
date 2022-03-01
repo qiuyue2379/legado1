@@ -43,7 +43,7 @@ class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
 
     override fun onStart() {
         super.onStart()
-        setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 0.96f)
+        setLayout(1f, ViewGroup.LayoutParams.MATCH_PARENT)
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
