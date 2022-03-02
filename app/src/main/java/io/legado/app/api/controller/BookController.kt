@@ -166,9 +166,8 @@ object BookController {
      * 保存书籍
      */
     fun saveBook(postData: String?): ReturnData {
-        val book = GSON.fromJsonObject<Book>(postData)
         val returnData = ReturnData()
-        if (book != null) {
+        GSON.fromJsonObject<Book>(postData).getOrNull()?.let { book ->
             book.save()
             AppWebDav.uploadBookProgress(book)
             if (ReadBook.book?.bookUrl == book.bookUrl) {
@@ -269,6 +268,20 @@ object BookController {
         val returnData = ReturnData()
         val data = CacheManager.get("webReadConfig") ?: "{}"
         return returnData.setData(data)
+    }
+
+    /**
+     * 获取图片
+     */
+    fun getImage(parameters: Map<String, List<String>>): ReturnData {
+        val returnData = ReturnData()
+        val coverPath = parameters["path"]?.firstOrNull()
+        val ftBitmap = ImageLoader.loadBitmap(appCtx, coverPath).submit()
+        return try {
+            returnData.setData(ftBitmap.get())
+        } catch (e: Exception) {
+            returnData.setData(BookCover.defaultDrawable.toBitmap())
+        }
     }
 
 }
