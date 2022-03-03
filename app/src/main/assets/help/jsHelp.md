@@ -11,7 +11,7 @@
 > cache 变量-[缓存操作类](https://github.com/gedoor/legado/blob/master/app/src/main/java/io/legado/app/help/CacheManager.kt)  
 > title 变量-当前标题,String  
 > src 内容,源码  
-> nextChapterUrl 变量 下一章节url
+> nextChapterUrl 变量 下一章节url  
 
 ## 当前类对象的可使用的部分方法
 
@@ -95,7 +95,7 @@ deleteFile(path: String)
 ```
 ****
 > [常见加密解密算法介绍](https://www.yijiyong.com/algorithm/encryption/01-intro.html)
-> [相关概念](https://blog.csdn.net/OrangeJack/article/details/82913804)
+> [相关概念](https://blog.csdn.net/OrangeJack/article/details/82913804)  
 * AES
 ```
 * @param data 传入的原始数据
@@ -182,7 +182,7 @@ variable // 自定义书籍变量信息(用于书源规则检索书籍信息)
  end // 章节终止位置
  variable //变量
  ```
-
+ 
 ## source对象的部分可用函数
 * 获取书源url
 ```

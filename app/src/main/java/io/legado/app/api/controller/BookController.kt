@@ -21,10 +21,12 @@ import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.localBook.UmdFile
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import splitties.init.appCtx
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URLDecoder
 
 object BookController {
 
@@ -55,13 +57,35 @@ object BookController {
      */
     fun getCover(parameters: Map<String, List<String>>): ReturnData {
         val returnData = ReturnData()
-        val coverPath = parameters["path"]?.firstOrNull()
+        val coverPath = URLDecoder.decode(parameters["path"]?.firstOrNull(), "UTF-8")
         val ftBitmap = ImageLoader.loadBitmap(appCtx, coverPath).submit()
         return try {
             returnData.setData(ftBitmap.get())
         } catch (e: Exception) {
             returnData.setData(BookCover.defaultDrawable.toBitmap())
         }
+    }
+
+    /**
+     * 获取正文图片
+     */
+    fun getImg(parameters: Map<String, List<String>>): ReturnData {
+        val returnData = ReturnData()
+        val bookUrl = parameters["url"]?.firstOrNull()
+            ?: return returnData.setErrorMsg("bookUrl为空")
+        val book = appDb.bookDao.getBook(URLDecoder.decode(bookUrl, "UTF-8"))
+            ?: return returnData.setErrorMsg("bookUrl不对")
+        val src = URLDecoder.decode(parameters["path"]?.firstOrNull(), "UTF-8")
+        val vFile = BookHelp.getImage(book, src)
+        if (!vFile.exists()) {
+            val bookSource = appDb.bookSourceDao.getBookSource(book.origin)
+            runBlocking {
+                BookHelp.saveImage(bookSource, book, src)
+            }
+        }
+        return returnData.setData(
+            BitmapUtils.decodeBitmap(vFile.absolutePath, 640, 640)
+        )
     }
 
     /**
@@ -131,7 +155,16 @@ object BookController {
             return returnData.setErrorMsg("参数index不能为空, 请指定目录序号")
         }
         val book = appDb.bookDao.getBook(bookUrl)
-        val chapter = appDb.bookChapterDao.getChapter(bookUrl, index)
+        val chapter = runBlocking {
+            var chapter = appDb.bookChapterDao.getChapter(bookUrl, index)
+            var wait = 0
+            while (chapter == null && wait < 30) {
+                delay(1000)
+                chapter = appDb.bookChapterDao.getChapter(bookUrl, index)
+                wait++
+            }
+            chapter
+        }
         if (book == null || chapter == null) {
             return returnData.setErrorMsg("未找到")
         }
@@ -256,6 +289,9 @@ object BookController {
         return returnData.setData(true)
     }
 
+    /**
+     * 保存web阅读界面配置
+     */
     fun saveWebReadConfig(postData: String?): ReturnData {
         val returnData = ReturnData()
         postData?.let {
@@ -264,24 +300,13 @@ object BookController {
         return returnData.setData("")
     }
 
+    /**
+     * 获取web阅读界面配置
+     */
     fun getWebReadConfig(): ReturnData {
         val returnData = ReturnData()
         val data = CacheManager.get("webReadConfig") ?: "{}"
         return returnData.setData(data)
-    }
-
-    /**
-     * 获取图片
-     */
-    fun getImage(parameters: Map<String, List<String>>): ReturnData {
-        val returnData = ReturnData()
-        val coverPath = parameters["path"]?.firstOrNull()
-        val ftBitmap = ImageLoader.loadBitmap(appCtx, coverPath).submit()
-        return try {
-            returnData.setData(ftBitmap.get())
-        } catch (e: Exception) {
-            returnData.setData(BookCover.defaultDrawable.toBitmap())
-        }
     }
 
 }
