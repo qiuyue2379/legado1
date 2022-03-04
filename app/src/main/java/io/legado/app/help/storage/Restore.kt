@@ -13,8 +13,8 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.*
 import io.legado.app.help.DefaultData
 import io.legado.app.help.LauncherIconHelp
-import io.legado.app.help.ReadBookConfig
-import io.legado.app.help.ThemeConfig
+import io.legado.app.help.config.ReadBookConfig
+import io.legado.app.help.config.ThemeConfig
 import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -24,7 +24,7 @@ import splitties.init.appCtx
 import java.io.File
 
 
-object Restore : BackupRestore() {
+object Restore {
 
     suspend fun restore(context: Context, path: String) {
         withContext(IO) {
@@ -131,7 +131,7 @@ object Restore : BackupRestore() {
             } catch (e: Exception) {
                 e.printOnDebug()
             }
-            if (!ignoreReadConfig) {
+            if (!BackupConfig.ignoreReadConfig) {
                 //恢复阅读界面配置
                 try {
                     val file =
@@ -159,7 +159,7 @@ object Restore : BackupRestore() {
             Preferences.getSharedPreferences(appCtx, path, "config")?.all?.let { map ->
                 val edit = appCtx.defaultSharedPreferences.edit()
                 map.forEach { (key, value) ->
-                    if (keyIsNotIgnore(key)) {
+                    if (BackupConfig.keyIsNotIgnore(key)) {
                         when (value) {
                             is Int -> edit.putInt(key, value)
                             is Boolean -> edit.putBoolean(key, value)

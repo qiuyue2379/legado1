@@ -3,7 +3,7 @@ package io.legado.app.model.webBook
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.BookSource
 import io.legado.app.data.entities.SearchBook
-import io.legado.app.help.AppConfig
+import io.legado.app.help.config.AppConfig
 import io.legado.app.help.coroutine.CompositeCoroutine
 import io.legado.app.utils.getPrefString
 import kotlinx.coroutines.CoroutineScope

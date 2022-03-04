@@ -10,8 +10,8 @@ import io.legado.app.constant.AppPattern
 import io.legado.app.constant.EventBus
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
-import io.legado.app.help.AppConfig
-import io.legado.app.help.ReadBookConfig
+import io.legado.app.help.config.AppConfig
+import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.model.ReadBook
 import io.legado.app.ui.book.read.page.entities.TextChapter
 import io.legado.app.ui.book.read.page.entities.TextChar
@@ -204,11 +204,12 @@ object ChapterProvider {
         book: Book,
         chapter: BookChapter,
         src: String,
-        absStartX: Int,
+        x: Int,
         y: Float,
         textPages: ArrayList<TextPage>,
         imageStyle: String?,
     ): Float {
+        val absStartX = x - paddingLeft
         var durY = y
         ImageProvider.getImage(book, chapter.index, src, ReadBook.bookSource)?.let {
             if (durY > visibleHeight) {
