@@ -19,6 +19,7 @@ class ConfigActivity : BaseActivity<ActivityConfigBinding>() {
             ConfigTag.THEME_CONFIG -> replaceFragment<ThemeConfigFragment>(configTag)
             ConfigTag.BACKUP_CONFIG -> replaceFragment<BackupConfigFragment>(configTag)
             ConfigTag.COVER_CONFIG -> replaceFragment<CoverConfigFragment>(configTag)
+            ConfigTag.WELCOME_CONFIG -> replaceFragment<WelcomeConfigFragment>(configTag)
             else -> finish()
         }
     }
@@ -45,7 +46,9 @@ class ConfigActivity : BaseActivity<ActivityConfigBinding>() {
     }
 
     override fun finish() {
-        if (supportFragmentManager.findFragmentByTag(ConfigTag.COVER_CONFIG) != null) {
+        if (supportFragmentManager.findFragmentByTag(ConfigTag.COVER_CONFIG) != null
+            || supportFragmentManager.findFragmentByTag(ConfigTag.WELCOME_CONFIG) != null
+        ) {
             replaceFragment<ThemeConfigFragment>(ConfigTag.THEME_CONFIG)
         } else {
             super.finish()
