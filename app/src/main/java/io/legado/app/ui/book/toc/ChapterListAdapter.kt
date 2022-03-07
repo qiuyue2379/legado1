@@ -4,8 +4,8 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import io.legado.app.R
+import io.legado.app.base.adapter.DiffRecyclerAdapter
 import io.legado.app.base.adapter.ItemViewHolder
-import io.legado.app.base.adapter.RecyclerAdapter
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.databinding.ItemChapterListBinding
@@ -22,31 +22,33 @@ import kotlinx.coroutines.isActive
 import java.util.concurrent.ConcurrentHashMap
 
 class ChapterListAdapter(context: Context, val callback: Callback) :
-    RecyclerAdapter<BookChapter, ItemChapterListBinding>(context) {
+    DiffRecyclerAdapter<BookChapter, ItemChapterListBinding>(context) {
 
     val cacheFileNames = hashSetOf<String>()
-    val displayTileMap = ConcurrentHashMap<Int, String>()
-    val diffCallBack = object : DiffUtil.ItemCallback<BookChapter>() {
+    private val displayTitleMap = ConcurrentHashMap<String, String>()
 
-        override fun areItemsTheSame(
-            oldItem: BookChapter,
-            newItem: BookChapter
-        ): Boolean {
-            return oldItem.index == newItem.index
-        }
+    override val diffItemCallback: DiffUtil.ItemCallback<BookChapter>
+        get() = object : DiffUtil.ItemCallback<BookChapter>() {
 
-        override fun areContentsTheSame(
-            oldItem: BookChapter,
-            newItem: BookChapter
-        ): Boolean {
-            return oldItem.bookUrl == newItem.bookUrl
-                && oldItem.url == newItem.url
-                && oldItem.isVip == newItem.isVip
-                && oldItem.isPay == newItem.isPay
-                && oldItem.title == newItem.title
-                && oldItem.tag == newItem.tag
-                && oldItem.isVolume == newItem.isVolume
-        }
+            override fun areItemsTheSame(
+                oldItem: BookChapter,
+                newItem: BookChapter
+            ): Boolean {
+                return oldItem.index == newItem.index
+            }
+
+            override fun areContentsTheSame(
+                oldItem: BookChapter,
+                newItem: BookChapter
+            ): Boolean {
+                return oldItem.bookUrl == newItem.bookUrl
+                    && oldItem.url == newItem.url
+                    && oldItem.isVip == newItem.isVip
+                    && oldItem.isPay == newItem.isPay
+                    && oldItem.title == newItem.title
+                    && oldItem.tag == newItem.tag
+                    && oldItem.isVolume == newItem.isVolume
+            }
 
     }
 
@@ -58,7 +60,18 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
         get() = AppConfig.tocUiUseReplace && callback.book?.getUseReplaceRule() == true
     private var upDisplayTileJob: Coroutine<*>? = null
 
-    fun upDisplayTile() {
+    override fun onCurrentListChanged() {
+        super.onCurrentListChanged()
+        upDisplayTitle()
+        callback.onListChanged()
+    }
+
+    fun clearDisplayTitle() {
+        upDisplayTileJob?.cancel()
+        displayTitleMap.clear()
+    }
+
+    fun upDisplayTitle() {
         upDisplayTileJob?.cancel()
         upDisplayTileJob = Coroutine.async(callback.scope) {
             val replaceRules = replaceRules
@@ -67,8 +80,8 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
                 if (!isActive) {
                     return@async
                 }
-                if (displayTileMap[it.index] == null) {
-                    displayTileMap[it.index] = it.getDisplayTitle(replaceRules, useReplace)
+                if (displayTitleMap[it.title] == null) {
+                    displayTitleMap[it.title] = it.getDisplayTitle(replaceRules, useReplace)
                 }
             }
         }
@@ -79,13 +92,13 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
     }
 
     private fun getDisplayTile(chapter: BookChapter): String {
-        var displayTile = displayTileMap[chapter.index]
-        if (displayTile != null) {
-            return displayTile
+        var displayTitle = displayTitleMap[chapter.title]
+        if (displayTitle != null) {
+            return displayTitle
         }
-        displayTile = chapter.getDisplayTitle(replaceRules, useReplace)
-        displayTileMap[chapter.index] = displayTile
-        return displayTile
+        displayTitle = chapter.getDisplayTitle(replaceRules, useReplace)
+        displayTitleMap[chapter.title] = displayTitle
+        return displayTitle
     }
 
     override fun convert(
@@ -150,5 +163,6 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
         val isLocalBook: Boolean
         fun openChapter(bookChapter: BookChapter)
         fun durChapterIndex(): Int
+        fun onListChanged()
     }
 }

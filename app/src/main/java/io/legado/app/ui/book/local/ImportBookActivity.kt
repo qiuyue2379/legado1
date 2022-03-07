@@ -12,6 +12,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
+import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.databinding.ActivityImportBookBinding
 import io.legado.app.databinding.DialogEditTextBinding
@@ -25,10 +26,9 @@ import io.legado.app.ui.widget.SelectActionBar
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -41,10 +41,10 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
 
     override val binding by viewBinding(ActivityImportBookBinding::inflate)
     override val viewModel by viewModels<ImportBookViewModel>()
-    private val bookFileRegex = Regex("(?i).*\\.(txt|epub|umd)")
     private var rootDoc: FileDoc? = null
     private val subDocs = arrayListOf<FileDoc>()
     private val adapter by lazy { ImportBookAdapter(this, this) }
+    private var scanDocJob: Job? = null
 
     private val selectFolder = registerForActivityResult(HandleFileContract()) {
         it.uri?.let { uri ->
@@ -62,7 +62,6 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
         initView()
         initEvent()
         initData()
-        initRootDoc()
     }
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
@@ -82,18 +81,9 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
             R.id.menu_select_folder -> selectFolder.launch()
             R.id.menu_scan_folder -> scanFolder()
             R.id.menu_import_file_name -> alertImportFileName()
-            R.id.menu_sort_name -> {
-                viewModel.sort = 0
-                upPath()
-            }
-            R.id.menu_sort_size -> {
-                viewModel.sort = 1
-                upPath()
-            }
-            R.id.menu_sort_time -> {
-                viewModel.sort = 2
-                upPath()
-            }
+            R.id.menu_sort_name -> upSort(0)
+            R.id.menu_sort_size -> upSort(1)
+            R.id.menu_sort_time -> upSort(2)
         }
         return super.onCompatOptionsItemSelected(item)
     }
@@ -140,9 +130,17 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
     }
 
     private fun initData() {
+        viewModel.dataFlowStart = {
+            initRootDoc()
+        }
         launch {
             appDb.bookDao.flowLocalUri().conflate().collect {
                 adapter.upBookHas(it)
+            }
+        }
+        launch {
+            viewModel.dataFlow.conflate().collect { docs ->
+                adapter.setItems(docs)
             }
         }
     }
@@ -197,9 +195,18 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
             .request()
     }
 
+    private fun upSort(sort: Int) {
+        viewModel.sort = sort
+        putPrefInt(PreferKey.localBookImportSort, sort)
+        if (scanDocJob?.isCancelled == true || scanDocJob?.isCompleted == true) {
+            viewModel.dataCallback?.setItems(adapter.getItems())
+        }
+    }
+
     @Synchronized
     private fun upPath() {
         rootDoc?.let {
+            scanDocJob?.cancel()
             upDocs(it)
         }
     }
@@ -215,44 +222,7 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
         binding.tvPath.text = path
         adapter.selectedUris.clear()
         adapter.clearItems()
-        launch(IO) {
-            runCatching {
-                val docList = DocumentUtils.listFiles(lastDoc.uri) { item ->
-                    when {
-                        item.name.startsWith(".") -> false
-                        item.isDir -> true
-                        else -> item.name.matches(bookFileRegex)
-                    }
-                }
-                when (viewModel.sort) {
-                    2 -> docList.sortWith(
-                        compareBy(
-                            { !it.isDir },
-                            { it.date },
-                            { it.name }
-                        )
-                    )
-                    1 -> docList.sortWith(
-                        compareBy(
-                            { !it.isDir },
-                            { it.size },
-                            { it.name }
-                        )
-                    )
-                    else -> docList.sortWith(
-                        compareBy(
-                            { !it.isDir },
-                            { it.name }
-                        )
-                    )
-                }
-                withContext(Main) {
-                    adapter.setItems(docList)
-                }
-            }.onFailure {
-                toastOnUi("获取文件列表出错\n${it.localizedMessage}")
-            }
-        }
+        viewModel.loadDoc(lastDoc.uri)
     }
 
     /**
@@ -263,8 +233,9 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
             adapter.clearItems()
             val lastDoc = subDocs.lastOrNull() ?: doc
             binding.refreshProgressBar.isAutoLoading = true
-            launch(IO) {
-                viewModel.scanDoc(lastDoc, true, find) {
+            scanDocJob?.cancel()
+            scanDocJob = launch(IO) {
+                viewModel.scanDoc(lastDoc, true, this) {
                     launch {
                         binding.refreshProgressBar.isAutoLoading = false
                     }
@@ -275,7 +246,7 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
 
     private fun alertImportFileName() {
         alert(R.string.import_file_name) {
-            setMessage("""使用js返回一个json结构,{"name":"xxx", "author":"yyy"}""")
+            setMessage("""使用js处理文件名变量src返回一个json结构,{"name":"xxx", "author":"yyy"}""")
             val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                 editView.hint = "js"
                 editView.setText(AppConfig.bookImportFileName)
@@ -285,12 +256,6 @@ class ImportBookActivity : VMBaseActivity<ActivityImportBookBinding, ImportBookV
                 AppConfig.bookImportFileName = alertBinding.editView.text?.toString()
             }
             cancelButton()
-        }
-    }
-
-    private val find: (docItem: FileDoc) -> Unit = {
-        launch {
-            adapter.addItem(it)
         }
     }
 

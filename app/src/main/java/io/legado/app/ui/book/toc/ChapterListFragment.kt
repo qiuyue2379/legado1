@@ -21,10 +21,12 @@ import io.legado.app.ui.widget.recycler.VerticalDivider
 import io.legado.app.utils.ColorUtils
 import io.legado.app.utils.observeEvent
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ChapterListFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_chapter_list),
     ChapterListAdapter.Callback,
@@ -34,10 +36,9 @@ class ChapterListFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_chapt
     private val mLayoutManager by lazy { UpLinearLayoutManager(requireContext()) }
     private val adapter by lazy { ChapterListAdapter(requireContext(), this) }
     private var durChapterIndex = 0
-    private var tocFlowJob: Job? = null
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) = binding.run {
-        viewModel.chapterCallBack = this@ChapterListFragment
+        viewModel.chapterListCallBack = this@ChapterListFragment
         val bbg = bottomBackground
         val btc = requireContext().getPrimaryTextColor(ColorUtils.isColorLight(bbg))
         llChapterBaseInfo.setBackgroundColor(bbg)
@@ -103,27 +104,36 @@ class ChapterListFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_chapt
     }
 
     override fun upChapterList(searchKey: String?) {
-        tocFlowJob?.cancel()
-        tocFlowJob = launch {
-            when {
-                searchKey.isNullOrBlank() -> appDb.bookChapterDao.flowByBook(viewModel.bookUrl)
-                else -> appDb.bookChapterDao.flowSearch(viewModel.bookUrl, searchKey)
-            }.conflate().collect {
-                if (!(searchKey.isNullOrBlank() && it.isEmpty())) {
-                    adapter.setItems(it, adapter.diffCallBack)
-                    adapter.upDisplayTile()
-                    if (searchKey.isNullOrBlank() && mLayoutManager.findFirstVisibleItemPosition() < 0) {
-                        mLayoutManager.scrollToPositionWithOffset(durChapterIndex, 0)
-                    }
+        launch {
+            withContext(IO) {
+                when {
+                    searchKey.isNullOrBlank() -> appDb.bookChapterDao.getChapterList(viewModel.bookUrl)
+                    else -> appDb.bookChapterDao.search(viewModel.bookUrl, searchKey)
                 }
-                delay(100)
+            }.let {
+                adapter.setItems(it)
             }
         }
     }
 
+    override fun onListChanged() {
+        launch {
+            var scrollPos = 0
+            withContext(Default) {
+                adapter.getItems().forEachIndexed { index, bookChapter ->
+                    if (bookChapter.index >= durChapterIndex) {
+                        return@withContext
+                    }
+                    scrollPos = index
+                }
+            }
+            mLayoutManager.scrollToPositionWithOffset(scrollPos, 0)
+        }
+    }
+
     override fun clearDisplayTitle() {
-        adapter.displayTileMap.clear()
-        adapter.upDisplayTile()
+        adapter.clearDisplayTitle()
+        adapter.upDisplayTitle()
     }
 
     override val scope: CoroutineScope
