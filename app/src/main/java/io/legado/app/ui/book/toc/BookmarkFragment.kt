@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 
 class BookmarkFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_bookmark),
     BookmarkAdapter.Callback,
+    BookmarkDialog.Callback,
     TocViewModel.BookmarkCallBack {
     override val viewModel by activityViewModels<TocViewModel>()
     private val binding by viewBinding(FragmentBookmarkBinding::bind)
@@ -82,7 +83,15 @@ class BookmarkFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_bookmark
         }
     }
 
-    override fun onLongClick(bookmark: Bookmark) {
-        showDialogFragment(BookmarkDialog(bookmark))
+    override fun onLongClick(bookmark: Bookmark, pos: Int) {
+        showDialogFragment(BookmarkDialog(bookmark, pos))
+    }
+
+    override fun upBookmark(pos: Int, bookmark: Bookmark) {
+        adapter.setItem(pos, bookmark)
+    }
+
+    override fun deleteBookmark(pos: Int) {
+        adapter.removeItem(pos)
     }
 }
