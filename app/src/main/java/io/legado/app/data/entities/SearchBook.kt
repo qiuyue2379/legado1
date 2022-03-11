@@ -36,7 +36,7 @@ data class SearchBook(
     var latestChapterTitle: String? = null,
     var tocUrl: String = "",                    // 目录页Url (toc=table of Contents)
     var time: Long = System.currentTimeMillis(),
-    var variable: String? = null,
+    override var variable: String? = null,
     var originOrder: Int = 0
 ) : Parcelable, BaseBook, Comparable<SearchBook> {
 
@@ -61,15 +61,6 @@ data class SearchBook(
     @IgnoredOnParcel
     override val variableMap: HashMap<String, String> by lazy {
         GSON.fromJsonObject<HashMap<String, String>>(variable).getOrNull() ?: HashMap()
-    }
-
-    override fun putVariable(key: String, value: String?) {
-        if (value != null) {
-            variableMap[key] = value
-        } else {
-            variableMap.remove(key)
-        }
-        variable = GSON.toJson(variableMap)
     }
 
     @delegate:Transient

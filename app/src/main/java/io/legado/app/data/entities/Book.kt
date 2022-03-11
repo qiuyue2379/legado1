@@ -2,7 +2,6 @@ package io.legado.app.data.entities
 
 import android.os.Parcelable
 import androidx.room.*
-import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.BookType
 import io.legado.app.data.appDb
@@ -100,7 +99,7 @@ data class Book(
     @ColumnInfo(defaultValue = "0")
     var originOrder: Int = 0,
     // 自定义书籍变量信息(用于书源规则检索书籍信息)
-    var variable: String? = null,
+    override var variable: String? = null,
     var readConfig: ReadConfig? = null
 ) : Parcelable, BaseBook {
 
@@ -141,19 +140,6 @@ data class Book(
     @IgnoredOnParcel
     override val variableMap: HashMap<String, String> by lazy {
         GSON.fromJsonObject<HashMap<String, String>>(variable).getOrNull() ?: hashMapOf()
-    }
-
-    override fun putVariable(key: String, value: String?) {
-        if (value != null) {
-            if (value.length > 1000) {
-                AppLog.put("${name}设置变量长度超过1000,设置失败")
-                return
-            }
-            variableMap[key] = value
-        } else {
-            variableMap.remove(key)
-        }
-        variable = GSON.toJson(variableMap)
     }
 
     @Ignore

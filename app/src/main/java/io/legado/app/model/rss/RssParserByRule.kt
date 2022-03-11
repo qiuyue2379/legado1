@@ -7,8 +7,7 @@ import io.legado.app.data.entities.RssSource
 import io.legado.app.model.Debug
 import io.legado.app.model.NoStackTraceException
 import io.legado.app.model.analyzeRule.AnalyzeRule
-import io.legado.app.model.analyzeRule.RuleDataInterface
-import io.legado.app.utils.GSON
+import io.legado.app.model.analyzeRule.RuleData
 import io.legado.app.utils.NetworkUtils
 import splitties.init.appCtx
 import java.util.*
@@ -22,7 +21,7 @@ object RssParserByRule {
         sortUrl: String,
         body: String?,
         rssSource: RssSource,
-        ruleData: RuleDataInterface
+        ruleData: RuleData
     ): Pair<MutableList<RssArticle>, String?> {
         val sourceUrl = rssSource.sourceUrl
         var nextUrl: String? = null
@@ -67,9 +66,10 @@ object RssParserByRule {
             val ruleDescription = analyzeRule.splitSourceRule(rssSource.ruleDescription)
             val ruleImage = analyzeRule.splitSourceRule(rssSource.ruleImage)
             val ruleLink = analyzeRule.splitSourceRule(rssSource.ruleLink)
+            val variable = ruleData.getVariable()
             for ((index, item) in collections.withIndex()) {
                 getItem(
-                    sourceUrl, item, analyzeRule, index == 0,
+                    sourceUrl, item, analyzeRule, variable, index == 0,
                     ruleTitle, rulePubDate, ruleDescription, ruleImage, ruleLink
                 )?.let {
                     it.sort = sortName
@@ -88,6 +88,7 @@ object RssParserByRule {
         sourceUrl: String,
         item: Any,
         analyzeRule: AnalyzeRule,
+        variable: String?,
         log: Boolean,
         ruleTitle: List<AnalyzeRule.SourceRule>,
         rulePubDate: List<AnalyzeRule.SourceRule>,
@@ -95,7 +96,8 @@ object RssParserByRule {
         ruleImage: List<AnalyzeRule.SourceRule>,
         ruleLink: List<AnalyzeRule.SourceRule>
     ): RssArticle? {
-        val rssArticle = RssArticle()
+        val rssArticle = RssArticle(variable = variable)
+        analyzeRule.ruleData = rssArticle
         analyzeRule.setContent(item)
         Debug.log(sourceUrl, "┌获取标题", log)
         rssArticle.title = analyzeRule.getString(ruleTitle)
@@ -117,7 +119,6 @@ object RssParserByRule {
         Debug.log(sourceUrl, "┌获取文章链接", log)
         rssArticle.link = NetworkUtils.getAbsoluteURL(sourceUrl, analyzeRule.getString(ruleLink))
         Debug.log(sourceUrl, "└${rssArticle.link}", log)
-        rssArticle.variable = analyzeRule.ruleData?.variableMap?.let { GSON.toJson(it) }
         if (rssArticle.title.isBlank()) {
             return null
         }
