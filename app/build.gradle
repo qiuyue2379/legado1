@@ -186,7 +186,7 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer-core:$exoplayer_version")
     implementation("com.google.android.exoplayer:extension-okhttp:$exoplayer_version")
 
-    //Splitties
+    //Splittiesz
     def splitties_version = '3.0.0'
     implementation("com.louiscad.splitties:splitties-appctx:$splitties_version")
     implementation("com.louiscad.splitties:splitties-systemservices:$splitties_version")

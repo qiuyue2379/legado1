@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.legado.app.utils
 
 import android.content.res.Resources
@@ -112,19 +114,17 @@ object ConvertUtils {
 
 }
 
-val Int.dp: Int
-    get() = android.util.TypedValue.applyDimension(
-        android.util.TypedValue.COMPLEX_UNIT_DIP,
-        this.toFloat(),
-        Resources.getSystem().displayMetrics
-    ).toInt()
-
-val Int.sp: Int
-    get() = android.util.TypedValue.applyDimension(
-        android.util.TypedValue.COMPLEX_UNIT_SP,
-        this.toFloat(),
-        Resources.getSystem().displayMetrics
-    ).toInt()
-
 val Int.hexString: String
     get() = Integer.toHexString(this)
+
+fun Int.dpToPx(): Int = this.toFloat().dpToPx().toInt()
+
+fun Int.spToPx(): Int = this.toFloat().spToPx().toInt()
+
+fun Float.dpToPx(): Float = android.util.TypedValue.applyDimension(
+    android.util.TypedValue.COMPLEX_UNIT_DIP, this, Resources.getSystem().displayMetrics
+)
+
+fun Float.spToPx(): Float = android.util.TypedValue.applyDimension(
+    android.util.TypedValue.COMPLEX_UNIT_SP, this, Resources.getSystem().displayMetrics
+)
