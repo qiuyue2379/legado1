@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.*
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.BookType
+import io.legado.app.constant.PageAnim
 import io.legado.app.data.appDb
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
@@ -206,7 +207,8 @@ data class Book(
     }
 
     fun getPageAnim(): Int {
-        var pageAnim = config.pageAnim ?: ReadBookConfig.pageAnim
+        var pageAnim = config.pageAnim
+            ?: if (type == BookType.image) PageAnim.scrollPageAnim else ReadBookConfig.pageAnim
         if (pageAnim < 0) {
             pageAnim = ReadBookConfig.pageAnim
         }
@@ -219,6 +221,7 @@ data class Book(
 
     fun getImageStyle(): String? {
         return config.imageStyle
+            ?: if (type == BookType.image) imgStyleFull else null
     }
 
     fun setTtsEngine(ttsEngine: String?) {
