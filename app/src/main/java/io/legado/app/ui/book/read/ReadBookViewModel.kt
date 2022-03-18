@@ -38,6 +38,9 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
     var searchContentQuery = ""
     private var changeSourceCoroutine: Coroutine<*>? = null
 
+    /**
+     * 初始化
+     */
     fun initData(intent: Intent) {
         execute {
             ReadBook.inBookshelf = intent.getBooleanExtra("inBookshelf", true)
@@ -99,6 +102,9 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+    /**
+     * 加载详情页
+     */
     private fun loadBookInfo(book: Book) {
         if (book.isLocalBook()) {
             loadChapterList(book)
@@ -114,6 +120,9 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+    /**
+     * 加载目录
+     */
     fun loadChapterList(book: Book) {
         if (book.isLocalBook()) {
             execute {
@@ -152,6 +161,9 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+    /**
+     * 同步进度
+     */
     fun syncBookProgress(
         book: Book,
         alertSync: ((progress: BookProgress) -> Unit)? = null
@@ -172,6 +184,9 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             }
     }
 
+    /**
+     * 换源
+     */
     fun changeTo(source: BookSource, book: Book) {
         changeSourceCoroutine?.cancel()
         changeSourceCoroutine = execute {
@@ -192,6 +207,18 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             book.durChapterTitle = chapters[book.durChapterIndex].getDisplayTitle(
                 ContentProcessor.get(book.name, book.origin).getTitleReplaceRules()
             )
+            ensureActive()
+            val nextChapter = chapters.getOrElse(book.durChapterIndex) {
+                chapters.first()
+            }
+            WebBook.getContentAwait(
+                this,
+                bookSource = source,
+                book = book,
+                bookChapter = chapters[book.durChapterIndex],
+                nextChapterUrl = nextChapter.url
+            )
+            ensureActive()
             oldBook.changeTo(book)
             appDb.bookChapterDao.insert(*chapters.toTypedArray())
             ReadBook.resetData(book)
@@ -206,6 +233,9 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             }
     }
 
+    /**
+     * 自动换源
+     */
     private fun autoChangeSource(name: String, author: String) {
         if (!AppConfig.autoChangeSource) return
         execute {

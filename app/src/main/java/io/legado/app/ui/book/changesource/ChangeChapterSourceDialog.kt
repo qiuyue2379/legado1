@@ -10,6 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
@@ -93,6 +94,7 @@ class ChangeChapterSourceDialog() : BaseDialogFragment(R.layout.dialog_chapter_c
         initView()
         initRecyclerView()
         initSearchView()
+        initBottomBar()
         initLiveData()
     }
 
@@ -161,6 +163,19 @@ class ChangeChapterSourceDialog() : BaseDialogFragment(R.layout.dialog_chapter_c
         })
     }
 
+    private fun initBottomBar() {
+        binding.tvDur.text = callBack?.oldBook?.originName
+        binding.tvDur.setOnClickListener {
+            scrollToDurSource()
+        }
+        binding.ivTop.setOnClickListener {
+            binding.recyclerView.scrollToPosition(0)
+        }
+        binding.ivBottom.setOnClickListener {
+            binding.recyclerView.scrollToPosition(searchBookAdapter.itemCount - 1)
+        }
+    }
+
     private fun initLiveData() {
         viewModel.searchStateData.observe(viewLifecycleOwner) {
             binding.refreshProgressBar.isAutoLoading = it
@@ -199,7 +214,6 @@ class ChangeChapterSourceDialog() : BaseDialogFragment(R.layout.dialog_chapter_c
 
     override fun onMenuItemClick(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.menu_scroll_to_dur -> scrollToDurSource()
             R.id.menu_check_author -> {
                 AppConfig.changeSourceCheckAuthor = !item.isChecked
                 item.isChecked = !item.isChecked
@@ -234,7 +248,8 @@ class ChangeChapterSourceDialog() : BaseDialogFragment(R.layout.dialog_chapter_c
     private fun scrollToDurSource() {
         searchBookAdapter.getItems().forEachIndexed { index, searchBook ->
             if (searchBook.bookUrl == bookUrl) {
-                binding.recyclerView.scrollToPosition(index)
+                (binding.recyclerView.layoutManager as LinearLayoutManager)
+                    .scrollToPositionWithOffset(index, 60.dpToPx())
                 return
             }
         }
