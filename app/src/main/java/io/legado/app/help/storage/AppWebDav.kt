@@ -17,6 +17,7 @@ import io.legado.app.lib.webdav.WebDav
 import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
 import java.io.File
@@ -27,6 +28,14 @@ object AppWebDav {
     private const val defaultWebDavUrl = "https://dav.jianguoyun.com/dav/"
     private val bookProgressUrl = "${rootWebDavUrl}bookProgress/"
     private val zipFilePath = "${appCtx.externalFiles.absolutePath}${File.separator}backup.zip"
+
+    var isOk = false
+
+    init {
+        runBlocking {
+            upConfig()
+        }
+    }
 
     private val rootWebDavUrl: String
         get() {
@@ -48,24 +57,23 @@ object AppWebDav {
             return "backup${backupDate}.zip"
         }
 
-    @Throws(Exception::class)
-    suspend fun initWebDav(): Boolean {
-        val account = appCtx.getPrefString(PreferKey.webDavAccount)
-        val password = appCtx.getPrefString(PreferKey.webDavPassword)
-        if (!account.isNullOrBlank() && !password.isNullOrBlank()) {
-            HttpAuth.auth = HttpAuth.Auth(account, password)
-            WebDav(rootWebDavUrl).makeAsDir()
-            WebDav(bookProgressUrl).makeAsDir()
-            return true
+    suspend fun upConfig() {
+        kotlin.runCatching {
+            isOk = false
+            val account = appCtx.getPrefString(PreferKey.webDavAccount)
+            val password = appCtx.getPrefString(PreferKey.webDavPassword)
+            if (!account.isNullOrBlank() && !password.isNullOrBlank()) {
+                HttpAuth.auth = HttpAuth.Auth(account, password)
+                isOk = WebDav(rootWebDavUrl).makeAsDir() && WebDav(bookProgressUrl).makeAsDir()
+            }
         }
-        return false
     }
 
     @Throws(Exception::class)
     private suspend fun getWebDavFileNames(): ArrayList<String> {
         val url = rootWebDavUrl
         val names = arrayListOf<String>()
-        if (initWebDav()) {
+        if (isOk) {
             var files = WebDav(url).listFiles()
             files = files.reversed()
             files.forEach {
@@ -120,7 +128,7 @@ object AppWebDav {
 
     suspend fun backUpWebDav(path: String) {
         try {
-            if (initWebDav() && NetworkUtils.isAvailable()) {
+            if (isOk && NetworkUtils.isAvailable()) {
                 val paths = arrayListOf(*Backup.backupFileNames)
                 for (i in 0 until paths.size) {
                     paths[i] = path + File.separator + paths[i]
@@ -138,7 +146,7 @@ object AppWebDav {
 
     suspend fun exportWebDav(byteArray: ByteArray, fileName: String) {
         try {
-            if (initWebDav() && NetworkUtils.isAvailable()) {
+            if (isOk && NetworkUtils.isAvailable()) {
                 // 默认导出到legado文件夹下exports目录
                 val exportsWebDavUrl = rootWebDavUrl + EncoderUtils.escape("exports") + "/"
                 // 在legado文件夹创建exports目录,如果不存在的话
@@ -161,7 +169,7 @@ object AppWebDav {
             val bookProgress = BookProgress(book)
             val json = GSON.toJson(bookProgress)
             val url = getProgressUrl(book)
-            if (initWebDav()) {
+            if (isOk) {
                 WebDav(url).upload(json.toByteArray(), "application/json")
             }
         }
@@ -175,7 +183,7 @@ object AppWebDav {
      * 获取书籍进度
      */
     suspend fun getBookProgress(book: Book): BookProgress? {
-        if (initWebDav() && NetworkUtils.isAvailable()) {
+        if (isOk && NetworkUtils.isAvailable()) {
             val url = getProgressUrl(book)
             WebDav(url).download()?.let { byteArray ->
                 val json = String(byteArray)

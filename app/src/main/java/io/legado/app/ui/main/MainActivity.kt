@@ -48,13 +48,19 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
 
     override val binding by viewBinding(ActivityMainBinding::inflate)
     override val viewModel by viewModels<MainViewModel>()
+    private val idBookshelf = 0
+    private val idBookshelf1 = 11
+    private val idBookshelf2 = 12
+    private val idExplore = 1
+    private val idRss = 2
+    private val idMy = 3
     private var exitTime: Long = 0
     private var bookshelfReselected: Long = 0
     private var exploreReselected: Long = 0
     private var pagePosition = 0
     private val fragmentMap = hashMapOf<Int, Fragment>()
-    private var bottomMenuCount = 2
-    private val realPositions = arrayOf(0, 1, 2, 3)
+    private var bottomMenuCount = 4
+    private val realPositions = arrayOf(idBookshelf, idExplore, idRss, idMy)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         upBottomMenu()
@@ -87,12 +93,8 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         when (item.itemId) {
             R.id.menu_bookshelf -> viewPagerMain.setCurrentItem(0, false)
             R.id.menu_discovery -> viewPagerMain.setCurrentItem(1, false)
-            R.id.menu_rss -> if (AppConfig.showDiscovery) {
-                viewPagerMain.setCurrentItem(2, false)
-            } else {
-                viewPagerMain.setCurrentItem(1, false)
-            }
-            R.id.menu_my_config -> viewPagerMain.setCurrentItem(bottomMenuCount - 1, false)
+            R.id.menu_rss -> openPage(idRss)
+            R.id.menu_my_config -> openPage(idMy)
         }
         return false
     }
@@ -113,6 +115,14 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                     (fragmentMap[1] as? ExploreFragment)?.compressExplore()
                 }
             }
+        }
+    }
+
+    private fun openPage(id: Int) {
+        realPositions.firstOrNull {
+            it == id
+        }?.let { index ->
+            binding.viewPagerMain.setCurrentItem(index, false)
         }
     }
 
@@ -197,33 +207,26 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             menu.findItem(R.id.menu_discovery).isVisible = showDiscovery
             menu.findItem(R.id.menu_rss).isVisible = showRss
         }
-        bottomMenuCount = 2
-        realPositions[1] = 1
-        realPositions[2] = 2
-        when {
-            showDiscovery -> bottomMenuCount++
-            showRss -> {
-                realPositions[1] = 2
-                realPositions[2] = 3
-            }
-            else -> {
-                realPositions[1] = 3
-                realPositions[2] = 3
-            }
+        var index = 0
+        if (showDiscovery) {
+            index++
+            realPositions[index] = idExplore
         }
         if (showRss) {
-            bottomMenuCount++
-        } else {
-            realPositions[2] = 3
+            index++
+            realPositions[index] = idRss
         }
+        index++
+        realPositions[index] = idMy
+        bottomMenuCount = index + 1
     }
 
     private fun getFragmentId(position: Int): Int {
-        val p = realPositions[position]
-        if (p == 0) {
-            return if (AppConfig.bookGroupStyle == 1) 11 else 0
+        val id = realPositions[position]
+        if (id == idBookshelf) {
+            return if (AppConfig.bookGroupStyle == 1) idBookshelf2 else idBookshelf1
         }
-        return p
+        return id
     }
 
     private inner class PageChangeCallback : ViewPager.SimpleOnPageChangeListener() {
@@ -250,10 +253,10 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
 
         override fun getItem(position: Int): Fragment {
             return when (getId(position)) {
-                0 -> BookshelfFragment1()
-                11 -> BookshelfFragment2()
-                1 -> ExploreFragment()
-                2 -> RssFragment()
+                idBookshelf1 -> BookshelfFragment1()
+                idBookshelf2 -> BookshelfFragment2()
+                idExplore -> ExploreFragment()
+                idRss -> RssFragment()
                 else -> MyFragment()
             }
         }

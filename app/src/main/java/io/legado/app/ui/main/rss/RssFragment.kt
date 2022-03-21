@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
  */
 class RssFragment : VMBaseFragment<RssSourceViewModel>(R.layout.fragment_rss),
     RssAdapter.CallBack {
+
     private val binding by viewBinding(FragmentRssBinding::bind)
     override val viewModel by viewModels<RssSourceViewModel>()
     private val adapter by lazy { RssAdapter(requireContext(), this) }
