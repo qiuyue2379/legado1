@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.flowOn
 
 class SearchViewModel(application: Application) : BaseViewModel(application) {
     private val searchModel = SearchModel(viewModelScope)
+    var searchFinishCallback: ((isEmpty: Boolean) -> Unit)? = null
     var isSearchLiveData = MutableLiveData<Boolean>()
     var searchKey: String = ""
-    var isLoading = false
     private var searchID = 0L
 
     val searchDataFlow = callbackFlow {
@@ -25,21 +25,19 @@ class SearchViewModel(application: Application) : BaseViewModel(application) {
         val callback = object : SearchModel.CallBack {
             override fun onSearchStart() {
                 isSearchLiveData.postValue(true)
-                isLoading = true
             }
 
             override fun onSearchSuccess(searchBooks: ArrayList<SearchBook>) {
                 trySend(ArrayList(searchBooks))
             }
 
-            override fun onSearchFinish() {
+            override fun onSearchFinish(isEmpty: Boolean) {
                 isSearchLiveData.postValue(false)
-                isLoading = false
+                searchFinishCallback?.invoke(isEmpty)
             }
 
             override fun onSearchCancel() {
                 isSearchLiveData.postValue(false)
-                isLoading = false
             }
         }
 
