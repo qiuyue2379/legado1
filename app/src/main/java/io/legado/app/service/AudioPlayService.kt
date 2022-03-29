@@ -24,6 +24,7 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.MediaHelp
 import io.legado.app.help.exoplayer.ExoPlayerHelper
+import io.legado.app.help.glide.ImageLoader
 import io.legado.app.model.AudioPlay
 import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.webBook.WebBook
@@ -34,8 +35,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Main
 import splitties.systemservices.audioManager
 
-
-
+/**
+ * 音频播放服务
+ */
 class AudioPlayService : BaseService(),
     AudioManager.OnAudioFocusChangeListener,
     Player.Listener {
@@ -74,6 +76,7 @@ class AudioPlayService : BaseService(),
         initMediaSession()
         initBroadcastReceiver()
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
+        doDs()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -271,7 +274,7 @@ class AudioPlayService : BaseService(),
      * 定时
      */
     private fun doDs() {
-        postEvent(EventBus.TTS_DS, timeMinute)
+        postEvent(EventBus.AUDIO_DS, timeMinute)
         upNotification()
         dsJob?.cancel()
         dsJob = launch {
@@ -285,7 +288,7 @@ class AudioPlayService : BaseService(),
                         AudioPlay.stop(this@AudioPlayService)
                     }
                 }
-                postEvent(EventBus.TTS_DS, timeMinute)
+                postEvent(EventBus.AUDIO_DS, timeMinute)
                 upNotification()
             }
         }
@@ -443,58 +446,71 @@ class AudioPlayService : BaseService(),
      * 更新通知
      */
     private fun upNotification() {
-        var nTitle: String = when {
-            pause -> getString(R.string.audio_pause)
-            timeMinute in 1..60 -> getString(
-                R.string.playing_timer,
-                timeMinute
-            )
-            else -> getString(R.string.audio_play_t)
-        }
-        nTitle += ": $title"
-        var nSubtitle = subtitle
-        if (subtitle.isEmpty()) {
-            nSubtitle = getString(R.string.audio_play_s)
-        }
-        val builder = NotificationCompat.Builder(this, AppConst.channelIdReadAloud)
-            .setSmallIcon(R.drawable.ic_volume_up)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_read_book))
-            .setOngoing(true)
-            .setContentTitle(nTitle)
-            .setContentText(nSubtitle)
-            .setContentIntent(
-                activityPendingIntent<AudioPlayActivity>("activity")
-            )
-        if (pause) {
+        execute {
+            var nTitle: String = when {
+                pause -> getString(R.string.audio_pause)
+                timeMinute in 1..60 -> getString(
+                    R.string.playing_timer,
+                    timeMinute
+                )
+                else -> getString(R.string.audio_play_t)
+            }
+            nTitle += ": $title"
+            var nSubtitle = subtitle
+            if (subtitle.isEmpty()) {
+                nSubtitle = getString(R.string.audio_play_s)
+            }
+            val builder = NotificationCompat
+                .Builder(this@AudioPlayService, AppConst.channelIdReadAloud)
+                .setSmallIcon(R.drawable.ic_volume_up)
+                .setOngoing(true)
+                .setContentTitle(nTitle)
+                .setContentText(nSubtitle)
+                .setContentIntent(
+                    activityPendingIntent<AudioPlayActivity>("activity")
+                )
+            kotlin.runCatching {
+                ImageLoader
+                    .loadBitmap(this@AudioPlayService, AudioPlay.book?.getDisplayCover())
+                    .submit()
+                    .get()
+            }.getOrElse {
+                BitmapFactory.decodeResource(resources, R.drawable.icon_read_book)
+            }.let {
+                builder.setLargeIcon(it)
+            }
+            if (pause) {
+                builder.addAction(
+                    R.drawable.ic_play_24dp,
+                    getString(R.string.resume),
+                    servicePendingIntent<AudioPlayService>(IntentAction.resume)
+                )
+            } else {
+                builder.addAction(
+                    R.drawable.ic_pause_24dp,
+                    getString(R.string.pause),
+                    servicePendingIntent<AudioPlayService>(IntentAction.pause)
+                )
+            }
             builder.addAction(
-                R.drawable.ic_play_24dp,
-                getString(R.string.resume),
-                servicePendingIntent<AudioPlayService>(IntentAction.resume)
+                R.drawable.ic_stop_black_24dp,
+                getString(R.string.stop),
+                servicePendingIntent<AudioPlayService>(IntentAction.stop)
             )
-        } else {
             builder.addAction(
-                R.drawable.ic_pause_24dp,
-                getString(R.string.pause),
-                servicePendingIntent<AudioPlayService>(IntentAction.pause)
+                R.drawable.ic_time_add_24dp,
+                getString(R.string.set_timer),
+                servicePendingIntent<AudioPlayService>(IntentAction.addTimer)
             )
+            builder.setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setShowActionsInCompactView(0, 1, 2)
+            )
+            builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            builder
+        }.onSuccess {
+            startForeground(AppConst.notificationIdAudio, it.build())
         }
-        builder.addAction(
-            R.drawable.ic_stop_black_24dp,
-            getString(R.string.stop),
-            servicePendingIntent<AudioPlayService>(IntentAction.stop)
-        )
-        builder.addAction(
-            R.drawable.ic_time_add_24dp,
-            getString(R.string.set_timer),
-            servicePendingIntent<AudioPlayService>(IntentAction.addTimer)
-        )
-        builder.setStyle(
-            androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(0, 1, 2)
-        )
-        builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-        val notification = builder.build()
-        startForeground(AppConst.notificationIdAudio, notification)
     }
 
     /**
