@@ -168,20 +168,24 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         book: Book,
         alertSync: ((progress: BookProgress) -> Unit)? = null
     ) {
-        if (AppWebDav.syncBookProgress)
-            execute {
+        execute {
+            if (AppWebDav.syncBookProgress) {
                 AppWebDav.getBookProgress(book)
-            }.onSuccess {
-                it?.let { progress ->
-                    if (progress.durChapterIndex < book.durChapterIndex ||
-                        (progress.durChapterIndex == book.durChapterIndex && progress.durChapterPos < book.durChapterPos)
-                    ) {
-                        alertSync?.invoke(progress)
-                    } else {
-                        ReadBook.setProgress(progress)
-                    }
-                }
+                    ?: throw NoStackTraceException("没有进度")
+            } else {
+                throw NoStackTraceException("进度同步未启用")
             }
+        }.onSuccess { progress ->
+            if (progress.durChapterIndex < book.durChapterIndex ||
+                (progress.durChapterIndex == book.durChapterIndex
+                    && progress.durChapterPos < book.durChapterPos)
+            ) {
+                alertSync?.invoke(progress)
+            } else {
+                ReadBook.setProgress(progress)
+            }
+        }
+
     }
 
     /**
@@ -240,7 +244,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         if (!AppConfig.autoChangeSource) return
         execute {
             val sources = appDb.bookSourceDao.allTextEnabled
-            WebBook.preciseSearchAwait(this, sources, name, author)?.let {
+            WebBook.preciseSearchAwait(this, name, author, *sources.toTypedArray())?.let {
                 it.second.upInfoFromOld(ReadBook.book)
                 changeTo(it.first, it.second)
             } ?: throw NoStackTraceException("自动换源失败")
