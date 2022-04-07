@@ -27,6 +27,8 @@ import kotlinx.coroutines.Dispatchers.IO
 class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     val bookData = MutableLiveData<Book>()
     val chapterListData = MutableLiveData<List<BookChapter>>()
+    var name = ""
+    var author = ""
     var durChapterIndex = 0
     var inBookshelf = false
     var bookSource: BookSource? = null
@@ -34,8 +36,8 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
 
     fun initData(intent: Intent) {
         execute {
-            val name = intent.getStringExtra("name") ?: ""
-            val author = intent.getStringExtra("author") ?: ""
+            name = intent.getStringExtra("name") ?: ""
+            author = intent.getStringExtra("author") ?: ""
             val bookUrl = intent.getStringExtra("bookUrl") ?: ""
             appDb.bookDao.getBook(name, author)?.let {
                 inBookshelf = true
@@ -176,15 +178,19 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun changeTo(source: BookSource, newBook: Book, toc: List<BookChapter>) {
+    fun changeTo(source: BookSource, book: Book, toc: List<BookChapter>) {
         changeSourceCoroutine?.cancel()
         changeSourceCoroutine = execute {
             bookSource = source
-            bookData.value!!.changeTo(newBook, toc)
-            bookData.postValue(newBook)
+            bookData.value?.changeTo(book, toc)
+            if (inBookshelf) {
+                appDb.bookDao.insert(book)
+                appDb.bookChapterDao.insert(*toc.toTypedArray())
+            }
+            bookData.postValue(book)
             chapterListData.postValue(toc)
         }.onFinally {
-            postEvent(EventBus.SOURCE_CHANGED, newBook.bookUrl)
+            postEvent(EventBus.SOURCE_CHANGED, book.bookUrl)
         }
     }
 
