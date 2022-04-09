@@ -66,11 +66,11 @@ class MyFragment : BaseFragment(R.layout.fragment_my_config) {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             putPrefBoolean(PreferKey.webService, WebService.isRun)
+            addPreferencesFromResource(R.xml.pref_main)
             if (AppConfig.isGooglePlay) {
                 findPreference<PreferenceCategory>("aboutCategory")
                     ?.removePreferenceRecursively("donate")
             }
-            addPreferencesFromResource(R.xml.pref_main)
             findPreference<SwitchPreference>("webService")?.onLongClick {
                 if (!WebService.isRun) {
                     return@onLongClick false

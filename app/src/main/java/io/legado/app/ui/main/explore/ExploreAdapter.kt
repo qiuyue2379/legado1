@@ -67,7 +67,7 @@ class ExploreAdapter(context: Context, val callBack: CallBack) :
                         scrollTo = -1
                     }
                 }
-            } else {
+            } else kotlin.runCatching {
                 ivStatus.setImageResource(R.drawable.ic_arrow_right)
                 rotateLoading.hide()
                 recyclerFlexbox(flexbox)
@@ -77,7 +77,7 @@ class ExploreAdapter(context: Context, val callBack: CallBack) :
     }
 
     private fun upKindList(flexbox: FlexboxLayout, sourceUrl: String, kinds: List<ExploreKind>) {
-        if (!kinds.isNullOrEmpty()) {
+        if (!kinds.isNullOrEmpty()) kotlin.runCatching {
             recyclerFlexbox(flexbox)
             flexbox.visible()
             kinds.forEach { kind ->
