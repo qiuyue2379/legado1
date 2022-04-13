@@ -136,7 +136,7 @@ object ChapterProvider {
                 while (matcher.find()) {
                     matcher.group(1)?.let { src ->
                         srcList.add(src)
-                        ImageProvider.getImage(book, bookChapter.index, src, ReadBook.bookSource)
+                        ImageProvider.getImage(book, src, ReadBook.bookSource)
                         matcher.appendReplacement(sb, srcReplaceChar)
                     }
                 }
@@ -163,7 +163,7 @@ object ChapterProvider {
                         }
                     }
                     durY = setTypeImage(
-                        book, bookChapter, matcher.group(1)!!,
+                        book, matcher.group(1)!!,
                         absStartX, durY, textPages, book.getImageStyle()
                     )
                     start = matcher.end()
@@ -202,7 +202,6 @@ object ChapterProvider {
 
     private fun setTypeImage(
         book: Book,
-        chapter: BookChapter,
         src: String,
         x: Int,
         y: Float,
@@ -210,7 +209,7 @@ object ChapterProvider {
         imageStyle: String?,
     ): Float {
         var durY = y
-        ImageProvider.getImage(book, chapter.index, src, ReadBook.bookSource)?.let {
+        ImageProvider.getImage(book, src, ReadBook.bookSource)?.let {
             if (durY > visibleHeight) {
                 textPages.last().height = durY
                 textPages.add(TextPage())
@@ -247,7 +246,7 @@ object ChapterProvider {
                 val adjustWidth = (visibleWidth - width) / 2f
                 Pair(adjustWidth, adjustWidth + width)
             } else {
-                Pair(paddingLeft.toFloat(), (paddingLeft + width).toFloat())
+                Pair(0f, width.toFloat())
             }
             textLine.textChars.add(
                 TextChar(
@@ -622,8 +621,8 @@ object ChapterProvider {
      */
     fun upLayout() {
         doublePage = (viewWidth > viewHeight || appCtx.isPad)
-            && ReadBook.pageAnim() != 3
-            && AppConfig.doublePageHorizontal
+                && ReadBook.pageAnim() != 3
+                && AppConfig.doublePageHorizontal
         if (viewWidth > 0 && viewHeight > 0) {
             paddingLeft = ReadBookConfig.paddingLeft.dpToPx()
             paddingTop = ReadBookConfig.paddingTop.dpToPx()

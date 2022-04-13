@@ -6,9 +6,11 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.ReplaceRule
+import io.legado.app.exception.RegexTimeoutException
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
-import io.legado.app.utils.regexReplace
+import io.legado.app.utils.msg
+import io.legado.app.utils.replace
 import io.legado.app.utils.toastOnUi
 import splitties.init.appCtx
 import java.lang.ref.WeakReference
@@ -135,13 +137,22 @@ class ContentProcessor private constructor(
             if (item.pattern.isNotEmpty()) {
                 kotlin.runCatching {
                     mContent = if (item.isRegex) {
-                        mContent.regexReplace(item.pattern, item.replacement, 1000L)
+                        mContent.replace(item.pattern.toRegex(), item.replacement, 2000L)
                     } else {
                         mContent.replace(item.pattern, item.replacement)
                     }
                 }.onFailure {
-                    AppLog.put("${item.name}替换出错\n${it.localizedMessage}")
-                    appCtx.toastOnUi("${item.name}替换出错")
+                    when (it) {
+                        is RegexTimeoutException -> {
+                            item.isEnabled = false
+                            appDb.replaceRuleDao.update(item)
+                            return item.name + it.msg
+                        }
+                        else -> {
+                            AppLog.put("${item.name}替换出错\n${it.localizedMessage}", it)
+                            appCtx.toastOnUi("${item.name}替换出错")
+                        }
+                    }
                 }
             }
         }

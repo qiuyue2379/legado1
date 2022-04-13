@@ -7,7 +7,6 @@ import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import io.legado.app.utils.stackBlur
 import java.security.MessageDigest
 
-
 /**
  * 模糊
  * @radius: 0..25

@@ -1,24 +1,36 @@
 package io.legado.app.utils
 
-import io.legado.app.exception.NoStackTraceException
-import java.util.regex.Pattern
+import io.legado.app.exception.RegexTimeoutException
+import io.legado.app.help.CrashHandler
+import kotlinx.coroutines.suspendCancellableCoroutine
+import splitties.init.appCtx
+import kotlin.concurrent.thread
+import kotlin.coroutines.resume
 
-fun CharSequence.regexReplace(regex: String, replacement: String, timeout: Long): String {
-    val timeEnd = System.currentTimeMillis() + timeout
-    val pattern = Pattern.compile(regex)
-    val matcher = pattern.matcher(this)
-    var result: Boolean = matcher.find()
-    if (result) {
-        val sb = StringBuffer()
-        do {
-            //matcher.appendReplacement(sb, replacement)
-            if (System.currentTimeMillis() > timeEnd) {
-                throw NoStackTraceException("替换超时")
+suspend fun CharSequence.replace(regex: Regex, replacement: String, timeout: Long): String {
+    return suspendCancellableCoroutine { block ->
+        val thread = thread {
+            try {
+                val result = regex.replace(this, replacement)
+                block.resume(result)
+            } catch (e: Exception) {
+                block.cancel(e)
             }
-            result = matcher.find()
-        } while (result)
-        matcher.appendTail(sb)
-        return sb.toString()
+        }
+        mainHandler.postDelayed({
+            if (thread.isAlive) {
+                val timeoutMsg = "替换超时,将在3秒后重启应用\n替换规则$regex\n替换内容:${this}"
+                val exception = RegexTimeoutException(timeoutMsg)
+                block.cancel(exception)
+                appCtx.longToastOnUi(timeoutMsg)
+                CrashHandler.saveCrashInfo2File(exception)
+                mainHandler.postDelayed({
+                    if (thread.isAlive) {
+                        appCtx.restart()
+                    }
+                }, 3000)
+            }
+        }, timeout)
     }
-    return this.toString()
 }
+

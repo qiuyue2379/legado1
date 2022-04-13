@@ -22,6 +22,7 @@ import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.localBook.UmdFile
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.*
+import io.legado.app.ui.book.read.page.provider.ImageProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import splitties.init.appCtx
@@ -83,20 +84,12 @@ object BookController {
         if (this.bookUrl != bookUrl) {
             this.book = appDb.bookDao.getBook(bookUrl)
                 ?: return returnData.setErrorMsg("bookUrl不对")
-        }
-        val vFile = BookHelp.getImage(book, src)
-        if (!vFile.exists()) {
-            if (this.bookUrl != bookUrl) {
-                this.bookSource = appDb.bookSourceDao.getBookSource(book.origin)
-            }
-            runBlocking {
-                BookHelp.saveImage(bookSource, book, src)
-            }
+            this.bookSource = appDb.bookSourceDao.getBookSource(book.origin)
         }
         this.bookUrl = bookUrl
-        return returnData.setData(
-            BitmapUtils.decodeBitmap(vFile.absolutePath, width, width)
-        )
+        return ImageProvider.getImage(book, src, bookSource, width, width)?.let {
+            returnData.setData(it)
+        } ?: returnData.setErrorMsg("图片加载失败或不存在")
     }
 
     /**
@@ -183,23 +176,24 @@ object BookController {
         if (content != null) {
             val contentProcessor = ContentProcessor.get(book.name, book.origin)
             saveBookReadIndex(book, index)
-            return returnData.setData(
-                contentProcessor.getContent(book, chapter, content, includeTitle = false)
+            content = runBlocking {
+                contentProcessor.getContent(book, chapter, content!!, includeTitle = false)
                     .joinToString("\n")
-            )
+            }
+            return returnData.setData(content)
         }
         val bookSource = appDb.bookSourceDao.getBookSource(book.origin)
             ?: return returnData.setErrorMsg("未找到书源")
         try {
             content = runBlocking {
-                WebBook.getContentAwait(this, bookSource, book, chapter)
+                WebBook.getContentAwait(this, bookSource, book, chapter).let {
+                    val contentProcessor = ContentProcessor.get(book.name, book.origin)
+                    saveBookReadIndex(book, index)
+                    contentProcessor.getContent(book, chapter, it, includeTitle = false)
+                        .joinToString("\n")
+                }
             }
-            val contentProcessor = ContentProcessor.get(book.name, book.origin)
-            saveBookReadIndex(book, index)
-            returnData.setData(
-                contentProcessor.getContent(book, chapter, content, includeTitle = false)
-                    .joinToString("\n")
-            )
+            returnData.setData(content)
         } catch (e: Exception) {
             returnData.setErrorMsg(e.msg)
         }

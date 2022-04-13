@@ -59,7 +59,7 @@ interface BookSourceDao {
         """select * from book_sources 
         where enabledExplore = 1 
         and trim(exploreUrl) <> '' 
-       and (bookSourceGroup like '%' || :key || '%') 
+        and (bookSourceGroup like '%' || :key || '%') 
         order by customOrder asc"""
     )
     fun flowGroupExplore(key: String): Flow<List<BookSource>>

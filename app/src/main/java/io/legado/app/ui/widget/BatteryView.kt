@@ -69,12 +69,12 @@ class BatteryView @JvmOverloads constructor(
             .getPrimaryHorizontal(text.length - battery.toString().length)
             .toInt() + 2.dpToPx()
         val batteryEnd = batteryStart +
-            StaticLayout.getDesiredWidth(battery.toString(), paint).toInt() + 4.dpToPx()
+                StaticLayout.getDesiredWidth(battery.toString(), paint).toInt() + 4.dpToPx()
         outFrame.set(
             batteryStart,
             2.dpToPx(),
             batteryEnd,
-            batteryEnd + 2.dpToPx(),
+            height - 2.dpToPx()
         )
         val dj = (outFrame.bottom - outFrame.top) / 3
         polar.set(

@@ -86,19 +86,9 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             ?: throw NoStackTraceException("创建文档失败")
         val stringBuilder = StringBuilder()
         context.contentResolver.openOutputStream(bookDoc.uri, "wa")?.use { bookOs ->
-            getAllContents(scope, book) { text, srcList ->
+            getAllContents(scope, book) { text ->
                 bookOs.write(text.toByteArray(Charset.forName(AppConfig.exportCharset)))
                 stringBuilder.append(text)
-                srcList?.forEach {
-                    val vFile = BookHelp.getImage(book, it.third)
-                    if (vFile.exists()) {
-                        DocumentUtils.createFileIfNotExist(
-                            doc,
-                            "${it.second}-${MD5Utils.md5Encode16(it.third)}.jpg",
-                            subDirs = arrayOf("${book.name}_${book.author}", "images", it.first)
-                        )?.writeBytes(context, vFile.readBytes())
-                    }
-                }
             }
         }
         if (AppConfig.exportToWebDav) {
@@ -114,21 +104,9 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
         val bookPath = FileUtils.getPath(file, filename)
         val bookFile = FileUtils.createFileWithReplace(bookPath)
         val stringBuilder = StringBuilder()
-        getAllContents(scope, book) { text, srcList ->
+        getAllContents(scope, book) { text ->
             bookFile.appendText(text, Charset.forName(AppConfig.exportCharset))
             stringBuilder.append(text)
-            srcList?.forEach {
-                val vFile = BookHelp.getImage(book, it.third)
-                if (vFile.exists()) {
-                    FileUtils.createFileIfNotExist(
-                        file,
-                        "${book.name}_${book.author}",
-                        "images",
-                        it.first,
-                        "${it.second}-${MD5Utils.md5Encode16(it.third)}.jpg"
-                    ).writeBytes(vFile.readBytes())
-                }
-            }
         }
         if (AppConfig.exportToWebDav) {
             val byteArray =
@@ -137,10 +115,10 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    private fun getAllContents(
+    private suspend fun getAllContents(
         scope: CoroutineScope,
         book: Book,
-        append: (text: String, srcList: ArrayList<Triple<String, Int, String>>?) -> Unit
+        append: (text: String) -> Unit
     ) {
         val useReplace = AppConfig.exportUseReplace && book.getUseReplaceRule()
         val contentProcessor = ContentProcessor.get(book.name, book.origin)
@@ -152,7 +130,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                 "\n" + HtmlFormatter.format(book.getDisplayIntro())
             )
         }"
-        append(qy, null)
+        append(qy)
         appDb.bookChapterDao.getChapterList(book.bookUrl).forEachIndexed { index, chapter ->
             scope.ensureActive()
             upAdapterLiveData.postValue(book.bookUrl)
@@ -168,17 +146,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                         chineseConvert = false,
                         reSegment = false
                     ).joinToString("\n")
-                val srcList = arrayListOf<Triple<String, Int, String>>()
-                content?.split("\n")?.forEachIndexed { index, text ->
-                    val matcher = AppPattern.imgPattern.matcher(text)
-                    while (matcher.find()) {
-                        matcher.group(1)?.let {
-                            val src = NetworkUtils.getAbsoluteURL(chapter.url, it)
-                            srcList.add(Triple(chapter.title, index, src))
-                        }
-                    }
-                }
-                append.invoke("\n\n$content1", srcList)
+                append.invoke("\n\n$content1")
             }
         }
     }
@@ -214,7 +182,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    private fun exportEpub(scope: CoroutineScope, doc: DocumentFile, book: Book) {
+    private suspend fun exportEpub(scope: CoroutineScope, doc: DocumentFile, book: Book) {
         val filename = "${getExportFileName(book)}.epub"
         DocumentUtils.delete(doc, filename)
         val epubBook = EpubBook()
@@ -237,7 +205,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
     }
 
 
-    private fun exportEpub(scope: CoroutineScope, file: File, book: Book) {
+    private suspend fun exportEpub(scope: CoroutineScope, file: File, book: Book) {
         val filename = "${getExportFileName(book)}.epub"
         val epubBook = EpubBook()
         epubBook.version = "2.0"
@@ -252,6 +220,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
         val bookFile = FileUtils.createFileWithReplace(bookPath)
         //设置正文
         setEpubContent(scope, contentModel, book, epubBook)
+        @Suppress("BlockingMethodInNonBlockingContext")
         EpubWriter().write(epubBook, FileOutputStream(bookFile))
     }
 
@@ -278,7 +247,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                                 when {
                                     //正文模板
                                     file.name.equals("chapter.html", true)
-                                        || file.name.equals("chapter.xhtml", true) -> {
+                                            || file.name.equals("chapter.xhtml", true) -> {
                                         contentModel = file.readText(context)
                                     }
                                     //封面等其他模板
@@ -404,7 +373,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             })
     }
 
-    private fun setEpubContent(
+    private suspend fun setEpubContent(
         scope: CoroutineScope,
         contentModel: String,
         book: Book,
@@ -460,7 +429,7 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
             while (matcher.find()) {
                 matcher.group(1)?.let {
                     val src = NetworkUtils.getAbsoluteURL(chapter.url, it)
-                    val originalHref = "${MD5Utils.md5Encode16(src)}${BookHelp.getImageSuffix(src)}"
+                    val originalHref = "${MD5Utils.md5Encode16(src)}.${BookHelp.getImageSuffix(src)}"
                     val href = "Images/${MD5Utils.md5Encode16(src)}.${BookHelp.getImageSuffix(src)}"
                     val vFile = BookHelp.getImage(book, src)
                     val fp = FileResourceProvider(vFile.parent)
