@@ -71,16 +71,18 @@ class AnalyzeUrl(
     private var webJs: String? = null
 
     init {
-        val urlMatcher = paramPattern.matcher(baseUrl)
-        if (urlMatcher.find()) baseUrl = baseUrl.substring(0, urlMatcher.start())
-        (headerMapF ?: source?.getHeaderMap(true))?.let {
-            headerMap.putAll(it)
-            if (it.containsKey("proxy")) {
-                proxy = it["proxy"]
-                headerMap.remove("proxy")
+        if (!mUrl.isDataUrl()) {
+            val urlMatcher = paramPattern.matcher(baseUrl)
+            if (urlMatcher.find()) baseUrl = baseUrl.substring(0, urlMatcher.start())
+            (headerMapF ?: source?.getHeaderMap(true))?.let {
+                headerMap.putAll(it)
+                if (it.containsKey("proxy")) {
+                    proxy = it["proxy"]
+                    headerMap.remove("proxy")
+                }
             }
+            initUrl()
         }
-        initUrl()
     }
 
     /**
@@ -457,10 +459,9 @@ class AnalyzeUrl(
      * 访问网站,返回ByteArray
      */
     suspend fun getByteArrayAwait(): ByteArray {
+        val concurrentRecord = fetchStart()
         @Suppress("RegExpRedundantEscape")
         val dataUriFindResult = dataUriRegex.find(urlNoQuery)
-        val concurrentRecord = fetchStart()
-        setCookie(source?.getKey())
         @Suppress("BlockingMethodInNonBlockingContext")
         if (dataUriFindResult != null) {
             val dataUriBase64 = dataUriFindResult.groupValues[1]
@@ -468,6 +469,7 @@ class AnalyzeUrl(
             fetchEnd(concurrentRecord)
             return byteArray
         } else {
+            setCookie(source?.getKey())
             val byteArray = getProxyClient(proxy).newCallResponseBody(retry) {
                 addHeaders(headerMap)
                 when (method) {
@@ -518,22 +520,28 @@ class AnalyzeUrl(
         }
     }
 
+    /**
+     *设置cookie urlOption的优先级大于书源保存的cookie
+     *@param tag 书源url 缺省为传入的url
+     */
     private fun setCookie(tag: String?) {
-        if (tag != null) {
-            val cookie = CookieStore.getCookie(tag)
-            if (cookie.isNotEmpty()) {
-                val cookieMap = CookieStore.cookieToMap(cookie)
-                val customCookieMap = CookieStore.cookieToMap(headerMap["Cookie"] ?: "")
-                cookieMap.putAll(customCookieMap)
-                val newCookie = CookieStore.mapToCookie(cookieMap)
-                newCookie?.let {
-                    headerMap.put("Cookie", it)
-                }
+        val cookie = CookieStore.getCookie(tag ?: url)
+        if (cookie.isNotEmpty()) {
+            val cookieMap = CookieStore.cookieToMap(cookie)
+            val customCookieMap = CookieStore.cookieToMap(headerMap["Cookie"] ?: "")
+            cookieMap.putAll(customCookieMap)
+            val newCookie = CookieStore.mapToCookie(cookieMap)
+            newCookie?.let {
+                headerMap.put("Cookie", it)
             }
         }
     }
 
+    /**
+     *获取处理过阅读定义的urlOption和cookie的GlideUrl
+     */
     fun getGlideUrl(): GlideUrl {
+        setCookie(source?.getKey())
         val headers = LazyHeaders.Builder()
         headerMap.forEach { (key, value) ->
             headers.addHeader(key, value)

@@ -3,9 +3,11 @@
 package io.legado.app.utils
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
 import android.graphics.Bitmap.Config
-import android.view.View
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.Matrix
 import com.google.android.renderscript.Toolkit
 import java.io.FileInputStream
 import java.io.IOException
@@ -25,25 +27,43 @@ object BitmapUtils {
      * @return
      */
     @Throws(IOException::class)
-    fun decodeBitmap(path: String, width: Int, height: Int): Bitmap {
-        val op = BitmapFactory.Options()
-        val ips = FileInputStream(path)
-        // inJustDecodeBounds如果设置为true,仅仅返回图片实际的宽和高,宽和高是赋值给opts.outWidth,opts.outHeight;
-        op.inJustDecodeBounds = true
-        BitmapFactory.decodeFileDescriptor(ips.fd, null, op)
-        //获取比例大小
-        val wRatio = ceil((op.outWidth / width).toDouble()).toInt()
-        val hRatio = ceil((op.outHeight / height).toDouble()).toInt()
-        //如果超出指定大小，则缩小相应的比例
-        if (wRatio > 1 && hRatio > 1) {
-            if (wRatio > hRatio) {
-                op.inSampleSize = wRatio
-            } else {
-                op.inSampleSize = hRatio
-            }
+    fun decodeBitmap(path: String, width: Int, height: Int? = null): Bitmap {
+
+        val fis = FileInputStream(path)
+        return fis.use {
+            val op = BitmapFactory.Options()
+            // inJustDecodeBounds如果设置为true,仅仅返回图片实际的宽和高,宽和高是赋值给opts.outWidth,opts.outHeight;
+            op.inJustDecodeBounds = true
+            BitmapFactory.decodeFileDescriptor(fis.fd, null, op)
+            op.inSampleSize = calculateInSampleSize(op, width, height)
+            op.inJustDecodeBounds = false
+            BitmapFactory.decodeFileDescriptor(fis.fd, null, op)
+
         }
-        op.inJustDecodeBounds = false
-        return BitmapFactory.decodeFileDescriptor(ips.fd, null, op)
+    }
+
+    /**
+     *计算 InSampleSize。缺省返回1
+     * @param options BitmapFactory.Options,
+     * @param width  想要显示的图片的宽度
+     * @param height 想要显示的图片的高度
+     * @return
+     */
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        width: Int? = null,
+        height: Int? = null
+    ): Int {
+        //获取比例大小
+        val wRatio = width?.let { ceil((options.outWidth / it).toDouble()).toInt() } ?: -1
+        val hRatio = height?.let { ceil((options.outHeight / it).toDouble()).toInt() } ?: -1
+        //如果超出指定大小，则缩小相应的比例
+        return when {
+            wRatio > 1 && hRatio > 1 -> max(wRatio, hRatio)
+            wRatio > 1 -> wRatio
+            hRatio > 1  -> hRatio
+            else -> 1
+        }
     }
 
     /** 从path中获取Bitmap图片
@@ -52,13 +72,17 @@ object BitmapUtils {
      */
     @Throws(IOException::class)
     fun decodeBitmap(path: String): Bitmap {
-        val opts = BitmapFactory.Options()
-        val ips = FileInputStream(path)
-        opts.inJustDecodeBounds = true
-        BitmapFactory.decodeFileDescriptor(ips.fd, null, opts)
-        opts.inSampleSize = computeSampleSize(opts, -1, 128 * 128)
-        opts.inJustDecodeBounds = false
-        return BitmapFactory.decodeFileDescriptor(ips.fd, null, opts)
+        val fis = FileInputStream(path)
+        return fis.use {
+            val opts = BitmapFactory.Options()
+            opts.inJustDecodeBounds = true
+
+            BitmapFactory.decodeFileDescriptor(fis.fd, null, opts)
+            opts.inSampleSize = computeSampleSize(opts, -1, 128 * 128)
+            opts.inJustDecodeBounds = false
+            BitmapFactory.decodeFileDescriptor(fis.fd, null, opts)
+        }
+
     }
 
     /**
@@ -70,9 +94,7 @@ object BitmapUtils {
     fun decodeBitmap(context: Context, resId: Int): Bitmap? {
         val opt = BitmapFactory.Options()
         opt.inPreferredConfig = Config.RGB_565
-        //获取资源图片
-        val `is` = context.resources.openRawResource(resId)
-        return BitmapFactory.decodeStream(`is`, null, opt)
+        return BitmapFactory.decodeResource(context.resources, resId, opt)
     }
 
     /**
@@ -83,27 +105,13 @@ object BitmapUtils {
      * @return
      */
     fun decodeBitmap(context: Context, resId: Int, width: Int, height: Int): Bitmap? {
-
-        var inputStream = context.resources.openRawResource(resId)
-
         val op = BitmapFactory.Options()
         // inJustDecodeBounds如果设置为true,仅仅返回图片实际的宽和高,宽和高是赋值给opts.outWidth,opts.outHeight;
         op.inJustDecodeBounds = true
-        BitmapFactory.decodeStream(inputStream, null, op) //获取尺寸信息
-        //获取比例大小
-        val wRatio = ceil((op.outWidth / width).toDouble()).toInt()
-        val hRatio = ceil((op.outHeight / height).toDouble()).toInt()
-        //如果超出指定大小，则缩小相应的比例
-        if (wRatio > 1 && hRatio > 1) {
-            if (wRatio > hRatio) {
-                op.inSampleSize = wRatio
-            } else {
-                op.inSampleSize = hRatio
-            }
-        }
-        inputStream = context.resources.openRawResource(resId)
+        BitmapFactory.decodeResource(context.resources, resId, op) //获取尺寸信息
+        op.inSampleSize = calculateInSampleSize(op, width, height)
         op.inJustDecodeBounds = false
-        return BitmapFactory.decodeStream(inputStream, null, op)
+        return BitmapFactory.decodeResource(context.resources, resId, op)
     }
 
     /**
@@ -122,31 +130,16 @@ object BitmapUtils {
         height: Int
     ): Bitmap? {
         var inputStream = context.assets.open(fileNameInAssets)
-        val op = BitmapFactory.Options()
-        // inJustDecodeBounds如果设置为true,仅仅返回图片实际的宽和高,宽和高是赋值给opts.outWidth,opts.outHeight;
-        op.inJustDecodeBounds = true
-        BitmapFactory.decodeStream(inputStream, null, op) //获取尺寸信息
-        //获取比例大小
-        val wRatio = ceil((op.outWidth / width).toDouble()).toInt()
-        val hRatio = ceil((op.outHeight / height).toDouble()).toInt()
-        //如果超出指定大小，则缩小相应的比例
-        if (wRatio > 1 && hRatio > 1) {
-            if (wRatio > hRatio) {
-                op.inSampleSize = wRatio
-            } else {
-                op.inSampleSize = hRatio
-            }
+        return inputStream.use {
+            val op = BitmapFactory.Options()
+            // inJustDecodeBounds如果设置为true,仅仅返回图片实际的宽和高,宽和高是赋值给opts.outWidth,opts.outHeight;
+            op.inJustDecodeBounds = true
+            BitmapFactory.decodeStream(inputStream, null, op) //获取尺寸信息
+            op.inSampleSize = calculateInSampleSize(op, width, height)
+            inputStream = context.assets.open(fileNameInAssets)
+            op.inJustDecodeBounds = false
+            BitmapFactory.decodeStream(inputStream, null, op)
         }
-        inputStream = context.assets.open(fileNameInAssets)
-        op.inJustDecodeBounds = false
-        return BitmapFactory.decodeStream(inputStream, null, op)
-    }
-
-    //图片不被压缩
-    fun convertViewToBitmap(view: View, bitmapWidth: Int, bitmapHeight: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Config.ARGB_8888)
-        view.draw(Canvas(bitmap))
-        return bitmap
     }
 
     /**

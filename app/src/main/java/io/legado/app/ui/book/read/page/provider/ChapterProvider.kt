@@ -101,7 +101,7 @@ object ChapterProvider {
     /**
      * 获取拆分完的章节数据
      */
-    fun getTextChapter(
+    suspend fun getTextChapter(
         book: Book,
         bookChapter: BookChapter,
         displayTitle: String,
@@ -136,7 +136,6 @@ object ChapterProvider {
                 while (matcher.find()) {
                     matcher.group(1)?.let { src ->
                         srcList.add(src)
-                        ImageProvider.getImage(book, src, ReadBook.bookSource)
                         matcher.appendReplacement(sb, srcReplaceChar)
                     }
                 }
@@ -200,7 +199,7 @@ object ChapterProvider {
         )
     }
 
-    private fun setTypeImage(
+    private suspend fun setTypeImage(
         book: Book,
         src: String,
         x: Int,
@@ -209,22 +208,23 @@ object ChapterProvider {
         imageStyle: String?,
     ): Float {
         var durY = y
-        ImageProvider.getImage(book, src, ReadBook.bookSource)?.let {
+        val size = ImageProvider.getImageSize(book, src, ReadBook.bookSource)
+        if (size.width > 0 && size.height > 0) {
             if (durY > visibleHeight) {
                 textPages.last().height = durY
                 textPages.add(TextPage())
                 durY = 0f
             }
-            var height = it.height
-            var width = it.width
+            var height = size.height
+            var width = size.width
             when (imageStyle?.toUpperCase(Locale.ROOT)) {
                 Book.imgStyleFull -> {
                     width = visibleWidth
-                    height = it.height * visibleWidth / it.width
+                    height = size.height * visibleWidth / size.width
                 }
                 else -> {
-                    if (it.width > visibleWidth) {
-                        height = it.height * visibleWidth / it.width
+                    if (size.width > visibleWidth) {
+                        height = size.height * visibleWidth / size.width
                         width = visibleWidth
                     }
                     if (height > visibleHeight) {
@@ -621,8 +621,8 @@ object ChapterProvider {
      */
     fun upLayout() {
         doublePage = (viewWidth > viewHeight || appCtx.isPad)
-                && ReadBook.pageAnim() != 3
-                && AppConfig.doublePageHorizontal
+            && ReadBook.pageAnim() != 3
+            && AppConfig.doublePageHorizontal
         if (viewWidth > 0 && viewHeight > 0) {
             paddingLeft = ReadBookConfig.paddingLeft.dpToPx()
             paddingTop = ReadBookConfig.paddingTop.dpToPx()
