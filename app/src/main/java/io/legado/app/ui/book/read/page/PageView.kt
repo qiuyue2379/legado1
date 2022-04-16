@@ -260,9 +260,16 @@ class PageView(context: Context) : FrameLayout(context) {
         binding.contentTextView.selectAble = selectAble
     }
 
+    fun longPress(
+        x: Float, y: Float,
+        select: (relativePagePos: Int, lineIndex: Int, charIndex: Int) -> Unit,
+    ) {
+        return binding.contentTextView.longPress(x, y - headerHeight, select)
+    }
+
     fun selectText(
         x: Float, y: Float,
-        select: (relativePage: Int, lineIndex: Int, charIndex: Int) -> Unit,
+        select: (relativePagePos: Int, lineIndex: Int, charIndex: Int) -> Unit,
     ) {
         return binding.contentTextView.selectText(x, y - headerHeight, select)
     }
@@ -271,16 +278,16 @@ class PageView(context: Context) : FrameLayout(context) {
         binding.contentTextView.selectStartMove(x, y - headerHeight)
     }
 
-    fun selectStartMoveIndex(relativePage: Int, lineIndex: Int, charIndex: Int) {
-        binding.contentTextView.selectStartMoveIndex(relativePage, lineIndex, charIndex)
+    fun selectStartMoveIndex(relativePagePos: Int, lineIndex: Int, charIndex: Int) {
+        binding.contentTextView.selectStartMoveIndex(relativePagePos, lineIndex, charIndex)
     }
 
     fun selectEndMove(x: Float, y: Float) {
         binding.contentTextView.selectEndMove(x, y - headerHeight)
     }
 
-    fun selectEndMoveIndex(relativePage: Int, lineIndex: Int, charIndex: Int) {
-        binding.contentTextView.selectEndMoveIndex(relativePage, lineIndex, charIndex)
+    fun selectEndMoveIndex(relativePagePos: Int, lineIndex: Int, charIndex: Int) {
+        binding.contentTextView.selectEndMoveIndex(relativePagePos, lineIndex, charIndex)
     }
 
     fun cancelSelect() {
@@ -291,8 +298,8 @@ class PageView(context: Context) : FrameLayout(context) {
         return binding.contentTextView.createBookmark()
     }
 
-    fun relativePage(relativePos: Int): TextPage {
-        return binding.contentTextView.relativePage(relativePos)
+    fun relativePage(relativePagePos: Int): TextPage {
+        return binding.contentTextView.relativePage(relativePagePos)
     }
 
     val selectedText: String get() = binding.contentTextView.getSelectedText()
