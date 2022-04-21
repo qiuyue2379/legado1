@@ -28,7 +28,7 @@ class ReplaceRuleViewModel(application: Application) : BaseViewModel(application
         }
     }
 
-    fun topSelect(rules: LinkedHashSet<ReplaceRule>) {
+    fun topSelect(rules: List<ReplaceRule>) {
         execute {
             var minOrder = appDb.replaceRuleDao.minOrder - rules.size
             rules.forEach {
@@ -45,7 +45,7 @@ class ReplaceRuleViewModel(application: Application) : BaseViewModel(application
         }
     }
 
-    fun bottomSelect(rules: LinkedHashSet<ReplaceRule>) {
+    fun bottomSelect(rules: List<ReplaceRule>) {
         execute {
             var maxOrder = appDb.replaceRuleDao.maxOrder
             rules.forEach {
@@ -65,27 +65,25 @@ class ReplaceRuleViewModel(application: Application) : BaseViewModel(application
         }
     }
 
-    fun enableSelection(rules: LinkedHashSet<ReplaceRule>) {
+    fun enableSelection(rules: List<ReplaceRule>) {
         execute {
-            val list = arrayListOf<ReplaceRule>()
-            rules.forEach {
-                list.add(it.copy(isEnabled = true))
+            val array = Array(rules.size) {
+                rules[it].copy(isEnabled = true)
             }
-            appDb.replaceRuleDao.update(*list.toTypedArray())
+            appDb.replaceRuleDao.update(*array)
         }
     }
 
-    fun disableSelection(rules: LinkedHashSet<ReplaceRule>) {
+    fun disableSelection(rules: List<ReplaceRule>) {
         execute {
-            val list = arrayListOf<ReplaceRule>()
-            rules.forEach {
-                list.add(it.copy(isEnabled = false))
+            val array = Array(rules.size) {
+                rules[it].copy(isEnabled = false)
             }
-            appDb.replaceRuleDao.update(*list.toTypedArray())
+            appDb.replaceRuleDao.update(*array)
         }
     }
 
-    fun delSelection(rules: LinkedHashSet<ReplaceRule>) {
+    fun delSelection(rules: List<ReplaceRule>) {
         execute {
             appDb.replaceRuleDao.delete(*rules.toTypedArray())
         }
