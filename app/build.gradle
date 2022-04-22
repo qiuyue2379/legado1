@@ -181,7 +181,7 @@ dependencies {
     //implementation 'com.google.firebase:firebase-analytics-ktx'
 
     //media
-    implementation("androidx.media:media:1.5.0")
+    implementation("androidx.media:media:1.6.0")
     def exoplayer_version = '2.17.1'
     implementation("com.google.android.exoplayer:exoplayer-core:$exoplayer_version")
     implementation("com.google.android.exoplayer:extension-okhttp:$exoplayer_version")
@@ -209,11 +209,12 @@ dependencies {
     implementation(project(path: ':epublib'))
 
     //JS rhino
-    implementation('com.github.gedoor:rhino-android:1.8')
+    //implementation('com.github.gedoor:rhino-android:1.8')
+    implementation(fileTree(dir: 'lib', include: ['*.jar', '*.aar']))
 
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.9.3')
-    implementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
+    implementation(fileTree(dir: 'lib', include: ['rhino-*.jar']))
 
     //Glide
     def glideVersion = "4.13.1"
