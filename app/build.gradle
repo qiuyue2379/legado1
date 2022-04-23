@@ -137,8 +137,10 @@ dependencies {
     androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0')
     implementation('androidx.multidex:multidex:2.0.1')
     //kotlin
+    //noinspection GradleDependency
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     //Kotlin反射
+    //noinspection GradleDependency
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     //协程
     def coroutines_version = '1.6.1-native-mt'
@@ -156,6 +158,7 @@ dependencies {
     implementation('androidx.viewpager2:viewpager2:1.0.0')
     implementation('androidx.webkit:webkit:1.4.0')
 
+    //google
     implementation('com.google.android.material:material:1.5.0')
     implementation('com.google.android.flexbox:flexbox:3.0.0')
     implementation('com.google.code.gson:gson:2.9.0')
@@ -186,7 +189,7 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer-core:$exoplayer_version")
     implementation("com.google.android.exoplayer:extension-okhttp:$exoplayer_version")
 
-    //Splittiesz
+    //Splitties
     def splitties_version = '3.0.0'
     implementation("com.louiscad.splitties:splitties-appctx:$splitties_version")
     implementation("com.louiscad.splitties:splitties-systemservices:$splitties_version")
@@ -210,11 +213,11 @@ dependencies {
 
     //JS rhino
     //implementation('com.github.gedoor:rhino-android:1.8')
-    implementation(fileTree(dir: 'lib', include: ['*.jar', '*.aar']))
+    implementation(fileTree(dir: 'lib', include: ['rhino-*.jar']))
 
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.9.3')
-    implementation(fileTree(dir: 'lib', include: ['rhino-*.jar']))
+    implementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
 
     //Glide
     def glideVersion = "4.13.1"
@@ -255,6 +258,6 @@ dependencies {
     //epubLib集成到应用内
 
     // LeakCanary
-    //debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+    //debugImplementation('com.squareup.leakcanary:leakcanary-android:2.7')
 
 }
