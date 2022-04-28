@@ -3,7 +3,6 @@ package io.legado.app.help.storage
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import io.legado.app.R
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
@@ -57,8 +56,7 @@ object Backup {
                     context.putPrefLong(PreferKey.lastBackup, System.currentTimeMillis())
                 }
             }.onError {
-                AppLog.put("备份出错\n${it.localizedMessage}", it)
-                appCtx.toastOnUi(appCtx.getString(R.string.autobackup_fail, it.localizedMessage))
+                AppLog.put("自动备份失败\n${it.localizedMessage}")
             }
         }
     }
@@ -107,7 +105,6 @@ object Backup {
                 }
                 edit.commit()
             }
-            AppWebDav.backUpWebDav(backupPath)
             when {
                 path.isNullOrBlank() -> {
                     copyBackup(context.getExternalFilesDir(null)!!, false)
@@ -119,6 +116,7 @@ object Backup {
                     copyBackup(File(path), isAuto)
                 }
             }
+            AppWebDav.backUpWebDav(backupPath)
         }
     }
 

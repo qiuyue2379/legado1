@@ -2,6 +2,7 @@ package io.legado.app.help.storage
 
 import android.content.Context
 import io.legado.app.R
+import io.legado.app.constant.AppLog
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
@@ -12,6 +13,7 @@ import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.webdav.Authorization
 import io.legado.app.lib.webdav.WebDav
+import io.legado.app.lib.webdav.WebDavException
 import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -78,8 +80,12 @@ object AppWebDav {
     }
 
     @Throws(Exception::class)
-    private suspend fun getWebDavFileNames(): ArrayList<String> {
-        val url = rootWebDavUrl
+    private suspend fun getWebDavFileNames(relativePath: String? = null): ArrayList<String> {
+        val url = if (relativePath == null) {
+            rootWebDavUrl
+        } else {
+            NetworkUtils.getAbsoluteURL(rootWebDavUrl, relativePath)
+        }
         val names = arrayListOf<String>()
         authorization?.let {
             var files = WebDav(url, it).listFiles()
@@ -106,7 +112,7 @@ object AppWebDav {
                         Coroutine.async {
                             restoreWebDav(names[index])
                         }.onError {
-                            appCtx.toastOnUi("WebDavError:${it.localizedMessage}")
+                            appCtx.toastOnUi("WebDav恢复出错\n${it.localizedMessage}")
                         }
                     }
                 }
@@ -116,6 +122,7 @@ object AppWebDav {
         }
     }
 
+    @Throws(WebDavException::class)
     private suspend fun restoreWebDav(name: String) {
         authorization?.let {
             val webDav = WebDav(rootWebDavUrl + name, it)
@@ -135,22 +142,19 @@ object AppWebDav {
         return false
     }
 
+    @Throws(Exception::class)
     suspend fun backUpWebDav(path: String) {
         if (!NetworkUtils.isAvailable()) return
-        try {
-            authorization?.let {
-                val paths = arrayListOf(*Backup.backupFileNames)
-                for (i in 0 until paths.size) {
-                    paths[i] = path + File.separator + paths[i]
-                }
-                FileUtils.delete(zipFilePath)
-                if (ZipUtils.zipFiles(paths, zipFilePath)) {
-                    val putUrl = "${rootWebDavUrl}${backupFileName}"
-                    WebDav(putUrl, it).upload(zipFilePath)
-                }
+        authorization?.let {
+            val paths = arrayListOf(*Backup.backupFileNames)
+            for (i in 0 until paths.size) {
+                paths[i] = path + File.separator + paths[i]
             }
-        } catch (e: Exception) {
-            appCtx.toastOnUi("WebDav\n${e.localizedMessage}")
+            FileUtils.delete(zipFilePath)
+            if (ZipUtils.zipFiles(paths, zipFilePath)) {
+                val putUrl = "${rootWebDavUrl}${backupFileName}"
+                WebDav(putUrl, it).upload(zipFilePath)
+            }
         }
     }
 
@@ -163,7 +167,9 @@ object AppWebDav {
                 WebDav(putUrl, it).upload(byteArray, "text/plain")
             }
         } catch (e: Exception) {
-            appCtx.toastOnUi("WebDav导出\n${e.localizedMessage}")
+            val msg = "WebDav导出\n${e.localizedMessage}"
+            AppLog.put(msg)
+            appCtx.toastOnUi(msg)
         }
     }
 
@@ -176,6 +182,8 @@ object AppWebDav {
             val json = GSON.toJson(bookProgress)
             val url = getProgressUrl(book)
             WebDav(url, authorization).upload(json.toByteArray(), "application/json")
+        }.onError {
+            AppLog.put("上传进度失败\n${it.localizedMessage}")
         }
     }
 
@@ -189,10 +197,12 @@ object AppWebDav {
     suspend fun getBookProgress(book: Book): BookProgress? {
         authorization?.let {
             val url = getProgressUrl(book)
-            WebDav(url, it).download()?.let { byteArray ->
-                val json = String(byteArray)
-                if (json.isJson()) {
-                    return GSON.fromJsonObject<BookProgress>(json).getOrNull()
+            kotlin.runCatching {
+                WebDav(url, it).download().let { byteArray ->
+                    val json = String(byteArray)
+                    if (json.isJson()) {
+                        return GSON.fromJsonObject<BookProgress>(json).getOrNull()
+                    }
                 }
             }
         }
