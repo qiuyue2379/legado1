@@ -163,7 +163,6 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
         lineTop: Float,
         lineBottom: Float
     ) {
-
         canvas.drawFilter =
             PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
         val book = ReadBook.book ?: return
@@ -439,7 +438,7 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                 return book.createBookMark().apply {
                     chapterIndex = page.chapterIndex
                     chapterPos = chapter.getReadLength(page.index) +
-                        page.getSelectStartLength(selectStart.lineIndex, selectStart.charIndex)
+                            page.getSelectStartLength(selectStart.lineIndex, selectStart.charIndex)
                     chapterName = chapter.title
                     bookText = getSelectedText()
                 }
