@@ -150,9 +150,9 @@ interface JsExtensions {
     /**
      * 打开图片验证码对话框，等待返回验证结果
      */
-    fun getVerificationCode(imageUrl: String): String {
-        return SourceVerificationHelp.getVerificationResult(getSource(), imageUrl, "", false)
-    }
+     fun getVerificationCode(imageUrl: String): String {
+         return SourceVerificationHelp.getVerificationResult(getSource(), imageUrl, "", false)
+     }
 
     /**
      * 可从网络，本地文件(阅读私有缓存目录和书籍保存位置支持相对路径)导入JavaScript脚本
@@ -567,14 +567,14 @@ interface JsExtensions {
      * 弹窗提示
      */
     fun toast(msg: Any?) {
-        appCtx.toastOnUi(msg.toString())
+        appCtx.toastOnUi("${getSource()?.getTag()}: ${msg.toString()}")
     }
 
     /**
      * 弹窗提示 停留时间较长
      */
     fun longToast(msg: Any?) {
-        appCtx.longToastOnUi(msg.toString())
+        appCtx.longToastOnUi("${getSource()?.getTag()}: ${msg.toString()}")
     }
 
     /**

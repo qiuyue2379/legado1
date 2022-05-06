@@ -12,7 +12,7 @@ import splitties.init.appCtx
 
 object SourceVerificationHelp {
 
-    /**
+    /** 
      * 获取书源验证结果
      * 图片验证码 防爬 滑动验证码 点击字符 等等
      */
@@ -43,12 +43,12 @@ object SourceVerificationHelp {
                     throw NoStackTraceException("验证结果为空")
                 }
             }
-        }
+       }
     }
 
     /**
      * 启动内置浏览器
-    @param saveResult 保存网页源代码到数据库
+      @param saveResult 保存网页源代码到数据库
      */
     fun startBrowser(source: BaseSource?, url: String, title: String, saveResult: Boolean? = false) {
         source ?: throw NoStackTraceException("startBrowser parameter source cannot be null")
