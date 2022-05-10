@@ -161,7 +161,7 @@ class CheckSourceService : BaseService() {
                     }
                 }
                 if (url.isNullOrBlank()) {
-                    source.addGroup("发现规则为空")
+                   source.addGroup("发现规则为空")
                 } else {
                     source.removeGroup("发现规则为空")
                     val exploreBooks = WebBook.exploreBookAwait(this, source, url)

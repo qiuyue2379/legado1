@@ -86,7 +86,7 @@ class VerificationCodeDialog() : BaseDialogFragment(R.layout.dialog_verification
                     CacheManager.putMemory(key, it)
                     dismiss()
                 }
-            }
+           }
         }
         return false
     }

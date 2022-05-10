@@ -46,7 +46,7 @@
     <string name="recent_reading">Recent reading</string>
     <string name="last_read">Last reading</string>
     <string name="update_log">What\'s new</string>
-    <string name="bookshelf_empty">The bookshelf is still empty. Search for books or add them from discovery! \n if you use it for the first time, please pay attention to the public account [开源阅读] to get the book source!</string>
+    <string name="bookshelf_empty">The bookshelf is still empty. Search for books or add them from discovery!</string>
     <string name="action_search">Search</string>
     <string name="action_download">Download</string>
     <string name="layout_list">List</string>
@@ -261,7 +261,6 @@
     <string name="text_bg_style">Color and background (long tap to customize)</string>
     <string name="immersion_status_bar">Immersive status bar</string>
     <string name="un_download">%d chapter(s) left</string>
-    <string name="non_select">No selected</string>
     <string name="long_click_input_color">Long tap to input color value</string>
     <string name="loading">Loading…</string>
     <string name="group_zg">Awaiting</string>
@@ -484,7 +483,7 @@
     <string name="night_theme">Night Theme</string>
     <string name="eink_theme">E-Ink</string>
     <string name="eink_theme_desc">Optimization for E-ink devices</string>
-    <string name="get_storage_per">This software requires storage permission to store the book information to be backed up</string>
+    <string name="get_storage_per">requires storage permission</string>
     <string name="double_click_exit">Tap again to exit the program</string>
     <string name="import_book_per">Import local books requires storage permission</string>
     <string name="network_connection_unavailable">Network connection is not available</string>
@@ -641,7 +640,7 @@
     <string name="a10_permission_toast">Android 10+ unable to read and write file due to permission restrictions</string>
     <string name="add_to_text_context_menu_s">Long tap to display Legado·Search in the operation menu</string>
     <string name="add_to_text_context_menu_t">Text operation display Search</string>
-    <string name="record_log">Log</string>
+    <string name="record_log">Record log</string>
     <string name="log">Log</string>
     <string name="chinese_converter">Simplified conversion</string>
     <string name="change_icon_error">The icon is a vector icon, which was not supported before Android 8.0</string>
@@ -781,8 +780,8 @@
     <string name="sort_by_lastUpdateTime">Sort by update time</string>
     <string name="sort_by_respondTime">Sort by respond time</string>
     <string name="search_content">Search content</string>
-    <string name="rss_source_empty">Follow Wechat official account [开源阅读] to get Subscription source</string>
-    <string name="explore_empty">Empty now,Follow Wechat official account [开源阅读] to get Discovery source</string>
+    <string name="rss_source_empty">Empty now!</string>
+    <string name="explore_empty">Empty now!</string>
     <string name="page_key_set_help">将焦点放到输入框按下物理按键会自动录入键值,多个按键会自动用英文逗号隔开.</string>
     <string name="theme_name">Theme name</string>
     <string name="auto_clear_expired">"Clear expired search histories automatically "</string>
@@ -870,9 +869,9 @@
     <string name="check_source_show_debug_message">Check book source shows debug message</string>
     <string name="check_source_show_debug_message_summary">Show network status and timestamp during source checking</string>
     <string name="need_login">need login</string>
+    <string name="pref_cronet_summary">use Cronet access network</string>
     <string name="anti_alias">Anti-Aliasing</string>
     <string name="pref_anti_alias_summary">Anti-Aliasing when draw picture</string>
-    <string name="pref_cronet_summary">use Cronet access network</string>
     <string name="upload_url">upload url</string>
     <string name="download_url_rule">下载URL规则</string>
     <string name="export_success">export success</string>
@@ -903,7 +902,6 @@
     <string name="double_page_horizontal">平板/横屏双页</string>
     <string name="open_in_browser">open in browser</string>
     <string name="copy_url">copy url</string>
-    <string name="search_content_empty">搜索結果为空</string>
     <string name="open_fun">open function</string>
     <string name="use_browser_open">是否使用外部浏览器打开?</string>
     <string name="see">see</string>
@@ -914,6 +912,7 @@
     <string name="font_scale">font scale</string>
     <string name="font_scale_summary">font scale:%.1f</string>
     <string name="search_content_size">search result</string>
+    <string name="search_content_empty">search result is empty</string>
     <string name="tts_speech_reduce">语速减</string>
     <string name="tts_speech_add">语速加</string>
     <string name="open_sys_dir_picker_error">打开系统文件夹选择器出错,自动打开应用文件夹选择器</string>
@@ -922,8 +921,8 @@
     <string name="book_tree_uri_t">书籍保存位置</string>
     <string name="book_tree_uri_s">从其它应用打开的书籍保存位置</string>
     <string name="select_book_folder">选择保存书籍的文件夹</string>
-    <string name="user_agent">用户代理</string>
-    <string name="bg_alpha">背景透明度</string>
+    <string name="user_agent">User agent</string>
+    <string name="bg_alpha">Background alpha</string>
 
     <!-- check source config string -->
     <string name="check_source_config">校验设置</string>
@@ -933,23 +932,25 @@
     <string name="seconds">秒</string>
     <string name="less_than">小于</string>
     <string name="check_source_config_summary">校验超时: %1$s秒\n校验项目:%2$s</string>
-    <string name="record_debug_log">记录调试日志</string>
-    <string name="sub_dir">子文件夹</string>
-    <string name="general">全局</string>
-    <string name="use_replace">使用替换</string>
+    <string name="record_debug_log">Record debug log</string>
+    <string name="sub_dir">Sub dir</string>
+    <string name="general">General</string>
+    <string name="use_replace">Use replace</string>
     <string name="scope_title">作用于标题</string>
     <string name="scope_content">作用于正文</string>
+    <string name="join_qq_channel">Join QQ channel</string>
+    <string name="qq_channel_summary">点击加入阅读QQ频道</string>
     <string name="menu_refresh_dur">刷新当前章节</string>
     <string name="menu_refresh_after">刷新之后章节</string>
     <string name="menu_refresh_all">刷新全部章节</string>
-    <string name="edit_content">编辑内容</string>
+    <string name="edit_content">Edit Content</string>
     <string name="chapter_change_source">单章换源</string>
     <string name="book_change_source">整书换源</string>
-    <string name="sort_by_time">时间排序</string>
+    <string name="sort_by_time">Sort by time</string>
     <string name="enable_record">开启记录</string>
     <string name="copy_all">拷贝所有</string>
     <string name="auto_complete">自动补全</string>
-    <string name="sort_by_size">大小排序</string>
+    <string name="sort_by_size">Sort by size</string>
     <string name="welcome_style">启动界面样式</string>
     <string name="welcome_style_summary">启动界面图片和是否显示文字等</string>
     <string name="show_welcome_text">显示文字</string>
@@ -976,6 +977,9 @@
     <string name="input_verification_code">输入验证码</string>
     <string name="verification_code">验证码</string>
     <string name="timeout_millisecond">超时毫秒数</string>
+    <string name="file_not_supported">Continue to open although %1$s is not supported ?</string>
+    <string name="import_tts">导入TTS</string>
+    <string name="import_theme">导入主题</string>
+    <string name="import_txt_toc_rule">导入txt目录规则</string>
     <!-- string end -->
-
 </resources>

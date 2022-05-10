@@ -12,7 +12,7 @@ import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
 import io.legado.app.base.adapter.ItemViewHolder
 import io.legado.app.base.adapter.RecyclerAdapter
-import io.legado.app.data.entities.HttpTTS
+import io.legado.app.data.entities.TxtTocRule
 import io.legado.app.databinding.DialogRecyclerViewBinding
 import io.legado.app.databinding.ItemSourceImportBinding
 import io.legado.app.lib.theme.primaryColor
@@ -25,7 +25,7 @@ import io.legado.app.utils.viewbindingdelegate.viewBinding
 import io.legado.app.utils.visible
 import splitties.views.onClick
 
-class ImportHttpTtsDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) {
+class ImportTxtTocRuleDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) {
 
     constructor(source: String, finishOnDismiss: Boolean = false) : this() {
         arguments = Bundle().apply {
@@ -35,7 +35,7 @@ class ImportHttpTtsDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) 
     }
 
     private val binding by viewBinding(DialogRecyclerViewBinding::bind)
-    private val viewModel by viewModels<ImportHttpTtsViewModel>()
+    private val viewModel by viewModels<ImportTxtTocRuleViewModel>()
     private val adapter by lazy { SourcesAdapter(requireContext()) }
 
     override fun onStart() {
@@ -53,7 +53,7 @@ class ImportHttpTtsDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) 
     @SuppressLint("NotifyDataSetChanged")
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
         binding.toolBar.setBackgroundColor(primaryColor)
-        binding.toolBar.setTitle(R.string.import_tts)
+        binding.toolBar.setTitle(R.string.import_txt_toc_rule)
         binding.rotateLoading.show()
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
@@ -125,7 +125,7 @@ class ImportHttpTtsDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) 
     }
 
     inner class SourcesAdapter(context: Context) :
-        RecyclerAdapter<HttpTTS, ItemSourceImportBinding>(context) {
+        RecyclerAdapter<TxtTocRule, ItemSourceImportBinding>(context) {
 
         override fun getViewBinding(parent: ViewGroup): ItemSourceImportBinding {
             return ItemSourceImportBinding.inflate(inflater, parent, false)
@@ -134,7 +134,7 @@ class ImportHttpTtsDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) 
         override fun convert(
             holder: ItemViewHolder,
             binding: ItemSourceImportBinding,
-            item: HttpTTS,
+            item: TxtTocRule,
             payloads: MutableList<Any>
         ) {
             binding.apply {
@@ -143,7 +143,7 @@ class ImportHttpTtsDialog() : BaseDialogFragment(R.layout.dialog_recycler_view) 
                 val localSource = viewModel.checkSources[holder.layoutPosition]
                 tvSourceState.text = when {
                     localSource == null -> "新增"
-                    item.lastUpdateTime > localSource.lastUpdateTime -> "更新"
+                    item != localSource -> "更新"
                     else -> "已有"
                 }
             }

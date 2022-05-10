@@ -34,6 +34,12 @@ class OnLineImportActivity :
                 "httpTts" -> showDialogFragment(
                     ImportHttpTtsDialog(it.second, true)
                 )
+                "theme" -> showDialogFragment(
+                    ImportThemeDialog(it.second, true)
+                )
+                "txtRule" -> showDialogFragment(
+                    ImportTxtTocRuleDialog(it.second, true)
+                )
             }
         }
         viewModel.errorLive.observe(this) {
@@ -55,15 +61,15 @@ class OnLineImportActivity :
                 "/replaceRule" -> showDialogFragment(
                     ImportReplaceRuleDialog(url, true)
                 )
-                "/textTocRule" -> viewModel.getText(url) { json ->
-                    viewModel.importTextTocRule(json, this::finallyDialog)
-                }
+                "/textTocRule" -> showDialogFragment(
+                    ImportTxtTocRuleDialog(url, true)
+                )
                 "/httpTTS" -> showDialogFragment(
                     ImportHttpTtsDialog(url, true)
                 )
-                "/theme" -> viewModel.getText(url) { json ->
-                    viewModel.importTheme(json, this::finallyDialog)
-                }
+                "/theme" -> showDialogFragment(
+                    ImportThemeDialog(url, true)
+                )
                 "/readConfig" -> viewModel.getBytes(url) { bytes ->
                     viewModel.importReadConfig(bytes, this::finallyDialog)
                 }
