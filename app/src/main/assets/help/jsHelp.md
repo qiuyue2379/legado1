@@ -55,6 +55,7 @@ java.ajax(urlStr): String
 java.ajaxAll(urlList: Array<String>): Array<StrResponse?>
 //返回Response 方法body() code() message() header() raw() toString() 
 java.connect(urlStr): Response<String>
+
 * 使用webView访问网络
 * @param html 直接用webView载入的html, 如果html为空直接访问url
 * @param url html内如果有相对路径的资源不传入url访问不了
