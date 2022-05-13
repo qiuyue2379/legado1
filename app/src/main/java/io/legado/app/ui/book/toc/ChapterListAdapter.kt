@@ -56,11 +56,6 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
 
         }
 
-    private val replaceRules
-        get() = callback.book?.let {
-            ContentProcessor.get(it.name, it.origin).getTitleReplaceRules()
-        }
-    private var useReplace = AppConfig.tocUiUseReplace && callback.book?.getUseReplaceRule() == true
     private var upDisplayTileJob: Coroutine<*>? = null
 
     override fun onCurrentListChanged() {
@@ -69,16 +64,16 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
     }
 
     fun clearDisplayTitle() {
-        useReplace = AppConfig.tocUiUseReplace && callback.book?.getUseReplaceRule() == true
         upDisplayTileJob?.cancel()
         displayTitleMap.clear()
     }
 
-    fun upDisplayTitle(startIndex: Int) {
+    fun upDisplayTitles(startIndex: Int) {
         upDisplayTileJob?.cancel()
         upDisplayTileJob = Coroutine.async(callback.scope) {
-            val replaceRules = replaceRules
-            val useReplace = useReplace
+            val book = callback.book ?: return@async
+            val replaceRules = ContentProcessor.get(book.name, book.origin).getTitleReplaceRules()
+            val useReplace = AppConfig.tocUiUseReplace && book.getUseReplaceRule()
             val items = getItems()
             async {
                 for (i in startIndex until items.size) {

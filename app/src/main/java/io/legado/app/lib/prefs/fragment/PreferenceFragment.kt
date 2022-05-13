@@ -59,5 +59,4 @@ abstract class PreferenceFragment : PreferenceFragmentCompat() {
         dialogFragment.show(parentFragmentManager, dialogFragmentTag)
     }
 
-
 }
