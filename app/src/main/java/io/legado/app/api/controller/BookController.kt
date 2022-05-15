@@ -1,11 +1,11 @@
 package io.legado.app.api.controller
 
-import android.net.Uri
 import androidx.core.graphics.drawable.toBitmap
 import io.legado.app.api.ReturnData
 import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
+import io.legado.app.data.entities.BookProgress
 import io.legado.app.data.entities.BookSource
 import io.legado.app.help.BookHelp
 import io.legado.app.help.CacheManager
@@ -14,16 +14,13 @@ import io.legado.app.help.glide.ImageLoader
 import io.legado.app.help.storage.AppWebDav
 import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
-import io.legado.app.model.localBook.EpubFile
 import io.legado.app.model.localBook.LocalBook
-import io.legado.app.model.localBook.UmdFile
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.ui.book.read.page.provider.ImageProvider
 import io.legado.app.utils.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import splitties.init.appCtx
-import java.io.File
 
 object BookController {
 
@@ -173,7 +170,6 @@ object BookController {
         var content: String? = BookHelp.getContent(book, chapter)
         if (content != null) {
             val contentProcessor = ContentProcessor.get(book.name, book.origin)
-            saveBookReadIndex(book, index)
             content = runBlocking {
                 contentProcessor.getContent(book, chapter, content!!, includeTitle = false)
                     .joinToString("\n")
@@ -186,7 +182,6 @@ object BookController {
             content = runBlocking {
                 WebBook.getContentAwait(this, bookSource, book, chapter).let {
                     val contentProcessor = ContentProcessor.get(book.name, book.origin)
-                    saveBookReadIndex(book, index)
                     contentProcessor.getContent(book, chapter, it, includeTitle = false)
                         .joinToString("\n")
                 }
@@ -218,20 +213,22 @@ object BookController {
     /**
      * 保存进度
      */
-    private fun saveBookReadIndex(book: Book, index: Int) {
-        book.durChapterIndex = index
-        book.durChapterTime = System.currentTimeMillis()
-        appDb.bookChapterDao.getChapter(book.bookUrl, index)?.let {
-            book.durChapterTitle = it.title
+    fun saveBookProgress(postData: String?): ReturnData {
+        val returnData = ReturnData()
+        GSON.fromJsonObject<BookProgress>(postData).getOrNull()?.let { bookProgress ->
+            appDb.bookDao.getBook(bookProgress.name, bookProgress.author)?.let { book ->
+                book.durChapterIndex = bookProgress.durChapterIndex
+                book.durChapterPos = bookProgress.durChapterPos
+                appDb.bookDao.update(book)
+                AppWebDav.uploadBookProgress(bookProgress)
+                if (ReadBook.book?.bookUrl == book.bookUrl) {
+                    ReadBook.book = book
+                    ReadBook.durChapterIndex = book.durChapterIndex
+                }
+                return returnData.setData("")
+            }
         }
-        appDb.bookDao.update(book)
-        AppWebDav.uploadBookProgress(book)
-        if (ReadBook.book?.bookUrl == book.bookUrl) {
-            ReadBook.book = book
-            ReadBook.durChapterIndex = index
-            ReadBook.clearTextChapter()
-            ReadBook.loadContent(true)
-        }
+        return returnData.setErrorMsg("格式不对")
     }
 
     /**
@@ -244,7 +241,7 @@ object BookController {
         val fileData = parameters["fileData"]?.firstOrNull()
             ?: return returnData.setErrorMsg("fileData 不能为空")
         kotlin.runCatching {
-           LocalBook.importFile(fileData, fileName)
+            LocalBook.importFileOnLine(fileData, fileName)
         }.onFailure {
             return when (it) {
                 is SecurityException -> returnData.setErrorMsg("需重新设置书籍保存位置!")
