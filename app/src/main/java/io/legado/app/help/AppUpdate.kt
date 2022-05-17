@@ -19,7 +19,7 @@ object AppUpdate {
         callback: (newVersion: String, updateBody: String, url: String, fileName: String) -> Unit
     ) {
         Coroutine.async(scope) {
-            val lastReleaseUrl = appCtx.getString(R.string.latest_release_api)
+            val lastReleaseUrl = "http://qiu-yue.top:86/apk/app/release/output-metadata.json"
             val body = okHttpClient.newCallStrResponse {
                 url(lastReleaseUrl)
             }.body

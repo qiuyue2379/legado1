@@ -50,7 +50,7 @@ class ImportOnLineBookFileViewModel(app: Application) : BaseViewModel(app) {
             errorLiveData.postValue(it.localizedMessage ?: "")
             context.toastOnUi("获取书籍下载链接失败\n${it.localizedMessage}")
         }
-
+        
     }
 
     fun downloadUrl(url: String, fileName: String, success: () -> Unit) {
@@ -71,7 +71,7 @@ class ImportOnLineBookFileViewModel(app: Application) : BaseViewModel(app) {
                 postEvent(EventBus.BOOK_URL_CHANGED, it.bookUrl)
             }
         }.onSuccess {
-            success.invoke()
+           success.invoke()
         }.onError {
             context.toastOnUi("下载书籍文件失败\n${it.localizedMessage}")
         }

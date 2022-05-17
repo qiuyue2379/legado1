@@ -495,5 +495,4 @@ class BookInfoActivity :
             viewModel.changeToLocalBook(it)
         }
     }
-
 }

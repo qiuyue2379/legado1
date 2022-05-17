@@ -16,7 +16,7 @@ def gitCommits = Integer.parseInt('git rev-list HEAD --count'.execute().text.tri
 
 android {
     compileSdkVersion 32
-    buildToolsVersion '31.0.0'
+    buildToolsVersion '32.0.0'
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -32,7 +32,6 @@ android {
                 v2SigningEnabled true
                 enableV3Signing = true
                 enableV4Signing = true
-
             }
         }
     }
@@ -94,7 +93,7 @@ android {
             dimension "mode"
             manifestPlaceholders = [APP_CHANNEL_VALUE: "app"]
         }
-        google{
+        google {
             dimension "mode"
             applicationId "io.legado.play"
             manifestPlaceholders = [APP_CHANNEL_VALUE: "google"]
@@ -118,7 +117,6 @@ android {
     tasks.withType(JavaCompile) {
         //options.compilerArgs << "-Xlint:unchecked"
     }
-
 }
 
 resourcePlaceholders {
@@ -180,9 +178,11 @@ dependencies {
     // UI Tests
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.1.1'
 
-    //firebase 只在google play版本启用,防止没有google组件崩溃
+    //firebase
     //implementation platform('com.google.firebase:firebase-bom:30.0.1')
     //implementation 'com.google.firebase:firebase-analytics-ktx:21.0.0'
+    //implementation platform('com.google.firebase:firebase-bom:30.0.1')
+    //implementation 'com.google.firebase:firebase-perf-ktx:20.0.6'
 
     //media
     implementation("androidx.media:media:1.6.0")
@@ -260,5 +260,4 @@ dependencies {
 
     // LeakCanary
     //debugImplementation('com.squareup.leakcanary:leakcanary-android:2.7')
-
 }

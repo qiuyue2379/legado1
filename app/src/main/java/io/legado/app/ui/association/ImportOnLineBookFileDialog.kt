@@ -67,8 +67,8 @@ class ImportOnLineBookFileDialog() : BaseDialogFragment(R.layout.dialog_recycler
         val waitDialog = WaitDialog(requireContext())
         waitDialog.show()
         viewModel.importOnLineBookFile(url, fileName) {
-            waitDialog.dismiss()
-            dismissAllowingStateLoss()
+           waitDialog.dismiss()
+           dismissAllowingStateLoss()
         }
     }
 
@@ -78,12 +78,12 @@ class ImportOnLineBookFileDialog() : BaseDialogFragment(R.layout.dialog_recycler
         viewModel.downloadUrl(url, fileName) {
             waitDialog.dismiss()
             dismissAllowingStateLoss()
-        }
     }
+}
 
     inner class BookFileAdapter(context: Context) :
         RecyclerAdapter<Triple<String, String, Boolean>
-            , ItemBookFileImportBinding>(context) {
+, ItemBookFileImportBinding>(context) {
 
         override fun getViewBinding(parent: ViewGroup): ItemBookFileImportBinding {
             return ItemBookFileImportBinding.inflate(inflater, parent, false)
