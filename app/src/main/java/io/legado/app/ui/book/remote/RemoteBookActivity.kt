@@ -3,6 +3,7 @@ package io.legado.app.ui.book.remote
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isGone
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
@@ -39,9 +40,10 @@ class RemoteBookActivity : VMBaseActivity<ActivityRemoteBookBinding,RemoteBookVi
         binding.refreshProgressBar.isAutoLoading = true
         launch {
             viewModel.dataFlow.conflate().collect { remoteBooks ->
+                binding.refreshProgressBar.isAutoLoading = false
+                binding.tvEmptyMsg.isGone = remoteBooks.isNotEmpty()
                 adapter.setItems(remoteBooks)
             }
-            binding.refreshProgressBar.isAutoLoading = false
         }
         viewModel.loadRemoteBookList()
     }

@@ -21,7 +21,7 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.BookHelp
 import io.legado.app.help.ContentProcessor
 import io.legado.app.help.config.AppConfig
-import io.legado.app.help.storage.AppWebDav
+import io.legado.app.help.AppWebDav
 import io.legado.app.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
