@@ -2,6 +2,7 @@ package io.legado.app.ui.book.read.page
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.widget.FrameLayout
@@ -40,6 +41,7 @@ class PageView(context: Context) : FrameLayout(context) {
     private var tvBookName: BatteryView? = null
     private var tvTimeBattery: BatteryView? = null
     private var tvTimeBatteryP: BatteryView? = null
+    private var bitmap: Bitmap? = null
 
     val headerHeight: Int
         get() {
@@ -57,6 +59,15 @@ class PageView(context: Context) : FrameLayout(context) {
         binding.contentTextView.upView = {
             setProgress(it)
         }
+    }
+
+    fun getBitmap(): Bitmap? {
+        return bitmap?.copy(Bitmap.Config.ARGB_8888, false)
+    }
+
+    private fun upBitmap() {
+        bitmap?.recycle()
+        bitmap = screenshot()
     }
 
     fun upStyle() = binding.run {
@@ -225,6 +236,7 @@ class PageView(context: Context) : FrameLayout(context) {
         val time = timeFormat.format(Date(System.currentTimeMillis()))
         tvTimeBattery?.setBattery(battery, time)
         tvTimeBatteryP?.text = "$time $battery%"
+        upBitmap()
     }
 
     fun setContent(textPage: TextPage, resetPageOffset: Boolean = true) {
@@ -233,6 +245,7 @@ class PageView(context: Context) : FrameLayout(context) {
             resetPageOffset()
         }
         binding.contentTextView.setContent(textPage)
+        upBitmap()
     }
 
     fun setContentDescription(content: String) {
