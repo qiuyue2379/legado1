@@ -12,6 +12,7 @@ import io.legado.app.help.http.CookieStore
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jsoup.nodes.Entities
 import org.mozilla.javascript.NativeObject
 import java.net.URL
@@ -634,7 +635,7 @@ class AnalyzeRule(
     /**
      * 执行JS
      */
-    fun evalJS(jsStr: String, result: Any?): Any? {
+    fun evalJS(jsStr: String, result: Any? = null): Any? {
         val bindings = SimpleBindings()
         bindings["java"] = this
         bindings["cookie"] = CookieStore
@@ -705,14 +706,37 @@ class AnalyzeRule(
     }
 
     /**
+     * 重新获取book
+     */
+    fun reGetBook() {
+        val bookSource = source as? BookSource
+        val book = book as? Book
+        if (bookSource == null || book == null) return
+        runBlocking {
+            withTimeout(1800000) {
+                WebBook.preciseSearchAwait(this, bookSource, book.name, book.author)
+                    .getOrThrow().let {
+                        book.bookUrl = it.bookUrl
+                        it.variableMap.forEach { entry ->
+                            book.putVariable(entry.key, entry.value)
+                        }
+                    }
+                WebBook.getBookInfoAwait(this, bookSource, book, false)
+            }
+        }
+    }
+
+    /**
      * 更新tocUrl,有些书源目录url定期更新,可以在js调用更新
      */
     fun refreshTocUrl() {
+        val bookSource = source as? BookSource
+        val book = book as? Book
+        if (bookSource == null || book == null) return
         runBlocking {
-            val bookSource = source as? BookSource
-            val book = book as? Book
-            if (bookSource == null || book == null) return@runBlocking
-            WebBook.getBookInfoAwait(this, bookSource, book)
+            withTimeout(1800000) {
+                WebBook.getBookInfoAwait(this, bookSource, book)
+            }
         }
     }
 

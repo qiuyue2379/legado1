@@ -10,11 +10,12 @@ import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookSource
+import io.legado.app.help.AppWebDav
 import io.legado.app.help.DefaultData
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.LocalConfig
-import io.legado.app.help.AppWebDav
 import io.legado.app.model.CacheBook
+import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.CacheBookService
 import io.legado.app.utils.postEvent
@@ -112,31 +113,48 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
             waitUpTocBooks.remove(book.bookUrl)
             return
         }
-        waitUpTocBooks.remove(book.bookUrl)
-        onUpTocBooks.add(book.bookUrl)
-        postEvent(EventBus.UP_BOOKSHELF, book.bookUrl)
+        waitUpTocBooks.remove(bookUrl)
+        upTocAdd(bookUrl)
         execute(context = upTocPool) {
-            if (book.tocUrl.isBlank() || source.isReGetTocUrlOnRefresh()) {
+            val preUpdateJs = source.ruleToc?.preUpdateJs
+            if (!preUpdateJs.isNullOrBlank()) {
+                AnalyzeRule(book, source).evalJS(preUpdateJs)
+            }
+            if (book.tocUrl.isBlank()) {
                 WebBook.getBookInfoAwait(this, source, book)
             }
             val toc = WebBook.getChapterListAwait(this, source, book).getOrThrow()
-            appDb.bookDao.update(book)
+            if (book.bookUrl == bookUrl) {
+                appDb.bookDao.update(book)
+            } else {
+                upTocAdd(book.bookUrl)
+                appDb.bookDao.insert(book)
+            }
             appDb.bookChapterDao.delByBook(book.bookUrl)
             appDb.bookChapterDao.insert(*toc.toTypedArray())
             addDownload(source, book)
         }.onError(upTocPool) {
             AppLog.put("${book.name} 更新目录失败\n${it.localizedMessage}", it)
         }.onCancel(upTocPool) {
+            upTocCancel(bookUrl)
             upTocCancel(book.bookUrl)
         }.onFinally(upTocPool) {
+            upTocFinally(bookUrl)
             upTocFinally(book.bookUrl)
         }
+    }
+
+    @Synchronized
+    private fun upTocAdd(bookUrl: String) {
+        onUpTocBooks.add(bookUrl)
+        postEvent(EventBus.UP_BOOKSHELF, bookUrl)
     }
 
     @Synchronized
     private fun upTocCancel(bookUrl: String) {
         onUpTocBooks.remove(bookUrl)
         waitUpTocBooks.add(bookUrl)
+        postEvent(EventBus.UP_BOOKSHELF, bookUrl)
     }
 
     @Synchronized

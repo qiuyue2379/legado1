@@ -130,21 +130,43 @@ data class BookSource(
         return bookSourceUrl.hashCode()
     }
 
-    override fun equals(other: Any?) =
-        if (other is BookSource) other.bookSourceUrl == bookSourceUrl else false
+    override fun equals(other: Any?): Boolean {
+        return if (other is BookSource) other.bookSourceUrl == bookSourceUrl else false
+    }
 
-    fun getSearchRule() = ruleSearch ?: SearchRule()
+    fun getSearchRule(): SearchRule {
+        ruleSearch?.let { return it }
+        val rule = SearchRule()
+        ruleSearch = rule
+        return rule
+    }
 
-    fun getExploreRule() = ruleExplore ?: ExploreRule()
+    fun getExploreRule(): ExploreRule {
+        ruleExplore?.let { return it }
+        val rule = ExploreRule()
+        ruleExplore = rule
+        return rule
+    }
 
-    fun getBookInfoRule() = ruleBookInfo ?: BookInfoRule()
+    fun getBookInfoRule(): BookInfoRule {
+        ruleBookInfo?.let { return it }
+        val rule = BookInfoRule()
+        ruleBookInfo = rule
+        return rule
+    }
 
-    fun getTocRule() = ruleToc ?: TocRule()
+    fun getTocRule(): TocRule {
+        ruleToc?.let { return it }
+        val rule = TocRule()
+        ruleToc = rule
+        return rule
+    }
 
-    fun getContentRule() = ruleContent ?: ContentRule()
-
-    fun isReGetTocUrlOnRefresh(): Boolean {
-        return ruleBookInfo?.reGetTocUrlOnRefresh.isTrue()
+    fun getContentRule(): ContentRule {
+        ruleContent?.let { return it }
+        val rule = ContentRule()
+        ruleContent = rule
+        return rule
     }
 
     fun getDisPlayNameGroup(): String {
@@ -191,27 +213,27 @@ data class BookSource(
 
     fun equal(source: BookSource) =
         equal(bookSourceName, source.bookSourceName)
-            && equal(bookSourceUrl, source.bookSourceUrl)
-            && equal(bookSourceGroup, source.bookSourceGroup)
-            && bookSourceType == source.bookSourceType
-            && equal(bookUrlPattern, source.bookUrlPattern)
-            && equal(bookSourceComment, source.bookSourceComment)
-            && customOrder == source.customOrder
-            && enabled == source.enabled
-            && enabledExplore == source.enabledExplore
-            && enabledCookieJar == source.enabledCookieJar
-            && equal(concurrentRate, source.concurrentRate)
-            && equal(header, source.header)
-            && equal(loginUrl, source.loginUrl)
-            && equal(loginUi, source.loginUi)
-            && equal(loginCheckJs, source.loginCheckJs)
-            && equal(exploreUrl, source.exploreUrl)
-            && equal(searchUrl, source.searchUrl)
-            && getSearchRule() == source.getSearchRule()
-            && getExploreRule() == source.getExploreRule()
-            && getBookInfoRule() == source.getBookInfoRule()
-            && getTocRule() == source.getTocRule()
-            && getContentRule() == source.getContentRule()
+                && equal(bookSourceUrl, source.bookSourceUrl)
+                && equal(bookSourceGroup, source.bookSourceGroup)
+                && bookSourceType == source.bookSourceType
+                && equal(bookUrlPattern, source.bookUrlPattern)
+                && equal(bookSourceComment, source.bookSourceComment)
+                && customOrder == source.customOrder
+                && enabled == source.enabled
+                && enabledExplore == source.enabledExplore
+                && enabledCookieJar == source.enabledCookieJar
+                && equal(concurrentRate, source.concurrentRate)
+                && equal(header, source.header)
+                && equal(loginUrl, source.loginUrl)
+                && equal(loginUi, source.loginUi)
+                && equal(loginCheckJs, source.loginCheckJs)
+                && equal(exploreUrl, source.exploreUrl)
+                && equal(searchUrl, source.searchUrl)
+                && getSearchRule() == source.getSearchRule()
+                && getExploreRule() == source.getExploreRule()
+                && getBookInfoRule() == source.getBookInfoRule()
+                && getTocRule() == source.getTocRule()
+                && getContentRule() == source.getContentRule()
 
     private fun equal(a: String?, b: String?) = a == b || (a.isNullOrEmpty() && b.isNullOrEmpty())
 

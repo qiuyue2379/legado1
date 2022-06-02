@@ -149,9 +149,9 @@ interface JsExtensions {
     /**
      * 打开图片验证码对话框，等待返回验证结果
      */
-    fun getVerificationCode(imageUrl: String): String {
-        return SourceVerificationHelp.getVerificationResult(getSource(), imageUrl, "", false)
-    }
+     fun getVerificationCode(imageUrl: String): String {
+         return SourceVerificationHelp.getVerificationResult(getSource(), imageUrl, "", false)
+     }
 
     /**
      * 可从网络，本地文件(阅读私有缓存目录和书籍保存位置支持相对路径)导入JavaScript脚本
@@ -815,7 +815,7 @@ interface JsExtensions {
     }
 
     fun desBase64DecodeToString(
-        data: String, key: String, transformation: String, iv: String
+       data: String, key: String, transformation: String, iv: String
     ): String? {
         return EncoderUtils.decryptBase64DES(
             data.encodeToByteArray(),

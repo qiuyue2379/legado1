@@ -2,8 +2,8 @@ package io.legado.app.ui.book.remote.manager
 
 
 import android.net.Uri
-import io.legado.app.constant.PreferKey
 import io.legado.app.constant.AppPattern.bookFileRegex
+import io.legado.app.constant.PreferKey
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.config.AppConfig
@@ -12,7 +12,10 @@ import io.legado.app.lib.webdav.WebDavFile
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.ui.book.remote.RemoteBook
 import io.legado.app.ui.book.remote.RemoteBookManager
-import io.legado.app.utils.*
+import io.legado.app.utils.NetworkUtils
+import io.legado.app.utils.getPrefString
+import io.legado.app.utils.isContentScheme
+import io.legado.app.utils.readBytes
 import kotlinx.coroutines.runBlocking
 import splitties.init.appCtx
 import java.io.File
@@ -85,18 +88,17 @@ object RemoteBookWebDav : RemoteBookManager() {
 
     override suspend fun getRemoteBook(remoteBook: RemoteBook): Uri? {
         return kotlin.runCatching {
-        AppWebDav.authorization?.let {
-            val webdav = WebDav(
-                remoteBook.urlName,
-                it
-            )
-            webdav.download().let { bytes ->
-                LocalBook.saveBookFile(bytes, remoteBook.filename)
+            AppWebDav.authorization?.let {
+                val webdav = WebDav(
+                    remoteBook.urlName,
+                    it
+                )
+                webdav.download().let { bytes ->
+                    LocalBook.saveBookFile(bytes, remoteBook.filename)
                 }
             }
         }.onFailure {
             it.printStackTrace()
-            null
         }.getOrNull()
     }
 

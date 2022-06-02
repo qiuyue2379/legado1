@@ -420,7 +420,7 @@
     <string name="rule_is_volume">卷标识(isVolume)</string>
     <string name="rule_is_vip">VIP标识(isVip)</string>
     <string name="rule_update_time">更新时间(ChapterInfo)</string>
-    <string name="rule_re_get_toc_url">刷新时重新获取目录Url(reGetTocUrlOnRefresh)</string>
+    <string name="pre_update_js">更新之前Js(preUpdateJs)</string>
     <string name="rule_book_content">正文规则(content)</string>
     <string name="rule_next_content">正文下一页URL规则(nextContentUrl)</string>
     <string name="rule_web_js">WebViewJs(webJs)</string>
@@ -740,7 +740,7 @@
     <string name="alipay_red_envelope_qr_code">AliPay red envelope QR code</string>
     <string name="alipay_payment_qr_code">AliPay QR code</string>
     <string name="qq_collection_qr_code">QQ Collection QR code</string>
-    <string name="contributors_summary">gedoor,Invinciblelee etc. Checking in github for details</string>
+    <string name="contributors_summary">gedoor,Invinciblelee,Xwite etc. Checking in github for details</string>
     <string name="clear_cache_summary">Clear the cache of the downloaded books and fonts</string>
     <string name="default_cover">Default cover</string>
     <string name="restore_ignore">Bypass list</string>
@@ -913,7 +913,7 @@
     <string name="font_scale">font scale</string>
     <string name="font_scale_summary">font scale:%.1f</string>
     <string name="search_content_size">search result</string>
-    <string name="search_content_empty">search result is empty</string>
+    <string name="search_content_empty">Empty search result, check conversation settings</string>
     <string name="tts_speech_reduce">语速减</string>
     <string name="tts_speech_add">语速加</string>
     <string name="open_sys_dir_picker_error">打开系统文件夹选择器出错,自动打开应用文件夹选择器</string>
@@ -992,5 +992,10 @@
     <string name="download_book_fail">Download Fail</string>
     <string name="upload_to_remote">Upload</string>
     <string name="add_remote_book">WebDavBook</string>
+    <string name="bitmap_cache_size_summary">Current cache max size %1$s MB</string>
+    <string name="bitmap_cache_size">bitmap cache size</string>
+    <string name="export_pics_file">Export Picture Files</string>
     <!-- string end -->
+    <string name="error_decode_bitmap">Fail to decode bitmap</string>
+    <string name="error_image_url_empty">Image url is empty, check replacement rules</string>
 </resources>

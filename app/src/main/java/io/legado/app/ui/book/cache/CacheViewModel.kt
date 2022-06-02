@@ -18,10 +18,10 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.exception.NoStackTraceException
+import io.legado.app.help.AppWebDav
 import io.legado.app.help.BookHelp
 import io.legado.app.help.ContentProcessor
 import io.legado.app.help.config.AppConfig
-import io.legado.app.help.AppWebDav
 import io.legado.app.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
@@ -168,17 +168,22 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
                         chineseConvert = false,
                         reSegment = false
                     ).joinToString("\n")
-                val srcList = arrayListOf<Triple<String, Int, String>>()
-                content?.split("\n")?.forEachIndexed { index, text ->
-                    val matcher = AppPattern.imgPattern.matcher(text)
-                    while (matcher.find()) {
-                        matcher.group(1)?.let {
-                            val src = NetworkUtils.getAbsoluteURL(chapter.url, it)
-                            srcList.add(Triple(chapter.title, index, src))
+                if (AppConfig.exportPictureFile) {
+                    //txt导出图片文件
+                    val srcList = arrayListOf<Triple<String, Int, String>>()
+                    content?.split("\n")?.forEachIndexed { index, text ->
+                        val matcher = AppPattern.imgPattern.matcher(text)
+                        while (matcher.find()) {
+                            matcher.group(1)?.let {
+                                val src = NetworkUtils.getAbsoluteURL(chapter.url, it)
+                                srcList.add(Triple(chapter.title, index, src))
+                            }
                         }
                     }
+                    append.invoke("\n\n$content1", srcList)
+                } else {
+                    append.invoke("\n\n$content1", null)
                 }
-                append.invoke("\n\n$content1", srcList)
             }
         }
     }

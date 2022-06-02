@@ -33,7 +33,7 @@ class EpubFile(var book: Book) {
             if (eFile == null || eFile?.book?.bookUrl != book.bookUrl) {
                 eFile = EpubFile(book)
                 //对于Epub文件默认不启用替换
-                book.setUseReplaceRule(false)
+                //io.legado.app.data.entities.Book getUseReplaceRule
                 return eFile!!
             }
             eFile?.book = book
@@ -121,6 +121,14 @@ class EpubFile(var book: Book) {
     }
 
     private fun getContent(chapter: BookChapter): String? {
+         /**
+          * <image width="1038" height="670" xlink:href="cover.jpeg"/>
+          * <img width="1038" height="670" src="cover.jpeg"/>
+          * titlepage.xhtml
+          */
+        if (chapter.url == "titlepage.xhtml") {
+            return "<img src=\"cover.jpeg\" />"
+        }
         /*获取当前章节文本*/
         epubBook?.let { epubBook ->
             val nextUrl = chapter.getVariable("nextUrl")
@@ -134,8 +142,15 @@ class EpubFile(var book: Book) {
                 if (chapter.url.substringBeforeLast("#") == res.href) {
                     elements.add(getBody(res, startFragmentId, endFragmentId))
                     isChapter = true
+                   /**
+                    * fix https://github.com/gedoor/legado/issues/1927 加载全部内容的bug
+                    * content src text/000001.html（当前章节）
+-                   * content src text/000001.html#toc_id_x (下一章节）
+                     */
+                    if (res.href == nextUrl?.substringBeforeLast("#")) break
                 } else if (isChapter) {
-                    if (nextUrl.isNullOrBlank() || res.href == nextUrl.substringBeforeLast("#")) {
+                    // fix 最后一章存在多个html时 内容缺失
+                    if (res.href == nextUrl?.substringBeforeLast("#")) {
                         break
                     }
                     elements.add(getBody(res, startFragmentId, endFragmentId))
@@ -157,7 +172,10 @@ class EpubFile(var book: Book) {
             body.getElementById(startFragmentId)?.previousElementSiblings()?.remove()
         }
         if (!endFragmentId.isNullOrBlank() && endFragmentId != startFragmentId) {
-            body.getElementById(endFragmentId)?.nextElementSiblings()?.remove()
+            body.getElementById(endFragmentId)?.run {
+                nextElementSiblings()?.remove()
+                remove()
+            }
         }
         /*选择去除正文中的H标签，部分书籍标题与阅读标题重复待优化*/
         val tag = Book.hTag
@@ -178,6 +196,7 @@ class EpubFile(var book: Book) {
     }
 
     private fun getImage(href: String): InputStream? {
+        if (href == "cover.jpeg") return epubBook?.coverImage?.inputStream
         val abHref = href.replace("../", "")
         return epubBook?.resources?.getByHref(abHref)?.inputStream
     }
@@ -266,8 +285,12 @@ class EpubFile(var book: Book) {
         while (i < contents.size) {
             val content = contents[i]
             if (!content.mediaType.toString().contains("htm")) continue
-            /*检索到第一章href停止*/
-            if (refs[0].completeHref == content.href) break
+            /**
+             * 检索到第一章href停止
+             * completeHref可能有fragment(#id) 必须去除
+             * fix https://github.com/gedoor/legado/issues/1932
+             */
+            if (refs[0].completeHref.substringBeforeLast("#") == content.href) break
             val chapter = BookChapter()
             var title = content.title
             if (TextUtils.isEmpty(title)) {
@@ -313,6 +336,7 @@ class EpubFile(var book: Book) {
                 durIndex++
             }
             if (ref.children != null && ref.children.isNotEmpty()) {
+                chapterList.lastOrNull()?.isVolume = true
                 parseMenu(chapterList, ref.children, level + 1)
             }
         }

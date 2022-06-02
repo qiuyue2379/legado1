@@ -10,17 +10,15 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookSource
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.BookHelp
+import io.legado.app.help.config.AppConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.localBook.EpubFile
-import io.legado.app.utils.BitmapUtils
-import io.legado.app.utils.FileUtils
+import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.math.max
-import kotlin.math.min
 
 object ImageProvider {
 
@@ -29,27 +27,27 @@ object ImageProvider {
     }
 
     /**
-     *缓存bitmap LruCache实现
+     * 缓存bitmap LruCache实现
+     * filePath bitmap
      */
     private const val M = 1024 * 1024
-    private val cacheSize =
-        max(50 * M, min(100 * M, (Runtime.getRuntime().maxMemory() / 8).toInt()))
+    val cacheSize get() = AppConfig.bitmapCacheSize * M
     val bitmapLruCache = object : LruCache<String, Bitmap>(cacheSize) {
 
-        override fun sizeOf(key: String, bitmap: Bitmap): Int {
+        override fun sizeOf(filePath: String, bitmap: Bitmap): Int {
             return bitmap.byteCount
         }
 
         override fun entryRemoved(
             evicted: Boolean,
-            key: String,
+            filePath: String,
             oldBitmap: Bitmap,
             newBitmap: Bitmap?
         ) {
             //错误图片不能释放,占位用,防止一直重复获取图片
             if (oldBitmap != errorBitmap) {
                 oldBitmap.recycle()
-                putDebug("ImageProvider: trigger bitmap recycle. URI: $key")
+                putDebug("ImageProvider: trigger bitmap recycle. URI: $filePath")
                 putDebug("ImageProvider : cacheUsage ${size()}bytes / ${maxSize()}bytes")
             }
         }
@@ -114,19 +112,26 @@ object ImageProvider {
         width: Int,
         height: Int? = null
     ): Bitmap {
-        val cacheBitmap = bitmapLruCache.get(src)
-        if (cacheBitmap != null) return cacheBitmap
+        //src为空白时 可能被净化替换掉了 或者规则失效
+        if (book.getUseReplaceRule() && src.isBlank()) {
+           book.setUseReplaceRule(false)
+           appCtx.toastOnUi(R.string.error_image_url_empty)
+        }
         val vFile = BookHelp.getImage(book, src)
         if (!vFile.exists()) return errorBitmap
+        //epub文件提供图片链接是相对链接，同时阅读多个epub文件，缓存命中错误
+        //bitmapLruCache的key同一改成缓存文件的路径
+        val cacheBitmap = bitmapLruCache.get(vFile.absolutePath)
+        if (cacheBitmap != null) return cacheBitmap
         @Suppress("BlockingMethodInNonBlockingContext")
         return kotlin.runCatching {
             val bitmap = BitmapUtils.decodeBitmap(vFile.absolutePath, width, height)
-                ?: throw NoStackTraceException("解析图片失败")
-            bitmapLruCache.put(src, bitmap)
+                ?: throw NoStackTraceException(appCtx.getString(R.string.error_decode_bitmap))
+            bitmapLruCache.put(vFile.absolutePath, bitmap)
             bitmap
         }.onFailure {
             //错误图片占位,防止重复获取
-            bitmapLruCache.put(src, errorBitmap)
+            bitmapLruCache.put(vFile.absolutePath, errorBitmap)
             putDebug(
                 "ImageProvider: decode bitmap failed. path: ${vFile.absolutePath}\n$it",
                 it
