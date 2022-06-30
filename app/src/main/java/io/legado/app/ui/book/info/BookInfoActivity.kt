@@ -40,6 +40,7 @@ import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.book.toc.TocActivityResult
 import io.legado.app.ui.login.SourceLoginActivity
 import io.legado.app.ui.widget.dialog.PhotoDialog
+import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
@@ -206,11 +207,20 @@ class BookInfoActivity :
             R.id.menu_upload -> {
                 launch {
                     val uri = Uri.parse(viewModel.bookData.value?.bookUrl.toString())
-                    if (RemoteBookWebDav.upload(uri))
-                        toastOnUi(getString(R.string.upload_book_success))
-                    else
-                        toastOnUi(getString(R.string.upload_book_fail))
-
+                    val waitDialog = WaitDialog(this@BookInfoActivity)
+                    waitDialog.setText("上传中.....")
+                    waitDialog.show()
+                    try {
+                        val isUpload = RemoteBookWebDav.upload(uri)
+                        if (isUpload)
+                            toastOnUi(getString(R.string.upload_book_success))
+                        else
+                            toastOnUi(getString(R.string.upload_book_fail))
+                    }catch (e : Exception){
+                        toastOnUi(e.localizedMessage)
+                    }finally {
+                        waitDialog.dismiss()
+                    }
                 }
             }
         }
@@ -247,7 +257,11 @@ class BookInfoActivity :
                 binding.tvToc.text = getString(R.string.toc_s, getString(R.string.loading))
             }
             chapterList.isNullOrEmpty() -> {
-                binding.tvToc.text = if (viewModel.isImportBookOnLine) getString(R.string.click_read_button_load) else getString(R.string.toc_s, getString(R.string.error_load_toc))
+                binding.tvToc.text =
+                    if (viewModel.isImportBookOnLine) getString(R.string.click_read_button_load) else getString(
+                        R.string.toc_s,
+                        getString(R.string.error_load_toc)
+                    )
             }
             else -> {
                 viewModel.bookData.value?.let {
@@ -358,9 +372,14 @@ class BookInfoActivity :
 
     private fun setSourceVariable() {
         launch {
-            val variable = withContext(IO) { viewModel.bookSource?.getVariable() }
+            val source = viewModel.bookSource
+            if (source == null) {
+                toastOnUi("书源不存在")
+                return@launch
+            }
+            val variable = withContext(IO) { source.getVariable() }
             alert(R.string.set_source_variable) {
-                setMessage("源变量可在js中通过source.getVariable()获取")
+                setMessage(source.getDisplayVariableComment("源变量可在js中通过source.getVariable()获取"))
                 val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                     editView.hint = "source variable"
                     editView.setText(variable)
@@ -379,9 +398,14 @@ class BookInfoActivity :
 
     private fun setBookVariable() {
         launch {
+            val source = viewModel.bookSource
+            if (source == null) {
+                toastOnUi("书源不存在")
+                return@launch
+            }
             val variable = withContext(IO) { viewModel.bookData.value?.getVariable("custom") }
             alert(R.string.set_source_variable) {
-                setMessage("""书籍变量可在js中通过book.getVariable("custom")获取""")
+                setMessage(source.getDisplayVariableComment("""书籍变量可在js中通过book.getVariable("custom")获取"""))
                 val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
                     editView.hint = "book variable"
                     editView.setText(variable)

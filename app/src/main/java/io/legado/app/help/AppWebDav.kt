@@ -31,10 +31,10 @@ import java.util.*
  * webDav初始化会访问网络,不要放到主线程
  */
 object AppWebDav {
-    const val defaultWebDavUrl = "https://dav.jianguoyun.com/dav/"
+    private const val defaultWebDavUrl = "https://dav.jianguoyun.com/dav/"
     private val zipFilePath = "${appCtx.externalFiles.absolutePath}${File.separator}backup.zip"
     private val bookProgressUrl get() = "${rootWebDavUrl}bookProgress/"
-    private val exportsWebDavUrl get() = "$rootWebDavUrl${EncoderUtils.escape("exports")}/"
+    private val exportsWebDavUrl get() = "${rootWebDavUrl}books/"
     val syncBookProgress get() = appCtx.getPrefBoolean(PreferKey.syncBookProgress, true)
 
     var authorization: Authorization? = null
@@ -48,7 +48,7 @@ object AppWebDav {
         }
     }
 
-    private val rootWebDavUrl: String
+    val rootWebDavUrl: String
         get() {
             val configUrl = appCtx.getPrefString(PreferKey.webDavUrl)?.trim()
             var url = if (configUrl.isNullOrEmpty()) defaultWebDavUrl else configUrl

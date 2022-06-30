@@ -13,6 +13,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
+import io.legado.app.constant.AppConst
 import io.legado.app.databinding.ActivityRssReadBinding
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.SelectItem
@@ -77,9 +78,9 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         return super.onCompatCreateOptionsMenu(menu)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        starMenuItem = menu?.findItem(R.id.menu_rss_star)
-        ttsMenuItem = menu?.findItem(R.id.menu_aloud)
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        starMenuItem = menu.findItem(R.id.menu_rss_star)
+        ttsMenuItem = menu.findItem(R.id.menu_aloud)
         upStarMenu()
         return super.onPrepareOptionsMenu(menu)
     }
@@ -177,6 +178,9 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
                 upJavaScriptEnable()
                 val url = NetworkUtils.getAbsoluteURL(it.origin, it.link)
                 val html = viewModel.clHtml(content)
+                binding.webView.settings.userAgentString =
+                    viewModel.rssSource?.getHeaderMap()?.get(AppConst.UA_NAME, true)
+                        ?: AppConfig.userAgent
                 if (viewModel.rssSource?.loadWithBaseUrl == true) {
                     binding.webView
                         .loadDataWithBaseURL(url, html, "text/html", "utf-8", url)//不想用baseUrl进else
@@ -188,6 +192,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
         }
         viewModel.urlLiveData.observe(this) {
             upJavaScriptEnable()
+            binding.webView.settings.userAgentString = it.getUserAgent()
             binding.webView.loadUrl(it.url, it.headerMap)
         }
     }
@@ -315,7 +320,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             return true
         }
 
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
             url?.let {
                 return shouldOverrideUrlLoading(Uri.parse(it))

@@ -1,27 +1,34 @@
 package io.legado.app.ui.book.remote
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ViewGroup
-import cn.hutool.core.date.LocalDateTimeUtil
+import io.legado.app.R
 import io.legado.app.base.adapter.ItemViewHolder
 import io.legado.app.base.adapter.RecyclerAdapter
-import io.legado.app.databinding.ItemRemoteBookBinding
+import io.legado.app.constant.AppConst
+import io.legado.app.databinding.ItemImportBookBinding
 import io.legado.app.utils.ConvertUtils
+import io.legado.app.utils.gone
+import io.legado.app.utils.invisible
+import io.legado.app.utils.visible
 
 
 /**
  * 适配器
  * @author qianfanguojin
  */
-class RemoteBookAdapter (context: Context, val callBack: CallBack) :
-    RecyclerAdapter<RemoteBook, ItemRemoteBookBinding>(context){
+class RemoteBookAdapter(context: Context, val callBack: CallBack) :
+    RecyclerAdapter<RemoteBook, ItemImportBookBinding>(context) {
+    var selected = hashSetOf<RemoteBook>()
+    var checkableCount = 0
 
-    override fun getViewBinding(parent: ViewGroup): ItemRemoteBookBinding {
-        return ItemRemoteBookBinding.inflate(inflater, parent, false)
+    override fun getViewBinding(parent: ViewGroup): ItemImportBookBinding {
+        return ItemImportBookBinding.inflate(inflater, parent, false)
     }
 
     override fun onCurrentListChanged() {
-
+        upCheckableCount()
     }
 
     /**
@@ -29,30 +36,108 @@ class RemoteBookAdapter (context: Context, val callBack: CallBack) :
      */
     override fun convert(
         holder: ItemViewHolder,
-        binding: ItemRemoteBookBinding,
+        binding: ItemImportBookBinding,
         item: RemoteBook,
         payloads: MutableList<Any>
     ) {
         binding.run {
-            //Todo：需要判断书籍是否已经加入书架，来改变“下载”按钮的文本，暂时还没有比较好的方案
-            tvName.text = item.filename.substringBeforeLast(".")
-            tvContentType.text = item.contentType
-            tvSize.text = ConvertUtils.formatFileSize(item.size)
-            tvDate.text = LocalDateTimeUtil.format(LocalDateTimeUtil.of(item.lastModify), "yyyy-MM-dd")
-        }
-    }
-
-    override fun registerListener(holder: ItemViewHolder, binding: ItemRemoteBookBinding) {
-        binding.btnDownload.setOnClickListener {
-                getItem(holder.layoutPosition)?.let {
-                    callBack.addToBookshelf(it)
+            if (payloads.isEmpty()) {
+                if (item.isDir) {
+                    ivIcon.setImageResource(R.drawable.ic_folder)
+                    ivIcon.visible()
+                    cbSelect.invisible()
+                    llBrief.gone()
+                    cbSelect.isChecked = false
+                } else {
+                    if (item.isOnBookShelf) {
+                        ivIcon.setImageResource(R.drawable.ic_book_has)
+                        ivIcon.visible()
+                        cbSelect.invisible()
+                    } else {
+                        ivIcon.invisible()
+                        cbSelect.visible()
+                    }
+                    llBrief.visible()
+                    tvTag.text = item.contentType
+                    tvSize.text = ConvertUtils.formatFileSize(item.size)
+                    tvDate.text = AppConst.dateFormat.format(item.lastModify)
+                    cbSelect.isChecked = selected.contains(item)
                 }
+                tvName.text = item.filename
+            } else {
+                cbSelect.isChecked = selected.contains(item)
+            }
         }
-
-
     }
+
+    override fun registerListener(holder: ItemViewHolder, binding: ItemImportBookBinding) {
+        holder.itemView.setOnClickListener {
+            getItem(holder.layoutPosition)?.let {
+                if (it.isDir) {
+                    callBack.openDir(it)
+                } else if (!it.isOnBookShelf) {
+                    if (!selected.contains(it)) {
+                        selected.add(it)
+                    } else {
+                        selected.remove(it)
+                    }
+                    notifyItemChanged(holder.layoutPosition, true)
+                    callBack.upCountView()
+                }
+            }
+        }
+    }
+
+    private fun upCheckableCount() {
+        checkableCount = 0
+        getItems().forEach {
+            if (!it.isDir && !it.isOnBookShelf) {
+                checkableCount++
+            }
+        }
+        callBack.upCountView()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun selectAll(selectAll: Boolean) {
+        if (selectAll) {
+            getItems().forEach {
+                if (!it.isDir && !it.isOnBookShelf) {
+                    selected.add(it)
+                }
+            }
+        } else {
+            selected.clear()
+        }
+        notifyDataSetChanged()
+        callBack.upCountView()
+    }
+
+    fun revertSelection() {
+        getItems().forEach {
+            if (!it.isDir) {
+                if (selected.contains(it)) {
+                    selected.remove(it)
+                } else {
+                    selected.add(it)
+                }
+            }
+        }
+        notifyItemRangeChanged(0, itemCount, true)
+        callBack.upCountView()
+    }
+
+    fun removeSelection() {
+        for (i in getItems().lastIndex downTo 0) {
+            if (getItem(i) in selected) {
+                removeItem(i)
+            }
+        }
+    }
+
 
     interface CallBack {
-        fun addToBookshelf(remoteBook: RemoteBook)
+        fun openDir(remoteBook: RemoteBook)
+        fun upCountView()
     }
 }

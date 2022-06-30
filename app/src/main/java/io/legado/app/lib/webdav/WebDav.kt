@@ -6,6 +6,7 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.http.newCallResponse
 import io.legado.app.help.http.okHttpClient
 import io.legado.app.help.http.text
+import io.legado.app.utils.NetworkUtils
 import io.legado.app.utils.printOnDebug
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -18,13 +19,14 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.MalformedURLException
 import java.net.URL
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-open class WebDav(urlStr: String, val authorization: Authorization) {
+open class WebDav(val path: String, val authorization: Authorization) {
     companion object {
 
         @SuppressLint("DateTimeFormatter")
@@ -46,7 +48,7 @@ open class WebDav(urlStr: String, val authorization: Authorization) {
             </a:propfind>"""
     }
 
-    private val url: URL = URL(urlStr)
+    private val url: URL = URL(path)
     private val httpUrl: String? by lazy {
         val raw = url.toString().replace("davs://", "https://").replace("dav://", "http://")
         return@lazy kotlin.runCatching {
@@ -57,28 +59,30 @@ open class WebDav(urlStr: String, val authorization: Authorization) {
         }.getOrNull()
     }
     val host: String? get() = url.host
-    val path get() = url.toString()
-
 
     /**
-     * 填充文件信息。实例化WebDAVFile对象时，并没有将远程文件的信息填充到实例中。需要手动填充！
-     * @return 远程文件是否存在
+     * 获取当前url文件信息
      */
-    suspend fun indexFileInfo(): Boolean {
-        return !propFindResponse(ArrayList()).isNullOrEmpty()
+    suspend fun getWebDavFile(): WebDavFile? {
+        return kotlin.runCatching {
+            propFindResponse(depth = 0)?.let {
+                return parseBody(it).firstOrNull()
+            }
+        }.getOrNull()
     }
 
     /**
      * 列出当前路径下的文件
-     *
      * @return 文件列表
      */
     @Throws(WebDavException::class)
     suspend fun listFiles(): List<WebDavFile> {
         propFindResponse()?.let { body ->
-            return parseDir(body)
+            return parseBody(body).filter {
+                it.path != path
+            }
         }
-        return ArrayList()
+        return emptyList()
     }
 
     /**
@@ -112,14 +116,17 @@ open class WebDav(urlStr: String, val authorization: Authorization) {
         }.body?.text()
     }
 
-    private fun parseDir(s: String): List<WebDavFile> {
+    /**
+     * 解析webDav返回的xml
+     */
+    private fun parseBody(s: String): List<WebDavFile> {
         val list = ArrayList<WebDavFile>()
         val document = Jsoup.parse(s)
         val elements = document.getElementsByTag("d:response")
         httpUrl?.let { urlStr ->
-            val baseUrl = if (urlStr.endsWith("/")) urlStr else "$urlStr/"
+            val baseUrl = NetworkUtils.getBaseUrl(urlStr)
             for (element in elements) {
-                val href = element.getElementsByTag("d:href")[0].text()
+                val href = URLDecoder.decode(element.getElementsByTag("d:href")[0].text(), "UTF-8")
                 if (!href.endsWith("/")) {
                     val fileName = href.substring(href.lastIndexOf("/") + 1)
                     val webDavFile: WebDav
@@ -137,11 +144,12 @@ open class WebDav(urlStr: String, val authorization: Authorization) {
                         val lastModify: Long = kotlin.runCatching {
                             element.getElementsByTag("d:getlastmodified")
                                 .firstOrNull()?.text()?.let {
-                                    LocalDateTime.parse(it, dateTimeFormatter).toInstant(ZoneOffset.of("+8")).toEpochMilli()
+                                    LocalDateTime.parse(it, dateTimeFormatter)
+                                        .toInstant(ZoneOffset.of("+8")).toEpochMilli()
                                 }
                         }.getOrNull() ?: 0
                         webDavFile = WebDavFile(
-                            baseUrl + fileName,
+                            "$baseUrl$href",
                             authorization,
                             displayName = fileName,
                             urlName = urlName,
@@ -163,12 +171,7 @@ open class WebDav(urlStr: String, val authorization: Authorization) {
      * 文件是否存在
      */
     suspend fun exists(): Boolean {
-        return kotlin.runCatching {
-            val response = propFindResponse(depth = 0) ?: return false
-            val document = Jsoup.parse(response)
-            val elements = document.getElementsByTag("d:response")
-            return elements.isNotEmpty()
-        }.getOrDefault(false)
+        return getWebDavFile() != null
     }
 
     /**
@@ -278,6 +281,28 @@ open class WebDav(urlStr: String, val authorization: Authorization) {
         return byteStream ?: throw WebDavException("WebDav下载出错\nNull Exception")
     }
 
+    /**
+     * 移除文件/文件夹
+     */
+    suspend fun delete(): Boolean {
+        val url = httpUrl ?: return false
+        //防止报错
+        return kotlin.runCatching {
+            okHttpClient.newCallResponse {
+                url(url)
+                method("DELETE", null)
+                addHeader(authorization.name, authorization.data)
+            }.let {
+                checkResult(it)
+            }
+        }.onFailure {
+            AppLog.put("WebDav删除失败\n${it.localizedMessage}")
+        }.isSuccess
+    }
+
+    /**
+     * 检测返回结果是否正确
+     */
     private fun checkResult(response: Response) {
         if (!response.isSuccessful) {
             throw WebDavException("${url}\n${response.code}:${response.message}")

@@ -3,10 +3,12 @@ package io.legado.app
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Build
 import androidx.multidex.MultiDexApplication
 import com.github.liuyueyi.quick.transfer.ChineseUtils
+import com.github.liuyueyi.quick.transfer.constants.TransType
 import com.jeremyliao.liveeventbus.LiveEventBus
 import io.legado.app.base.AppContextWrapper
 import io.legado.app.constant.AppConst.channelIdDownload
@@ -27,8 +29,11 @@ import java.util.concurrent.TimeUnit
 
 class App : MultiDexApplication() {
 
+    private lateinit var oldConfig: Configuration
+
     override fun onCreate() {
         super.onCreate()
+        oldConfig = Configuration(resources.configuration)
         CrashHandler(this)
         //预下载Cronet so
         CronetLoader.preDownload()
@@ -52,8 +57,8 @@ class App : MultiDexApplication() {
             BookHelp.clearInvalidCache()
             //初始化简繁转换引擎
             when (AppConfig.chineseConverterType) {
-                1 -> ChineseUtils.t2s("初始化")
-                2 -> ChineseUtils.s2t("初始化")
+                1 -> ChineseUtils.preLoad(true, TransType.TRADITIONAL_TO_SIMPLE)
+                2 -> ChineseUtils.preLoad(true, TransType.SIMPLE_TO_TRADITIONAL)
             }
             //同步阅读记录
             if (AppWebDav.syncBookProgress) {
@@ -68,10 +73,11 @@ class App : MultiDexApplication() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        when (newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES,
-            Configuration.UI_MODE_NIGHT_NO -> applyDayNight(this)
+        val diff = newConfig.diff(oldConfig)
+        if ((diff and ActivityInfo.CONFIG_UI_MODE) != 0) {
+            applyDayNight(this)
         }
+        oldConfig = Configuration(newConfig)
     }
 
     /**

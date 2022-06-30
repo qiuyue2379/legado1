@@ -14,9 +14,9 @@ import io.legado.app.utils.*
 
 class ImportBookAdapter(context: Context, val callBack: CallBack) :
     RecyclerAdapter<FileDoc, ItemImportBookBinding>(context) {
-    var selectedUris = hashSetOf<String>()
+    val selectedUris = hashSetOf<String>()
     var checkableCount = 0
-    private var bookFileNames = arrayListOf<String>()
+    private val bookFileNames = arrayListOf<String>()
 
     override fun getViewBinding(parent: ViewGroup): ItemImportBookBinding {
         return ItemImportBookBinding.inflate(inflater, parent, false)
@@ -126,6 +126,7 @@ class ImportBookAdapter(context: Context, val callBack: CallBack) :
                 }
             }
         }
+        notifyItemRangeChanged(0, itemCount, true)
         callBack.upCountView()
     }
 
