@@ -3,6 +3,7 @@ package io.legado.app.ui.book.remote
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.SubMenu
 import androidx.activity.viewModels
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,6 +17,7 @@ import io.legado.app.ui.widget.SelectActionBar
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.showDialogFragment
 import io.legado.app.utils.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import java.io.File
@@ -32,7 +34,7 @@ class RemoteBookActivity : VMBaseActivity<ActivityImportBookBinding, RemoteBookV
     override val viewModel by viewModels<RemoteBookViewModel>()
     private val adapter by lazy { RemoteBookAdapter(this, this) }
     private val waitDialog by lazy { WaitDialog(this) }
-
+    private var groupMenu: SubMenu? = null
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         binding.titleBar.setTitle(R.string.remote_book)
         initView()
@@ -48,13 +50,23 @@ class RemoteBookActivity : VMBaseActivity<ActivityImportBookBinding, RemoteBookV
         binding.selectActionBar.setCallBack(this)
     }
 
+    private fun sortCheck(sortKey: Sort) {
+        if (viewModel.sortKey == sortKey) {
+            viewModel.sortAscending = !viewModel.sortAscending
+        } else {
+            viewModel.sortAscending = true
+            viewModel.sortKey = sortKey
+        }
+    }
+
     private fun initData() {
         binding.refreshProgressBar.isAutoLoading = true
         launch {
-            viewModel.dataFlow.conflate().collect { remoteBooks ->
+            viewModel.dataFlow.conflate().collect { sortedRemoteBooks ->
                 binding.refreshProgressBar.isAutoLoading = false
-                binding.tvEmptyMsg.isGone = remoteBooks.isNotEmpty()
-                adapter.setItems(remoteBooks)
+                binding.tvEmptyMsg.isGone = sortedRemoteBooks.isNotEmpty()
+                adapter.setItems(sortedRemoteBooks)
+                delay(500)
             }
         }
         upPath()
@@ -62,7 +74,7 @@ class RemoteBookActivity : VMBaseActivity<ActivityImportBookBinding, RemoteBookV
 
     private fun initEvent() {
         binding.tvGoBack.setOnClickListener {
-           goBackDir()
+            goBackDir()
         }
     }
 
@@ -75,8 +87,26 @@ class RemoteBookActivity : VMBaseActivity<ActivityImportBookBinding, RemoteBookV
         when (item.itemId) {
             R.id.menu_refresh -> upPath()
             R.id.menu_log -> showDialogFragment<AppLogDialog>()
+            R.id.menu_sort_name -> {
+                item.isChecked = true
+                sortCheck(Sort.Name)
+                upPath()
+            }
+            R.id.menu_sort_time -> {
+                item.isChecked = true
+                sortCheck(Sort.Default)
+                upPath()
+            }
         }
         return super.onCompatOptionsItemSelected(item)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        groupMenu = menu.findItem(R.id.menu_sort)?.subMenu
+        groupMenu?.setGroupCheckable(R.id.menu_group_sort, true, true)
+        groupMenu?.findItem(R.id.menu_sort_name)?.isChecked = viewModel.sortKey == Sort.Name
+        groupMenu?.findItem(R.id.menu_sort_time)?.isChecked = viewModel.sortKey == Sort.Default
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun revertSelection() {
@@ -139,4 +169,5 @@ class RemoteBookActivity : VMBaseActivity<ActivityImportBookBinding, RemoteBookV
     override fun upCountView() {
         binding.selectActionBar.upCountView(adapter.selected.size, adapter.checkableCount)
     }
+
 }

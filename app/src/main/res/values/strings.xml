@@ -196,6 +196,7 @@
     <string name="img_cover">Cover</string>
     <string name="book">Book</string>
     <string name="volume_key_page">Volume keys to turn page</string>
+    <string name="mouse_wheel_page">Mouse wheel to turn page</string>
     <string name="click_turn_page">Tap screen to turn page</string>
     <string name="page_anim">Flip animation</string>
     <string name="book_page_anim">Flip animation (book)</string>
@@ -351,6 +352,7 @@
     <string name="sort">Sort</string>
     <string name="sort_auto">Sort automatically</string>
     <string name="sort_manual">Sort manually</string>
+    <string name="sort_default">Sort default</string>
     <string name="sort_by_name">Sort by name</string>
     <string name="go_to_top">Scroll to the top</string>
     <string name="go_to_bottom">Scroll to the bottom</string>
