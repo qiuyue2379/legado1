@@ -321,7 +321,7 @@ class BookSourceEditActivity :
                 "loginCheckJs" -> source.loginCheckJs = it.value
                 "bookUrlPattern" -> source.bookUrlPattern = it.value
                 "header" -> source.header = it.value
-                "bookSourceComment" -> source.bookSourceComment = it.value ?: ""
+                "bookSourceComment" -> source.bookSourceComment = it.value
                 "concurrentRate" -> source.concurrentRate = it.value
                 "variableComment" -> source.variableComment = it.value
             }
@@ -330,7 +330,7 @@ class BookSourceEditActivity :
             when (it.key) {
                 "searchUrl" -> source.searchUrl = it.value
                 "checkKeyWord" -> searchRule.checkKeyWord = it.value
-                "bookList" -> searchRule.bookList = it.value ?: ""
+                "bookList" -> searchRule.bookList = it.value
                 "name" -> searchRule.name =
                     viewModel.ruleComplete(it.value, searchRule.bookList)
                 "author" -> searchRule.author =
@@ -354,7 +354,7 @@ class BookSourceEditActivity :
         findEntities.forEach {
             when (it.key) {
                 "exploreUrl" -> source.exploreUrl = it.value
-                "bookList" -> exploreRule.bookList = it.value ?: ""
+                "bookList" -> exploreRule.bookList = it.value
                 "name" -> exploreRule.name =
                     viewModel.ruleComplete(it.value, exploreRule.bookList)
                 "author" -> exploreRule.author =
@@ -377,7 +377,7 @@ class BookSourceEditActivity :
         }
         infoEntities.forEach {
             when (it.key) {
-                "init" -> bookInfoRule.init = it.value ?: ""
+                "init" -> bookInfoRule.init = it.value
                 "name" -> bookInfoRule.name = viewModel.ruleComplete(it.value, bookInfoRule.init)
                 "author" -> bookInfoRule.author =
                     viewModel.ruleComplete(it.value, bookInfoRule.init)

@@ -48,20 +48,8 @@ class RemoteBookViewModel(application: Application) : BaseViewModel(application)
         }
     }.map { list ->
         if (sortAscending) when (sortKey) {
-            Sort.Name -> list.sortedWith { o1, o2 ->
-                val compare = -compareValues(o1.isDir, o2.isDir)
-                if (compare == 0) {
-                    return@sortedWith -compareValues(o1.filename, o2.filename)
-                }
-                return@sortedWith compare
-            }
-            else -> list.sortedWith { o1, o2 ->
-                val compare = -compareValues(o1.isDir, o2.isDir)
-                if (compare == 0) {
-                    return@sortedWith -compareValues(o1.lastModify, o2.lastModify)
-                }
-                return@sortedWith compare
-            }
+            Sort.Name -> list.sortedWith(compareBy({ !it.isDir }, { it.filename }))
+            else -> list.sortedWith(compareBy({ !it.isDir }, { it.lastModify }))
         } else when (sortKey) {
             Sort.Name -> list.sortedWith { o1, o2 ->
                 val compare = -compareValues(o1.isDir, o2.isDir)
