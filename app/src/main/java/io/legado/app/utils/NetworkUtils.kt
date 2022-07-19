@@ -29,10 +29,10 @@ object NetworkUtils {
             if (mWiFiNetworkInfo != null) {
                 // WIFI
                 return mWiFiNetworkInfo.type == ConnectivityManager.TYPE_WIFI ||
-                    // 移动数据
-                    mWiFiNetworkInfo.type == ConnectivityManager.TYPE_MOBILE ||
-                    // 以太网
-                    mWiFiNetworkInfo.type == ConnectivityManager.TYPE_ETHERNET
+                        // 移动数据
+                        mWiFiNetworkInfo.type == ConnectivityManager.TYPE_MOBILE ||
+                        // 以太网
+                        mWiFiNetworkInfo.type == ConnectivityManager.TYPE_ETHERNET
             }
         } else {
             val network = connectivityManager.activeNetwork
@@ -41,10 +41,10 @@ object NetworkUtils {
                 if (nc != null) {
                     // WIFI
                     return nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        // 移动数据
-                        nc.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                        // 以太网
-                        nc.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+                            // 移动数据
+                            nc.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                            // 以太网
+                            nc.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
                 }
             }
         }

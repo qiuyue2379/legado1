@@ -6,9 +6,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.webkit.CookieManager
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.fragment.app.activityViewModels
 import io.legado.app.R
 import io.legado.app.base.BaseFragment
@@ -16,6 +14,8 @@ import io.legado.app.constant.AppConst
 import io.legado.app.data.entities.BaseSource
 import io.legado.app.databinding.FragmentWebViewLoginBinding
 import io.legado.app.help.http.CookieStore
+import io.legado.app.lib.theme.accentColor
+import io.legado.app.utils.gone
 import io.legado.app.utils.snackbar
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
@@ -56,7 +56,12 @@ class WebViewLoginFragment : BaseFragment(R.layout.fragment_web_view_login) {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun initWebView(source: BaseSource) {
+        binding.progressBar.fontColor = accentColor
         binding.webView.settings.apply {
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            domStorageEnabled = true
+            useWideViewPort = true
+            loadWithOverviewMode = true
             builtInZoomControls = true
             javaScriptEnabled = true
             source.getHeaderMap()[AppConst.UA_NAME]?.let {
@@ -82,6 +87,15 @@ class WebViewLoginFragment : BaseFragment(R.layout.fragment_web_view_login) {
                 }
                 super.onPageFinished(view, url)
             }
+        }
+        binding.webView.webChromeClient = object : WebChromeClient() {
+
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                binding.progressBar.setDurProgress(newProgress)
+                binding.progressBar.gone(newProgress == 100)
+            }
+
         }
         source.loginUrl?.let {
             binding.webView.loadUrl(it, source.getHeaderMap(true))
