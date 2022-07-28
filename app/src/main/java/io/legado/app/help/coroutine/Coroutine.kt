@@ -114,7 +114,7 @@ class Coroutine<T>(
     }
 
     //取消当前任务
-    fun cancel(cause: CancellationException? = null) {
+    fun cancel(cause: ActivelyCancelException = ActivelyCancelException()) {
         job.cancel(cause)
         cancel?.let {
             MainScope().launch {
@@ -146,6 +146,9 @@ class Coroutine<T>(
                 success?.let { dispatchCallback(this, value, it) }
             } catch (e: Throwable) {
                 e.printOnDebug()
+                if (e is CancellationException && isActive) {
+                    this@Coroutine.cancel()
+                }
                 if (e is CancellationException && e !is TimeoutCancellationException) {
                     return@launch
                 }

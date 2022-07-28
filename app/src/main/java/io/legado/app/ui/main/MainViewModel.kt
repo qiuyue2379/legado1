@@ -187,12 +187,7 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
         cacheBookJob?.cancel()
         cacheBookJob = viewModelScope.launch(upTocPool) {
             while (isActive) {
-                if (CacheBookService.isRun) {
-                    cacheBookJob?.cancel()
-                    cacheBookJob = null
-                    return@launch
-                }
-                if (!CacheBook.isRun) {
+                if (CacheBookService.isRun || !CacheBook.isRun) {
                     cacheBookJob?.cancel()
                     cacheBookJob = null
                     return@launch

@@ -26,6 +26,7 @@ import io.legado.app.ui.book.read.page.entities.TextPos
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.ui.book.read.page.provider.TextPageFactory
 import io.legado.app.utils.activity
+import io.legado.app.utils.invisible
 import io.legado.app.utils.screenshot
 import java.text.BreakIterator
 import java.util.*
@@ -97,6 +98,8 @@ class ReadView(context: Context, attrs: AttributeSet) :
         addView(nextPage)
         addView(curPage)
         addView(prevPage)
+        nextPage.invisible()
+        prevPage.invisible()
         if (!isInEditMode) {
             upBg()
             setWillNotDraw(false)
@@ -160,7 +163,6 @@ class ReadView(context: Context, attrs: AttributeSet) :
      */
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        callBack.screenOffTimerStart()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val insets =
                 this.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.mandatorySystemGestures())
@@ -174,6 +176,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                callBack.screenOffTimerStart()
                 if (isTextSelected) {
                     curPage.cancelSelect()
                     isTextSelected = false
@@ -205,6 +208,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
                 }
             }
             MotionEvent.ACTION_UP -> {
+                callBack.screenOffTimerStart()
                 removeCallbacks(longPressRunnable)
                 if (!pressDown) return true
                 pressDown = false
