@@ -1,11 +1,10 @@
 package io.legado.app.model.localBook
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.text.TextUtils
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
+import io.legado.app.help.BookHelp
 import io.legado.app.utils.*
 import me.ag2s.epublib.domain.EpubBook
 import me.ag2s.epublib.domain.Resource
@@ -15,13 +14,11 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import splitties.init.appCtx
-
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.util.zip.ZipFile
 
 class EpubFile(var book: Book) {
 
@@ -87,11 +84,13 @@ class EpubFile(var book: Book) {
                 if (!File(book.coverUrl!!).exists()) {
                     /*部分书籍DRM处理后，封面获取异常，待优化*/
                     it.coverImage?.inputStream?.use { input ->
-                        val cover = BitmapFactory.decodeStream(input)
-                        val out = FileOutputStream(FileUtils.createFileIfNotExist(book.coverUrl!!))
-                        cover.compress(Bitmap.CompressFormat.JPEG, 90, out)
-                        out.flush()
-                        out.close()
+                        BitmapUtils.decodeBitmap(input)?.let { cover ->
+                            val out =
+                                FileOutputStream(FileUtils.createFileIfNotExist(book.coverUrl!!))
+                            cover.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                            out.flush()
+                            out.close()
+                        }
                     }
                 }
             }
@@ -100,31 +99,24 @@ class EpubFile(var book: Book) {
         }
     }
 
-    /*重写epub文件解析代码，直接读出压缩包文件生成Resources给epublib，这样的好处是可以逐一修改某些文件的格式错误*/
+    /**
+     * 重写epub文件解析代码，直接读出压缩包文件生成Resources给epublib，这样的好处是可以逐一修改某些文件的格式错误
+     */
     private fun readEpub(): EpubBook? {
-        try {
-            val uri = Uri.parse(book.bookUrl)
-            return if (uri.isContentScheme()) {
-                //高版本的手机内存一般足够大，直接加载到内存中最快
-                EpubReader().readEpub(LocalBook.getBookInputStream(book), "utf-8")
-            } else {
-                //低版本的使用懒加载
-                EpubReader().readEpubLazy(ZipFile(uri.path), "utf-8")
-
-            }
-
-
-        } catch (e: Exception) {
-            e.printOnDebug()
-        }
-        return null
+        return kotlin.runCatching {
+            //ContentScheme拷贝到私有文件夹采用懒加载防止OOM
+            val zipFile = BookHelp.getEpubFile(book)
+            EpubReader().readEpubLazy(zipFile, "utf-8")
+        }.onFailure {
+            it.printOnDebug()
+        }.getOrNull()
     }
 
     private fun getContent(chapter: BookChapter): String? {
-         /**
-          * <image width="1038" height="670" xlink:href="..."/>
-          * ...titlepage.xhtml
-          */
+        /**
+         * <image width="1038" height="670" xlink:href="..."/>
+         * ...titlepage.xhtml
+         */
         if (chapter.url.contains("titlepage.xhtml")) {
             return "<img src=\"cover.jpeg\" />"
         }
@@ -141,10 +133,10 @@ class EpubFile(var book: Book) {
                 if (chapter.url.substringBeforeLast("#") == res.href) {
                     elements.add(getBody(res, startFragmentId, endFragmentId))
                     isChapter = true
-                   /**
-                    * fix https://github.com/gedoor/legado/issues/1927 加载全部内容的bug
-                    * content src text/000001.html（当前章节）
--                   * content src text/000001.html#toc_id_x (下一章节）
+                    /**
+                     * fix https://github.com/gedoor/legado/issues/1927 加载全部内容的bug
+                     * content src text/000001.html（当前章节）
+                    -                   * content src text/000001.html#toc_id_x (下一章节）
                      */
                     if (res.href == nextUrl?.substringBeforeLast("#")) break
                 } else if (isChapter) {
