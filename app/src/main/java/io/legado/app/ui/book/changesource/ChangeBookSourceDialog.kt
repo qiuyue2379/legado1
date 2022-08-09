@@ -35,7 +35,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 
-
+/**
+ * 换源界面
+ */
 class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_book_change_source),
     Toolbar.OnMenuItemClickListener,
     ChangeBookSourceAdapter.CallBack {
@@ -296,13 +298,16 @@ class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_book_change_
         waitDialog.setText(R.string.load_toc)
         waitDialog.show()
         val book = searchBook.toBook()
-        viewModel.getToc(book, {
+        val coroutine = viewModel.getToc(book, {
             waitDialog.dismiss()
             toastOnUi(it)
         }) { toc, source ->
             waitDialog.dismiss()
             callBack?.changeTo(source, book, toc)
             onSuccess?.invoke()
+        }
+        waitDialog.setOnCancelListener {
+            coroutine.cancel()
         }
     }
 
