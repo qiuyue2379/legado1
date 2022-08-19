@@ -40,8 +40,8 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
     }
     private var callBack: CallBack
     private val visibleRect = RectF()
-    private val selectStart = TextPos(0, 0, 0)
-    private val selectEnd = TextPos(0, 0, 0)
+    val selectStart = TextPos(0, 0, 0)
+    val selectEnd = TextPos(0, 0, 0)
     var textPage: TextPage = TextPage()
         private set
 
@@ -446,7 +446,7 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                 return book.createBookMark().apply {
                     chapterIndex = page.chapterIndex
                     chapterPos = chapter.getReadLength(page.index) +
-                            page.getSelectStartLength(selectStart.lineIndex, selectStart.charIndex)
+                            page.getPosByLineColumn(selectStart.lineIndex, selectStart.charIndex)
                     chapterName = chapter.title
                     bookText = getSelectedText()
                 }

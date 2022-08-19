@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
-import io.legado.app.R
 import io.legado.app.constant.AppConst.timeFormat
 import io.legado.app.data.entities.Bookmark
 import io.legado.app.databinding.ViewBookPageBinding
@@ -17,7 +16,10 @@ import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.book.read.page.entities.TextPage
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.ui.widget.BatteryView
-import io.legado.app.utils.*
+import io.legado.app.utils.activity
+import io.legado.app.utils.dpToPx
+import io.legado.app.utils.statusBarHeight
+import io.legado.app.utils.visible
 import splitties.views.backgroundColor
 import java.util.*
 
@@ -308,7 +310,9 @@ class PageView(context: Context) : FrameLayout(context) {
         return binding.contentTextView.relativePage(relativePagePos)
     }
 
+    val textPage get() = binding.contentTextView.textPage
+
     val selectedText: String get() = binding.contentTextView.getSelectedText()
 
-    val textPage get() = binding.contentTextView.textPage
+    val selectStartPos get() = binding.contentTextView.selectStart
 }

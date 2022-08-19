@@ -2,6 +2,7 @@ package io.legado.app.ui.book.read.page.entities
 
 import kotlin.math.min
 
+@Suppress("unused")
 data class TextChapter(
     val position: Int,
     val title: String,
@@ -28,10 +29,18 @@ data class TextChapter(
 
     val pageSize: Int get() = pages.size
 
+    /**
+     * @param index 页数
+     * @return 是否是最后一页
+     */
     fun isLastIndex(index: Int): Boolean {
         return index >= pages.size - 1
     }
 
+    /**
+     * @param pageIndex 页数
+     * @return 已读长度
+     */
     fun getReadLength(pageIndex: Int): Int {
         var length = 0
         val maxIndex = min(pageIndex, pages.size)
@@ -41,10 +50,32 @@ data class TextChapter(
         return length
     }
 
+    /**
+     * @param length 当前页面文字在章节中的位置
+     * @return 下一页位置,如果没有下一页返回-1
+     */
     fun getNextPageLength(length: Int): Int {
-        return getReadLength(getPageIndexByCharIndex(length) + 1)
+        val pageIndex = getPageIndexByCharIndex(length)
+        if (pageIndex + 1 >= pageSize) {
+            return -1
+        }
+        return getReadLength(pageIndex + 1)
     }
 
+    /**
+     * 获取内容
+     */
+    fun getContent(): String {
+        val stringBuilder = StringBuilder()
+        pages.forEach {
+            stringBuilder.append(it.text)
+        }
+        return stringBuilder.toString()
+    }
+
+    /**
+     * @return 获取未读文字
+     */
     fun getUnRead(pageIndex: Int): String {
         val stringBuilder = StringBuilder()
         if (pages.isNotEmpty()) {
@@ -55,16 +86,27 @@ data class TextChapter(
         return stringBuilder.toString()
     }
 
-    fun getContent(): String {
+    /**
+     * @return 需要朗读的文本列表
+     * @param pageIndex 起始页
+     * @param pageSplit 是否分页
+     * @param startPos 从当前页什么地方开始朗读
+     */
+    fun getNeedReadAloud(pageIndex: Int, pageSplit: Boolean, startPos: Int): String {
         val stringBuilder = StringBuilder()
-        pages.forEach {
-            stringBuilder.append(it.text)
+        if (pages.isNotEmpty()) {
+            for (index in pageIndex..pages.lastIndex) {
+                stringBuilder.append(pages[index].text)
+                if (pageSplit && !stringBuilder.endsWith("\n")) {
+                    stringBuilder.append("\n")
+                }
+            }
         }
-        return stringBuilder.toString()
+        return stringBuilder.substring(startPos).toString()
     }
 
     /**
-     * 根据索引位置获取所在页
+     * @return 根据索引位置获取所在页
      */
     fun getPageIndexByCharIndex(charIndex: Int): Int {
         var length = 0

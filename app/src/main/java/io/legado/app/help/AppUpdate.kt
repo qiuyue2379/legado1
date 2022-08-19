@@ -1,6 +1,5 @@
 package io.legado.app.help
 
-import io.legado.app.R
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.http.newCallStrResponse

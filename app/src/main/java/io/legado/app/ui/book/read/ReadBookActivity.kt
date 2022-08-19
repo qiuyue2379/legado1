@@ -25,6 +25,7 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.BookHelp
 import io.legado.app.help.IntentData
+import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.help.config.ReadTipConfig
 import io.legado.app.help.coroutine.Coroutine
@@ -182,6 +183,7 @@ class ReadBookActivity : BaseReadBookActivity(),
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         upSystemUiVisibility()
+        binding.readMenu.upBrightnessState()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -609,13 +611,14 @@ class ReadBookActivity : BaseReadBookActivity(),
     /**
      * 当前选择的文本
      */
-    override val selectedText: String get() = binding.readView.curPage.selectedText
+    override val selectedText: String get() = binding.readView.getSelectText()
 
     /**
      * 文本选择菜单操作
      */
     override fun onMenuItemSelected(itemId: Int): Boolean {
         when (itemId) {
+            R.id.menu_aloud -> binding.readView.aloudStartSelect()
             R.id.menu_bookmark -> binding.readView.curPage.let {
                 val bookmark = it.createBookmark()
                 if (bookmark == null) {
@@ -969,14 +972,18 @@ class ReadBookActivity : BaseReadBookActivity(),
                 throw NoStackTraceException("no pay action")
             }
             JsUtils.evalJs(payAction) {
+                it["java"] = source
+                it["source"] = source
                 it["book"] = book
                 it["chapter"] = chapter
             }
         }.onSuccess {
-            startActivity<WebViewActivity> {
-                putExtra("title", getString(R.string.chapter_pay))
-                putExtra("url", it)
-                IntentData.put(it, ReadBook.bookSource?.getHeaderMap(true))
+            if (it.isNotBlank()) {
+                startActivity<WebViewActivity> {
+                    putExtra("title", getString(R.string.chapter_pay))
+                    putExtra("url", it)
+                    IntentData.put(it, ReadBook.bookSource?.getHeaderMap(true))
+                }
             }
         }.onError {
             toastOnUi(it.localizedMessage)
@@ -1142,13 +1149,17 @@ class ReadBookActivity : BaseReadBookActivity(),
     override fun finish() {
         ReadBook.book?.let {
             if (!ReadBook.inBookshelf) {
-                alert(title = getString(R.string.add_to_shelf)) {
-                    setMessage(getString(R.string.check_add_bookshelf, it.name))
-                    okButton {
-                        ReadBook.inBookshelf = true
-                        setResult(Activity.RESULT_OK)
+                if (!AppConfig.showAddToShelfAlert) {
+                    viewModel.removeFromBookshelf { super.finish() }
+                } else {
+                    alert(title = getString(R.string.add_to_shelf)) {
+                        setMessage(getString(R.string.check_add_bookshelf, it.name))
+                        okButton {
+                            ReadBook.inBookshelf = true
+                            setResult(Activity.RESULT_OK)
+                        }
+                        noButton { viewModel.removeFromBookshelf { super.finish() } }
                     }
-                    noButton { viewModel.removeFromBookshelf { super.finish() } }
                 }
             } else {
                 super.finish()
@@ -1185,6 +1196,7 @@ class ReadBookActivity : BaseReadBookActivity(),
         }
         observeEvent<Boolean>(EventBus.UP_CONFIG) {
             upSystemUiVisibility()
+            readView.upPageSlopSquare()
             readView.upBg()
             readView.upStyle()
             readView.upBgAlpha()
