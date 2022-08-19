@@ -506,6 +506,9 @@ class ReadView(context: Context, attrs: AttributeSet) :
         callBack.screenOffTimerStart()
     }
 
+    /**
+     * 更新滑动距离
+     */
     fun upPageSlopSquare() {
         val pageTouchSlop = AppConfig.pageTouchSlop
         this.pageSlopSquare = if (pageTouchSlop == 0) slopSquare else pageTouchSlop
@@ -563,12 +566,14 @@ class ReadView(context: Context, attrs: AttributeSet) :
      */
     fun aloudStartSelect() {
         val selectStartPos = curPage.selectStartPos
+        var pagePos = selectStartPos.relativePagePos
         val line = selectStartPos.lineIndex
         val column = selectStartPos.charIndex
-        if (selectStartPos.relativePagePos > 0) {
+        while (pagePos > 0) {
             if (!ReadBook.moveToNextPage()) {
                 ReadBook.moveToNextChapter(false)
             }
+            pagePos--
         }
         val startPos = curPage.textPage.getPosByLineColumn(line, column)
         ReadAloud.play(context, startPos = startPos)
