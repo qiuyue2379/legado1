@@ -84,8 +84,8 @@ class ReadMenu @JvmOverloads constructor(
             binding.tvSourceAction.isGone = ReadBook.isLocalBook
             binding.tvLogin.isGone = ReadBook.bookSource?.loginUrl.isNullOrEmpty()
             binding.tvPay.isGone = ReadBook.bookSource?.loginUrl.isNullOrEmpty()
-                || ReadBook.curTextChapter?.isVip != true
-                || ReadBook.curTextChapter?.isPay == true
+                    || ReadBook.curTextChapter?.isVip != true
+                    || ReadBook.curTextChapter?.isPay == true
             callBack.upSystemUiVisibility()
             binding.llBrightness.visible(showBrightnessView)
         }

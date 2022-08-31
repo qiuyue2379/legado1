@@ -165,5 +165,6 @@ class MoreConfigDialog : DialogFragment() {
                     getString(R.string.page_touch_slop_summary, value)
             }
         }
+
     }
 }
