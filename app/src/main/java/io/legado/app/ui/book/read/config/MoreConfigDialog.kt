@@ -72,7 +72,7 @@ class MoreConfigDialog : DialogFragment() {
     class ReadPreferenceFragment : PreferenceFragment(),
         SharedPreferences.OnSharedPreferenceChangeListener {
 
-        private val slopSquare by lazy { ViewConfiguration.get(context).scaledTouchSlop }
+        private val slopSquare by lazy { ViewConfiguration.get(requireContext()).scaledTouchSlop }
 
         @SuppressLint("RestrictedApi")
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -132,6 +132,10 @@ class MoreConfigDialog : DialogFragment() {
                 PreferKey.doublePageHorizontal -> {
                     ChapterProvider.upLayout()
                     ReadBook.loadContent(false)
+                }
+                PreferKey.showReadTitleAddition,
+                PreferKey.readBarStyleFollowPage -> {
+                    postEvent(EventBus.updateReadActionBar, true)
                 }
             }
         }

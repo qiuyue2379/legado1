@@ -5,18 +5,22 @@ import android.text.StaticLayout
 import io.legado.app.R
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.model.ReadBook
+import io.legado.app.ui.book.read.page.entities.column.TextColumn
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.utils.textHeight
 import splitties.init.appCtx
 import java.text.DecimalFormat
 import kotlin.math.min
 
+/**
+ * 页面信息
+ */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class TextPage(
     var index: Int = 0,
     var text: String = appCtx.getString(R.string.data_loading),
     var title: String = "",
-    val textLines: ArrayList<TextLine> = arrayListOf(),
+    private val textLines: ArrayList<TextLine> = arrayListOf(),
     var pageSize: Int = 0,
     var chapterSize: Int = 0,
     var chapterIndex: Int = 0,
@@ -24,9 +28,14 @@ data class TextPage(
     var leftLineSize: Int = 0
 ) {
 
-    val lineSize get() = textLines.size
-    val charSize get() = text.length
+    val lines: List<TextLine> get() = textLines
+    val lineSize: Int get() = textLines.size
+    val charSize: Int get() = text.length
     var isMsgPage: Boolean = false
+
+    fun addLine(line: TextLine) {
+        textLines.add(line)
+    }
 
     fun getLine(index: Int): TextLine {
         return textLines.getOrElse(index) {
@@ -81,7 +90,7 @@ data class TextPage(
     }
 
     /**
-     * 计算文字位置
+     * 计算文字位置,只用作单页面内容
      */
     @Suppress("DEPRECATION")
     fun format(): TextPage {
@@ -110,8 +119,8 @@ data class TextPage(
                     val char = textLine.text[i].toString()
                     val cw = StaticLayout.getDesiredWidth(char, ChapterProvider.contentPaint)
                     val x1 = x + cw
-                    textLine.textChars.add(
-                        TextChar(char, start = x, end = x1)
+                    textLine.addColumn(
+                        TextColumn(start = x, end = x1, char)
                     )
                     x = x1
                 }

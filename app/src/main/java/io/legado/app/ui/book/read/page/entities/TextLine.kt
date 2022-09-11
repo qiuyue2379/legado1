@@ -1,13 +1,17 @@
 package io.legado.app.ui.book.read.page.entities
 
 import android.text.TextPaint
+import io.legado.app.ui.book.read.page.entities.column.BaseColumn
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.utils.textHeight
 
+/**
+ * 行信息
+ */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class TextLine(
     var text: String = "",
-    val textChars: ArrayList<TextChar> = arrayListOf(),
+    private val textColumns: ArrayList<BaseColumn> = arrayListOf(),
     var lineTop: Float = 0f,
     var lineBase: Float = 0f,
     var lineBottom: Float = 0f,
@@ -17,28 +21,33 @@ data class TextLine(
     var isImage: Boolean = false
 ) {
 
-    val charSize: Int get() = textChars.size
-    val lineStart: Float get() = textChars.firstOrNull()?.start ?: 0f
-    val lineEnd: Float get() = textChars.lastOrNull()?.end ?: 0f
+    val columns: List<BaseColumn> get() = textColumns
+    val charSize: Int get() = textColumns.size
+    val lineStart: Float get() = textColumns.firstOrNull()?.start ?: 0f
+    val lineEnd: Float get() = textColumns.lastOrNull()?.end ?: 0f
+
+    fun addColumn(column: BaseColumn) {
+        textColumns.add(column)
+    }
+
+    fun getColumn(index: Int): BaseColumn {
+        return textColumns.getOrElse(index) {
+            textColumns.last()
+        }
+    }
+
+    fun getColumnReverseAt(index: Int): BaseColumn {
+        return textColumns[textColumns.lastIndex - index]
+    }
+
+    fun getColumnsCount(): Int {
+        return textColumns.size
+    }
 
     fun upTopBottom(durY: Float, textPaint: TextPaint) {
         lineTop = ChapterProvider.paddingTop + durY
         lineBottom = lineTop + textPaint.textHeight
         lineBase = lineBottom - textPaint.fontMetrics.descent
-    }
-
-    fun getTextChar(index: Int): TextChar {
-        return textChars.getOrElse(index) {
-            textChars.last()
-        }
-    }
-
-    fun getTextCharReverseAt(index: Int): TextChar {
-        return textChars[textChars.lastIndex - index]
-    }
-
-    fun getTextCharsCount(): Int {
-        return textChars.size
     }
 
     fun isTouch(x: Float, y: Float, relativeOffset: Float): Boolean {

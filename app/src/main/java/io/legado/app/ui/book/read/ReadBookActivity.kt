@@ -229,6 +229,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                 setOnMenuItemClickListener(this@ReadBookActivity)
             }.show()
         }
+        binding.readMenu.refreshMenuColorFilter()
         return super.onCompatCreateOptionsMenu(menu)
     }
 
@@ -255,6 +256,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                     else -> when (item.itemId) {
                         R.id.menu_enable_replace -> item.isChecked = book.getUseReplaceRule()
                         R.id.menu_re_segment -> item.isChecked = book.getReSegment()
+                        R.id.menu_enable_review -> item.isChecked = AppConfig.enableReview
                         R.id.menu_reverse_content -> item.isVisible = onLine
                     }
                 }
@@ -353,6 +355,11 @@ class ReadBookActivity : BaseReadBookActivity(),
             R.id.menu_re_segment -> ReadBook.book?.let {
                 it.setReSegment(!it.getReSegment())
                 menu?.findItem(R.id.menu_re_segment)?.isChecked = it.getReSegment()
+                ReadBook.loadContent(false)
+            }
+            R.id.menu_enable_review -> {
+                AppConfig.enableReview = !AppConfig.enableReview
+                menu?.findItem(R.id.menu_enable_review)?.isChecked = AppConfig.enableReview
                 ReadBook.loadContent(false)
             }
             R.id.menu_page_anim -> showPageAnimConfig {
@@ -976,7 +983,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                     Coroutine.async {
                         val source = ReadBook.bookSource ?: throw NoStackTraceException("no book source")
                         val payAction = source.getContentRule().payAction
-                        if (payAction.isNullOrEmpty()) {
+                        if (payAction.isNullOrBlank()) {
                             throw NoStackTraceException("no pay action")
                         }
                         val analyzeRule = AnalyzeRule(book, source)
@@ -984,9 +991,9 @@ class ReadBookActivity : BaseReadBookActivity(),
                         analyzeRule.chapter = chapter
                         analyzeRule.evalJS(payAction).toString()
                     }.onSuccess {
-                        if (it.isNotBlank()) {
+                        if (it.isAbsUrl()) {
                             startActivity<WebViewActivity> {
-                                putExtra("title", R.string.chapter_pay)
+                                putExtra("title", getString(R.string.chapter_pay))
                                 putExtra("url", it)
                                 IntentData.put(it, ReadBook.bookSource?.getHeaderMap(true))
                             }
@@ -1216,6 +1223,7 @@ class ReadBookActivity : BaseReadBookActivity(),
             } else {
                 readView.upContent(resetPageOffset = false)
             }
+            binding.readMenu.reset()
         }
         observeEvent<Int>(EventBus.ALOUD_STATE) {
             if (it == Status.STOP || it == Status.PAUSE) {
@@ -1252,6 +1260,9 @@ class ReadBookActivity : BaseReadBookActivity(),
         }
         observeEvent<List<SearchResult>>(EventBus.SEARCH_RESULT) {
             viewModel.searchResultList = it
+        }
+        observeEvent<Boolean>(EventBus.updateReadActionBar) {
+            binding.readMenu.reset()
         }
     }
 

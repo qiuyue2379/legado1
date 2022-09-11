@@ -154,6 +154,12 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
     val autoRefreshBook: Boolean
         get() = appCtx.getPrefBoolean(PreferKey.autoRefresh)
 
+    var enableReview: Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.enableReview, false)
+        set(value) {
+            appCtx.putPrefBoolean(PreferKey.enableReview, value)
+        }
+
     var threadCount: Int
         get() = appCtx.getPrefInt(PreferKey.threadCount, 16)
         set(value) {
@@ -341,6 +347,17 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
         get() = appCtx.getPrefInt(PreferKey.bitmapCacheSize, 50)
         set(value) {
             appCtx.putPrefInt(PreferKey.bitmapCacheSize, value)
+        }
+
+    var showReadTitleBarAddition : Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.showReadTitleAddition, true)
+        set(value) {
+            appCtx.putPrefBoolean(PreferKey.showReadTitleAddition, value)
+        }
+    var readBarStyleFollowPage : Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.readBarStyleFollowPage, false)
+        set(value) {
+            appCtx.putPrefBoolean(PreferKey.readBarStyleFollowPage, value)
         }
 }
 
