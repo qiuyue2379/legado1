@@ -1,5 +1,6 @@
 package io.legado.app.ui.book.read.page.provider
 
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
@@ -32,7 +33,7 @@ object ChapterProvider {
     private const val srcReplaceChar = "▩"
 
     //用于评论按钮的替换
-    private const val reviewChar = "\uD83D\uDCAC"
+    private const val reviewChar = "▨"
 
     @JvmStatic
     var viewWidth = 0
@@ -96,6 +97,9 @@ object ChapterProvider {
 
     @JvmStatic
     var contentPaint: TextPaint = TextPaint()
+
+    @JvmStatic
+    var reviewPaint: TextPaint = TextPaint()
 
     var doublePage = false
         private set
@@ -512,7 +516,7 @@ object ChapterProvider {
                 ReviewColumn(
                     start = absStartX + xStart,
                     end = absStartX + xEnd,
-                    count = 2
+                    count = 100
                 )
             }
             else -> {
@@ -552,6 +556,9 @@ object ChapterProvider {
         getPaints(typeface).let {
             titlePaint = it.first
             contentPaint = it.second
+            reviewPaint.color = contentPaint.color
+            reviewPaint.textSize = contentPaint.textSize * 0.6f
+            reviewPaint.textAlign = Paint.Align.CENTER
         }
         //间距
         lineSpacingExtra = ReadBookConfig.lineSpacingExtra / 10f

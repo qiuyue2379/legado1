@@ -1,8 +1,12 @@
 package io.legado.app.data.dao
 
 import androidx.room.*
+import io.legado.app.constant.AppPattern
 import io.legado.app.data.entities.BookSource
+import io.legado.app.utils.cnCompare
+import io.legado.app.utils.splitNotBlank
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Dao
 interface BookSourceDao {
@@ -82,10 +86,10 @@ interface BookSourceDao {
     fun flowGroupExplore(key: String): Flow<List<BookSource>>
 
     @Query("select distinct bookSourceGroup from book_sources where trim(bookSourceGroup) <> ''")
-    fun flowGroup(): Flow<List<String>>
+    fun flowGroupsUnProcessed(): Flow<List<String>>
 
     @Query("select distinct bookSourceGroup from book_sources where enabled = 1 and trim(bookSourceGroup) <> ''")
-    fun flowGroupEnabled(): Flow<List<String>>
+    fun flowEnabledGroupsUnProcessed(): Flow<List<String>>
 
     @Query(
         """select distinct bookSourceGroup from book_sources 
@@ -94,7 +98,7 @@ interface BookSourceDao {
         and trim(bookSourceGroup) <> ''
         order by customOrder"""
     )
-    fun flowExploreGroup(): Flow<List<String>>
+    fun flowExploreGroupsUnProcessed(): Flow<List<String>>
 
     @Query("select * from book_sources where bookSourceGroup like '%' || :group || '%'")
     fun getByGroup(group: String): List<BookSource>
@@ -128,7 +132,7 @@ interface BookSourceDao {
     val allTextEnabled: List<BookSource>
 
     @get:Query("select distinct bookSourceGroup from book_sources where trim(bookSourceGroup) <> ''")
-    val allGroup: List<String>
+    val allGroupsUnProcessed: List<String>
 
     @Query("select * from book_sources where bookSourceUrl = :key")
     fun getBookSource(key: String): BookSource?
@@ -153,4 +157,39 @@ interface BookSourceDao {
 
     @get:Query("select max(customOrder) from book_sources")
     val maxOrder: Int
+
+    private fun dealGroups(list: List<String>): List<String> {
+        val groups = linkedSetOf<String>()
+        list.forEach {
+            it.splitNotBlank(AppPattern.splitGroupRegex).forEach { group ->
+                groups.add(group)
+            }
+        }
+        return groups.sortedWith { o1, o2 ->
+            o1.cnCompare(o2)
+        }
+    }
+
+    val allGroups: List<String>
+        get() {
+            return dealGroups(allGroupsUnProcessed)
+        }
+
+    fun flowGroups(): Flow<List<String>> {
+        return flowGroupsUnProcessed().map { list ->
+            dealGroups(list)
+        }
+    }
+
+    fun flowExploreGroups(): Flow<List<String>> {
+        return flowExploreGroupsUnProcessed().map { list ->
+            dealGroups(list)
+        }
+    }
+
+    fun flowEnabledGroups(): Flow<List<String>> {
+        return flowEnabledGroupsUnProcessed().map { list ->
+            dealGroups(list)
+        }
+    }
 }

@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
 import io.legado.app.R
@@ -163,12 +162,6 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
             ChapterProvider.contentPaint
         }
         val textColor = if (textLine.isReadAloud) context.accentColor else ReadBookConfig.textColor
-        val linePaint = Paint()
-        linePaint.strokeWidth = textPaint.textSize / 21
-        linePaint.color = textColor
-        val reviewCountPaint = TextPaint()
-        reviewCountPaint.textSize = textPaint.textSize * 0.6F
-        reviewCountPaint.color = textColor
         textLine.columns.forEach {
             when (it) {
                 is TextColumn -> {
@@ -182,7 +175,7 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
                     }
                 }
                 is ImageColumn -> drawImage(canvas, textPage, textLine, it, lineTop, lineBottom)
-                is ReviewColumn -> it.drawToCanvas(canvas, linePaint, reviewCountPaint, lineBase)
+                is ReviewColumn -> it.drawToCanvas(canvas, lineBase, textPaint.textSize)
             }
         }
     }
@@ -468,12 +461,16 @@ class ContentTextView(context: Context, attrs: AttributeSet?) : View(context, at
         invalidate()
     }
 
-    private fun upSelectedStart(x: Float, y: Float, top: Float) = callBack.apply {
-        upSelectedStart(x, y + headerHeight, top + headerHeight)
+    private fun upSelectedStart(x: Float, y: Float, top: Float) {
+        callBack.run {
+            upSelectedStart(x, y + headerHeight, top + headerHeight)
+        }
     }
 
-    private fun upSelectedEnd(x: Float, y: Float) = callBack.apply {
-        upSelectedEnd(x, y + headerHeight)
+    private fun upSelectedEnd(x: Float, y: Float) {
+        callBack.run {
+            upSelectedEnd(x, y + headerHeight)
+        }
     }
 
     fun cancelSelect(fromSearchExit: Boolean = false) {
