@@ -21,7 +21,7 @@ import io.legado.app.ui.widget.dialog.TextDialog
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
-class HttpTtsEditDialog() : BaseDialogFragment(R.layout.dialog_http_tts_edit),
+class HttpTtsEditDialog() : BaseDialogFragment(R.layout.dialog_http_tts_edit, true),
     Toolbar.OnMenuItemClickListener {
 
     constructor(id: Long) : this() {
@@ -35,7 +35,7 @@ class HttpTtsEditDialog() : BaseDialogFragment(R.layout.dialog_http_tts_edit),
 
     override fun onStart() {
         super.onStart()
-        setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     }
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {

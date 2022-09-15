@@ -26,7 +26,7 @@ import kotlinx.coroutines.withContext
 import splitties.views.onClick
 
 
-class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login) {
+class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login, true) {
 
     private val binding by viewBinding(DialogLoginBinding::bind)
     private val viewModel by activityViewModels<SourceLoginViewModel>()
