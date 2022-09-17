@@ -15,7 +15,8 @@ import android.view.animation.Animation
 import android.widget.FrameLayout
 import android.widget.SeekBar
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.view.*
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import io.legado.app.R
 import io.legado.app.constant.PreferKey
 import io.legado.app.databinding.ViewReadMenuBinding
@@ -55,24 +56,23 @@ class ReadMenu @JvmOverloads constructor(
     private val menuBottomOut: Animation by lazy {
         loadAnimation(context, R.anim.anim_readbook_bottom_out)
     }
-    private val bgColor: Int
-        get() = if(AppConfig.readBarStyleFollowPage && ReadBookConfig.durConfig.curBgType() == 0){
-            Color.parseColor(ReadBookConfig.durConfig.curBgStr())
-        }else{
-            context.bottomBackground
-        }
-    private val textColor: Int
-        get() = if(AppConfig.readBarStyleFollowPage && ReadBookConfig.durConfig.curBgType() == 0){
-            ReadBookConfig.durConfig.curTextColor()
-        }else{
-            context.getPrimaryTextColor(ColorUtils.isColorLight(bgColor))
-        }
+    private val immersiveMenu: Boolean
+        get() = AppConfig.readBarStyleFollowPage && ReadBookConfig.durConfig.curBgType() == 0
+    private var bgColor: Int = if (immersiveMenu) {
+        Color.parseColor(ReadBookConfig.durConfig.curBgStr())
+    } else {
+        context.bottomBackground
+    }
+    private var textColor: Int = if (immersiveMenu) {
+        ReadBookConfig.durConfig.curTextColor()
+    } else {
+        context.getPrimaryTextColor(ColorUtils.isColorLight(bgColor))
+    }
 
-    private val bottomBackgroundList: ColorStateList
-        get() = Selector.colorBuild()
-            .setDefaultColor(bgColor)
-            .setPressedColor(ColorUtils.darkenColor(bgColor))
-            .create()
+    private var bottomBackgroundList: ColorStateList = Selector.colorBuild()
+        .setDefaultColor(bgColor)
+        .setPressedColor(ColorUtils.darkenColor(bgColor))
+        .create()
     private var onMenuOutEnd: (() -> Unit)? = null
     private val showBrightnessView
         get() = context.getPrefBoolean(
@@ -150,22 +150,29 @@ class ReadMenu @JvmOverloads constructor(
         bindEvent()
     }
 
-    private fun initView() = binding.run {
+    private fun initView(reset: Boolean = false) = binding.run {
         if (AppConfig.isNightTheme) {
             fabNightTheme.setImageResource(R.drawable.ic_daytime)
         } else {
             fabNightTheme.setImageResource(R.drawable.ic_brightness)
         }
         initAnimation()
-        val bgColor = this@ReadMenu.bgColor
-        val textColor = this@ReadMenu.textColor
-        val bottomBackgroundList = this@ReadMenu.bottomBackgroundList
-        val lightTextColor = ColorUtils.withAlpha(ColorUtils.lightenColor(textColor),0.75f)
-        titleBar.setTextColor(textColor)
-        titleBar.setBackgroundColor(bgColor)
-        titleBar.setColorFilter(textColor)
-        tvChapterName.setTextColor(lightTextColor)
-        tvChapterUrl.setTextColor(lightTextColor)
+        if (immersiveMenu) {
+            val lightTextColor = ColorUtils.withAlpha(ColorUtils.lightenColor(textColor), 0.75f)
+            titleBar.setTextColor(textColor)
+            titleBar.setBackgroundColor(bgColor)
+            titleBar.setColorFilter(textColor)
+            tvChapterName.setTextColor(lightTextColor)
+            tvChapterUrl.setTextColor(lightTextColor)
+        } else if (reset) {
+            val bgColor = context.primaryColor
+            val textColor = context.primaryTextColor
+            titleBar.setTextColor(textColor)
+            titleBar.setBackgroundColor(bgColor)
+            titleBar.setColorFilter(textColor)
+            tvChapterName.setTextColor(textColor)
+            tvChapterUrl.setTextColor(textColor)
+        }
         val brightnessBackground = GradientDrawable()
         brightnessBackground.cornerRadius = 5F.dpToPx()
         brightnessBackground.setColor(ColorUtils.adjustAlpha(bgColor, 0.5f))
@@ -194,19 +201,39 @@ class ReadMenu @JvmOverloads constructor(
         seekBrightness.post {
             seekBrightness.progress = AppConfig.readBrightness
         }
-        if(AppConfig.showReadTitleBarAddition){
+        if (AppConfig.showReadTitleBarAddition) {
             titleBarAddition.visible()
-        }else{
+        } else {
             titleBarAddition.gone()
         }
     }
 
-    fun reset(){
-        initView()
+    fun reset() {
+        upColorConfig()
+        initView(true)
     }
 
-    fun refreshMenuColorFilter(){
-        binding.titleBar.setColorFilter(textColor)
+    fun refreshMenuColorFilter() {
+        if (immersiveMenu) {
+            binding.titleBar.setColorFilter(textColor)
+        }
+    }
+
+    private fun upColorConfig() {
+        bgColor = if (immersiveMenu) {
+            Color.parseColor(ReadBookConfig.durConfig.curBgStr())
+        } else {
+            context.bottomBackground
+        }
+        textColor = if (immersiveMenu) {
+            ReadBookConfig.durConfig.curTextColor()
+        } else {
+            context.getPrimaryTextColor(ColorUtils.isColorLight(bgColor))
+        }
+        bottomBackgroundList = Selector.colorBuild()
+            .setDefaultColor(bgColor)
+            .setPressedColor(ColorUtils.darkenColor(bgColor))
+            .create()
     }
 
     fun upBrightnessState() {
