@@ -9,13 +9,10 @@ import android.view.*
 import android.webkit.*
 import androidx.activity.viewModels
 import androidx.core.view.size
-import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.imagePathKey
-import io.legado.app.constant.AppLog
 import io.legado.app.databinding.ActivityRssReadBinding
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.SelectItem
@@ -128,9 +125,9 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             domStorageEnabled = true
             allowContentAccess = true
             builtInZoomControls = true
+            setDarkeningAllowed(AppConfig.isNightTheme)
         }
         binding.webView.addJavascriptInterface(this, "app")
-        upWebViewTheme()
         binding.webView.setOnLongClickListener {
             val hitTestResult = binding.webView.hitTestResult
             if (hitTestResult.type == WebView.HitTestResult.IMAGE_TYPE ||
@@ -214,26 +211,6 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
     private fun upJavaScriptEnable() {
         if (viewModel.rssSource?.enableJs == true) {
             binding.webView.settings.javaScriptEnabled = true
-        }
-    }
-
-    private fun upWebViewTheme() {
-        AppLog.put("webView夜间模式${AppConfig.isNightTheme}")
-        if (AppConfig.isNightTheme) {
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
-                @Suppress("DEPRECATION")
-                WebSettingsCompat.setForceDarkStrategy(
-                    binding.webView.settings,
-                    WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
-                )
-            }
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                @Suppress("DEPRECATION")
-                WebSettingsCompat.setForceDark(
-                    binding.webView.settings,
-                    WebSettingsCompat.FORCE_DARK_ON
-                )
-            }
         }
     }
 
@@ -342,7 +319,7 @@ class ReadRssActivity : VMBaseActivity<ActivityRssReadBinding, ReadRssViewModel>
             return true
         }
 
-        @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+        @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION", "KotlinRedundantDiagnosticSuppress")
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
             url?.let {
                 return shouldOverrideUrlLoading(Uri.parse(it))
