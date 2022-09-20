@@ -16,6 +16,7 @@ import io.legado.app.exception.ContentEmptyException
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.exception.TocEmptyException
 import io.legado.app.help.config.AppConfig
+import io.legado.app.help.source.exploreKinds
 import io.legado.app.model.CheckSource
 import io.legado.app.model.Debug
 import io.legado.app.model.webBook.WebBook
@@ -72,6 +73,7 @@ class CheckSourceService : BaseService() {
             IntentAction.start -> intent.getStringArrayListExtra("selectIds")?.let {
                 check(it)
             }
+
             IntentAction.resume -> upNotification()
             else -> stopSelf()
         }
@@ -154,7 +156,7 @@ class CheckSourceService : BaseService() {
                 }
             }
             //校验发现书籍
-            if (CheckSource.checkDiscovery) {
+            if (CheckSource.checkDiscovery && !source.exploreUrl.isNullOrBlank()) {
                 val exs = source.exploreKinds()
                 var url: String? = null
                 for (ex in exs) {
