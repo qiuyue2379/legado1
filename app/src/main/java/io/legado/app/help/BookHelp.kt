@@ -136,31 +136,19 @@ object BookHelp {
         downloadImages.add(src)
         val analyzeUrl = AnalyzeUrl(src, source = bookSource)
         try {
-            var bytes = analyzeUrl.getByteArrayAwait()
+            val bytes = analyzeUrl.getByteArrayAwait()
             //某些图片被加密，需要进一步解密
-            bookSource?.getContentRule()?.imageDecode?.let {
-                if (it.isBlank()) {
-                    return@let
-                }
-                kotlin.runCatching {
-                    bookSource.evalJS(it) {
-                        put("book", book)
-                        put("result", bytes)
-                        put("src", src)
-                    } as ByteArray
-                }.onSuccess {
-                    bytes = it
-                }.onFailure {
-                    AppLog.putDebug("${src}解密bytes错误", it)
-                }
+            ImageUtils.decode(
+                src, bytes, isCover = false, bookSource, book
+            )?.let {
+                FileUtils.createFileIfNotExist(
+                downloadDir,
+                cacheFolderName,
+                book.getFolderName(),
+                cacheImageFolderName,
+                "${MD5Utils.md5Encode16(src)}.${getImageSuffix(src)}"
+                ).writeBytes(it)
             }
-            FileUtils.createFileIfNotExist(
-                    downloadDir,
-                    cacheFolderName,
-                    book.getFolderName(),
-                    cacheImageFolderName,
-                    "${MD5Utils.md5Encode16(src)}.${getImageSuffix(src)}"
-            ).writeBytes(bytes)
         } catch (e: Exception) {
             AppLog.putDebug("${src}下载错误", e)
         } finally {
@@ -323,7 +311,7 @@ object BookHelp {
         newChapterList: List<BookChapter>,
         oldChapterListSize: Int = 0
     ): Int {
-        if (oldDurChapterIndex == 0) return oldDurChapterIndex
+        if (oldDurChapterIndex == 0) return 0
         if (newChapterList.isEmpty()) return oldDurChapterIndex
         val oldChapterNum = getChapterNum(oldDurChapterName)
         val oldName = getPureChapterName(oldDurChapterName)
@@ -370,6 +358,7 @@ object BookHelp {
         Pattern.compile(".*?第([\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+)[章节篇回集话]")
     }
 
+    @Suppress("RegExpSimplifiable")
     private val chapterNamePattern2 by lazy {
         Pattern.compile("^(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+[,:、])*([\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+)(?:[,:、]|\\.[^\\d])")
     }
@@ -397,7 +386,7 @@ object BookHelp {
         return@lazy "[^\\w\\u4E00-\\u9FEF〇\\u3400-\\u4DBF\\u20000-\\u2A6DF\\u2A700-\\u2EBEF]".toRegex()
     }
 
-    @Suppress("RegExpUnnecessaryNonCapturingGroup")
+    @Suppress("RegExpUnnecessaryNonCapturingGroup", "RegExpSimplifiable")
     private val regexB by lazy {
         //章节序号，排除处于结尾的状况，避免将章节名替换为空字串
         return@lazy "^.*?第(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+)[章节篇回集话](?!$)|^(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+[,:、])*(?:[\\d零〇一二两三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟]+)(?:[,:、](?!$)|\\.(?=[^\\d]))".toRegex()
