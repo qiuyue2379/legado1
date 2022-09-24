@@ -139,14 +139,14 @@ object BookHelp {
             val bytes = analyzeUrl.getByteArrayAwait()
             //某些图片被加密，需要进一步解密
             ImageUtils.decode(
-                src, bytes, isCover = false, bookSource, book
+              src, bytes, isCover = false, bookSource, book
             )?.let {
                 FileUtils.createFileIfNotExist(
-                downloadDir,
-                cacheFolderName,
-                book.getFolderName(),
-                cacheImageFolderName,
-                "${MD5Utils.md5Encode16(src)}.${getImageSuffix(src)}"
+                    downloadDir,
+                    cacheFolderName,
+                    book.getFolderName(),
+                    cacheImageFolderName,
+                    "${MD5Utils.md5Encode16(src)}.${getImageSuffix(src)}"
                 ).writeBytes(it)
             }
         } catch (e: Exception) {
