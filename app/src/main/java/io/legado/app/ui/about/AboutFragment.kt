@@ -15,6 +15,7 @@ import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.ui.widget.dialog.TextDialog
+import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
 import splitties.init.appCtx
 
@@ -36,6 +37,10 @@ class AboutFragment : PreferenceFragmentCompat() {
     private val qqChannel =
         "https://qun.qq.com/qqweb/qunpro/share?_wv=3&_wwv=128&inviteCode=25d870&from=246610&biz=ka"
 
+    private val waitDialog by lazy {
+        WaitDialog(requireContext())
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.about)
         findPreference<Preference>("update_log")?.summary =
@@ -53,14 +58,14 @@ class AboutFragment : PreferenceFragmentCompat() {
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         when (preference.key) {
             "contributors" -> openUrl(R.string.contributors_url)
-            "update_log" -> show("updateLog.md")
+            "update_log" -> showMdFile("updateLog.md")
             "check_update" -> checkUpdate()
             "mail" -> requireContext().sendMail(getString(R.string.email))
             "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
             "home_page" -> openUrl(R.string.home_page_url)
             "license" -> openUrl(R.string.license_url)
-            "disclaimer" -> show("disclaimer.md")
+            "disclaimer" -> showMdFile("disclaimer.md")
             "qq" -> showQqGroups()
             "gzGzh" -> requireContext().sendToClip(getString(R.string.legado_gzh))
             "crashLog" -> showCrashLogs()
@@ -76,7 +81,10 @@ class AboutFragment : PreferenceFragmentCompat() {
         requireContext().openUrl(getString(addressID))
     }
 
-    private fun show(FileName: String) {
+    /**
+     * 显示md文件
+     */
+    private fun showMdFile(FileName: String) {
         val mdText = String(requireContext().assets.open(FileName).readBytes())
         showDialogFragment(TextDialog(mdText, TextDialog.Mode.MD))
     }
@@ -85,6 +93,7 @@ class AboutFragment : PreferenceFragmentCompat() {
      * 检测更新
      */
     private fun checkUpdate() {
+        waitDialog.show()
         AppUpdate.checkFromGitHub(lifecycleScope)
             .onSuccess {
                 showDialogFragment(
@@ -92,6 +101,8 @@ class AboutFragment : PreferenceFragmentCompat() {
                 )
             }.onError {
                 appCtx.toastOnUi("${getString(R.string.check_update)}\n${it.localizedMessage}")
+            }.onFinally {
+                waitDialog.hide()
             }
     }
 

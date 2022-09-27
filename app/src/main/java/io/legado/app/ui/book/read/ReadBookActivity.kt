@@ -25,6 +25,7 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.BookHelp
 import io.legado.app.help.IntentData
+import io.legado.app.help.TTS
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.help.config.ReadTipConfig
@@ -140,6 +141,7 @@ class ReadBookActivity : BaseReadBookActivity(),
     private var autoPageJob: Job? = null
     private var backupJob: Job? = null
     private var keepScreenJon: Job? = null
+    private var tts: TTS? = null
     val textActionMenu: TextActionMenu by lazy {
         TextActionMenu(this, this)
     }
@@ -431,13 +433,13 @@ class ReadBookActivity : BaseReadBookActivity(),
             if (event.action == MotionEvent.ACTION_SCROLL) {
                 val axisValue = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
                 LogUtils.d("onGenericMotionEvent", "axisValue = $axisValue")
-                mainHandler.removeCallbacks(nextPageRunnable)
-                mainHandler.removeCallbacks(prevPageRunnable)
+                binding.root.removeCallbacks(nextPageRunnable)
+                binding.root.removeCallbacks(prevPageRunnable)
                 // 获得垂直坐标上的滚动方向
                 if (axisValue < 0.0f) { // 滚轮向下滚
-                    mainHandler.postDelayed(nextPageRunnable, 200)
+                    binding.root.postDelayed(nextPageRunnable, 200)
                 } else { // 滚轮向上滚
-                    mainHandler.postDelayed(prevPageRunnable, 200)
+                    binding.root.postDelayed(prevPageRunnable, 200)
                 }
                 return true
             }
@@ -629,7 +631,10 @@ class ReadBookActivity : BaseReadBookActivity(),
      */
     override fun onMenuItemSelected(itemId: Int): Boolean {
         when (itemId) {
-            R.id.menu_aloud -> binding.readView.aloudStartSelect()
+            R.id.menu_aloud -> when (AppConfig.contentSelectSpeakMod) {
+                1 -> binding.readView.aloudStartSelect()
+                else -> speak(binding.readView.getSelectText())
+            }
             R.id.menu_bookmark -> binding.readView.curPage.let {
                 val bookmark = it.createBookmark()
                 if (bookmark == null) {
@@ -676,6 +681,13 @@ class ReadBookActivity : BaseReadBookActivity(),
         textActionMenu.dismiss()
         readView.curPage.cancelSelect()
         readView.isTextSelected = false
+    }
+
+    private fun speak(text: String) {
+        if (tts == null) {
+            tts = TTS()
+        }
+        tts?.speak(text)
     }
 
     /**
@@ -984,7 +996,8 @@ class ReadBookActivity : BaseReadBookActivity(),
                 setMessage(chapter.title)
                 yesButton {
                     Coroutine.async {
-                        val source = ReadBook.bookSource ?: throw NoStackTraceException("no book source")
+                        val source =
+                            ReadBook.bookSource ?: throw NoStackTraceException("no book source")
                         val payAction = source.getContentRule().payAction
                         if (payAction.isNullOrBlank()) {
                             throw NoStackTraceException("no pay action")
@@ -1190,6 +1203,7 @@ class ReadBookActivity : BaseReadBookActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
+        tts?.clearTts()
         textActionMenu.dismiss()
         popupAction.dismiss()
         binding.readView.onDestroy()
