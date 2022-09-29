@@ -13,7 +13,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.ReplacementSpan
 import android.util.AttributeSet
 import androidx.annotation.ColorInt
-import androidx.appcompat.widget.AppCompatMultiAutoCompleteTextView
+import io.legado.app.ui.widget.text.ScrollMultiAutoCompleteTextView
 import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
 
 @Suppress("unused")
 class CodeView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
-    AppCompatMultiAutoCompleteTextView(context, attrs) {
+    ScrollMultiAutoCompleteTextView(context, attrs) {
 
     private var tabWidth = 0
     private var tabWidthInCharacters = 0
@@ -100,6 +100,21 @@ class CodeView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
             }
         )
         addTextChangedListener(mEditorTextWatcher)
+    }
+
+    override fun showDropDown() {
+        val screenPoint = IntArray(2)
+        getLocationOnScreen(screenPoint)
+        val displayFrame = Rect()
+        getWindowVisibleDisplayFrame(displayFrame)
+        val position = selectionStart
+        val layout = layout
+        val line = layout.getLineForOffset(position)
+        val verticalDistanceInDp = (750 + 140 * line) / displayDensity
+        dropDownVerticalOffset = verticalDistanceInDp.toInt()
+        val horizontalDistanceInDp = layout.getPrimaryHorizontal(position) / displayDensity
+        dropDownHorizontalOffset = horizontalDistanceInDp.toInt()
+        super.showDropDown()
     }
 
     private fun autoIndent(
@@ -363,21 +378,6 @@ class CodeView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
 
     fun setHighlightWhileTextChanging(updateWhileTextChanging: Boolean) {
         highlightWhileTextChanging = updateWhileTextChanging
-    }
-
-    override fun showDropDown() {
-        val screenPoint = IntArray(2)
-        getLocationOnScreen(screenPoint)
-        val displayFrame = Rect()
-        getWindowVisibleDisplayFrame(displayFrame)
-        val position = selectionStart
-        val layout = layout
-        val line = layout.getLineForOffset(position)
-        val verticalDistanceInDp = (750 + 140 * line) / displayDensity
-        dropDownVerticalOffset = verticalDistanceInDp.toInt()
-        val horizontalDistanceInDp = layout.getPrimaryHorizontal(position) / displayDensity
-        dropDownHorizontalOffset = horizontalDistanceInDp.toInt()
-        super.showDropDown()
     }
 
     private inner class TabWidthSpan : ReplacementSpan() {
