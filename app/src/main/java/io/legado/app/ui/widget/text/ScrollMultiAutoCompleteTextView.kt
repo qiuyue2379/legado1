@@ -10,18 +10,19 @@ import android.view.VelocityTracker
 import android.view.ViewConfiguration
 import android.view.animation.Interpolator
 import android.widget.OverScroller
-import androidx.appcompat.widget.AppCompatTextView
+import androidx.appcompat.widget.AppCompatMultiAutoCompleteTextView
 import androidx.core.view.ViewCompat
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-
 /**
- * 嵌套惯性滚动 TextView
+ * 嵌套惯性滚动 MultiAutoCompleteTextView
  */
-class ScrollTextView(context: Context, attrs: AttributeSet?) :
-    AppCompatTextView(context, attrs) {
+open class ScrollMultiAutoCompleteTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null
+) : AppCompatMultiAutoCompleteTextView(context, attrs) {
 
     //是否到顶或者到底的标志
     private var disallowIntercept = true
@@ -263,7 +264,7 @@ class ScrollTextView(context: Context, attrs: AttributeSet?) :
                 mReSchedulePostAnimationCallback = true
             } else {
                 removeCallbacks(this)
-                ViewCompat.postOnAnimation(this@ScrollTextView, this)
+                ViewCompat.postOnAnimation(this@ScrollMultiAutoCompleteTextView, this)
             }
         }
     }
