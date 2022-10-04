@@ -10,7 +10,8 @@ import io.legado.app.constant.PageAnim
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookSource
 import io.legado.app.exception.NoStackTraceException
-import io.legado.app.help.BookHelp
+import io.legado.app.help.book.BookHelp
+import io.legado.app.help.book.isEpub
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.ReadBook
@@ -71,7 +72,7 @@ object ImageProvider {
         return withContext(IO) {
             val vFile = BookHelp.getImage(book, src)
             if (!vFile.exists()) {
-                if (book.isEpub()) {
+                if (book.isEpub) {
                     EpubFile.getImage(book, src)?.use { input ->
                         val newFile = FileUtils.createFileIfNotExist(vFile.absolutePath)
                         @Suppress("BlockingMethodInNonBlockingContext")

@@ -6,8 +6,10 @@ import io.legado.app.constant.AppPattern
 import io.legado.app.constant.BookType
 import io.legado.app.constant.PageAnim
 import io.legado.app.data.appDb
-import io.legado.app.help.BookHelp
-import io.legado.app.help.ContentProcessor
+import io.legado.app.help.book.BookHelp
+import io.legado.app.help.book.ContentProcessor
+import io.legado.app.help.book.isEpub
+import io.legado.app.help.book.isImage
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.model.ReadBook
@@ -36,8 +38,8 @@ data class Book(
     @ColumnInfo(defaultValue = "")
     var tocUrl: String = "",
     // 书源URL(默认BookType.local)
-    @ColumnInfo(defaultValue = "")
-    var origin: String = BookType.local,
+    @ColumnInfo(defaultValue = BookType.localTag)
+    var origin: String = BookType.localTag,
     //书源名称 or 本地书籍文件名
     @ColumnInfo(defaultValue = "")
     var originName: String = "",
@@ -61,9 +63,9 @@ data class Book(
     var customIntro: String? = null,
     // 自定义字符集名称(仅适用于本地书籍)
     var charset: String? = null,
-    // 0:text 1:audio 3:image
+    // 类型,详见BookType
     @ColumnInfo(defaultValue = "0")
-    var type: Int = 0,
+    var type: Int = BookType.text,
     // 自定义分组索引号
     @ColumnInfo(defaultValue = "0")
     var group: Long = 0,
@@ -106,27 +108,6 @@ data class Book(
     override var variable: String? = null,
     var readConfig: ReadConfig? = null
 ) : Parcelable, BaseBook {
-
-    fun isLocalBook(): Boolean {
-        return origin == BookType.local
-    }
-
-    fun isLocalTxt(): Boolean {
-        return isLocalBook() && originName.endsWith(".txt", true)
-    }
-
-    fun isEpub(): Boolean {
-        return originName.endsWith(".epub", true)
-    }
-
-    fun isUmd(): Boolean {
-        return originName.endsWith(".umd", true)
-    }
-
-    @Suppress("unused")
-    fun isOnLineTxt(): Boolean {
-        return !isLocalBook() && type == 0
-    }
 
     override fun equals(other: Any?): Boolean {
         if (other is Book) {
@@ -203,7 +184,7 @@ data class Book(
             return useReplaceRule
         }
         //图片类书源 epub本地 默认关闭净化
-        if (type == BookType.image || isEpub()) {
+        if (isImage || isEpub) {
             return false
         }
         return AppConfig.replaceEnableDefault
@@ -223,7 +204,7 @@ data class Book(
 
     fun getPageAnim(): Int {
         var pageAnim = config.pageAnim
-            ?: if (type == BookType.image) PageAnim.scrollPageAnim else ReadBookConfig.pageAnim
+            ?: if (type and BookType.image > 0) PageAnim.scrollPageAnim else ReadBookConfig.pageAnim
         if (pageAnim < 0) {
             pageAnim = ReadBookConfig.pageAnim
         }
@@ -236,7 +217,7 @@ data class Book(
 
     fun getImageStyle(): String? {
         return config.imageStyle
-            ?: if (type == BookType.image) imgStyleFull else null
+            ?: if (isImage) imgStyleFull else null
     }
 
     fun setTtsEngine(ttsEngine: String?) {

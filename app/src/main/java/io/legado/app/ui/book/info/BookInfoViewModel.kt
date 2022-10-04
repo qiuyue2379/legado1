@@ -7,14 +7,15 @@ import androidx.lifecycle.viewModelScope
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
-import io.legado.app.constant.BookType
+import io.legado.app.constant.BookSourceType
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.exception.NoStackTraceException
-import io.legado.app.help.BookHelp
+import io.legado.app.help.book.BookHelp
+import io.legado.app.help.book.isLocal
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
@@ -33,7 +34,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     var bookSource: BookSource? = null
     private var changeSourceCoroutine: Coroutine<*>? = null
     val isImportBookOnLine: Boolean
-      get() = (bookSource?.bookSourceType ?: BookType.local) == BookType.file
+        get() = bookSource?.bookSourceType == BookSourceType.file
 
     fun initData(intent: Intent) {
         execute {
@@ -61,7 +62,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun refreshData(intent: Intent) {
+    fun upBook(intent: Intent) {
         execute {
             val name = intent.getStringExtra("name") ?: ""
             val author = intent.getStringExtra("author") ?: ""
@@ -75,7 +76,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         execute {
             bookData.postValue(book)
             upCoverByRule(book)
-            bookSource = if (book.isLocalBook()) null else
+            bookSource = if (book.isLocal) null else
                 appDb.bookSourceDao.getBookSource(book.origin)
             if (book.tocUrl.isEmpty()) {
                 loadBookInfo(book)
@@ -106,13 +107,20 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+    fun refreshBook(book: Book) {
+        if (book.isLocal) {
+            book.tocUrl = ""
+        }
+        loadBookInfo(book, false)
+    }
+
     fun loadBookInfo(
         book: Book,
         canReName: Boolean = true,
         scope: CoroutineScope = viewModelScope
     ) {
         execute(scope) {
-            if (book.isLocalBook()) {
+            if (book.isLocal) {
                 loadChapter(book, scope)
             } else {
                 bookSource?.let { bookSource ->
@@ -143,7 +151,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         scope: CoroutineScope = viewModelScope
     ) {
         execute(scope) {
-            if (book.isLocalBook()) {
+            if (book.isLocal) {
                 LocalBook.getChapterList(book).let {
                     appDb.bookDao.update(book)
                     appDb.bookChapterDao.delByBook(book.bookUrl)
@@ -277,7 +285,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             bookData.value?.let {
                 it.delete()
                 inBookshelf = false
-                if (it.isLocalBook()) {
+                if (it.isLocal) {
                     LocalBook.deleteBook(it, deleteOriginal)
                 }
             }

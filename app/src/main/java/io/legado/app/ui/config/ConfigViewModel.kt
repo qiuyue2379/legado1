@@ -4,7 +4,7 @@ import android.app.Application
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.help.AppWebDav
-import io.legado.app.help.BookHelp
+import io.legado.app.help.book.BookHelp
 import io.legado.app.utils.FileUtils
 import io.legado.app.utils.toastOnUi
 

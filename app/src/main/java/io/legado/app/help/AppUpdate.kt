@@ -7,7 +7,6 @@ import io.legado.app.help.http.okHttpClient
 import io.legado.app.utils.jsonPath
 import io.legado.app.utils.readString
 import kotlinx.coroutines.CoroutineScope
-import splitties.init.appCtx
 
 object AppUpdate {
 

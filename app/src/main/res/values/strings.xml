@@ -868,13 +868,13 @@
     <string name="end">end</string>
     <string name="custom_group_summary">关闭替换分组/开启添加分组</string>
     <string name="pref_media_button_per_next">媒体按钮•上一首|下一首</string>
-    <string name="pref_media_button_per_next_summary">上一段|下一段/上一章|下一章</string>
+    <string name="pref_media_button_per_next_summary">上一段|下一段/上一章|下一章</spring>
     <string name="read_aloud_by_page_summary">及时翻页,翻页时会停顿一下</string>
     <string name="check_source_show_debug_message">Check book source shows debug message</string>
     <string name="check_source_show_debug_message_summary">Show network status and timestamp during source checking</string>
     <string name="need_login">need login</string>
     <string name="pref_cronet_summary">use Cronet access network</string>
-    <string name="anti_alias">Anti-Aliasing</string>
+    <string name="anti_alias">Anti-Aliasing</string>
     <string name="pref_anti_alias_summary">Anti-Aliasing when draw picture</string>
     <string name="upload_url">upload url</string>
     <string name="download_url_rule">downloadUrlRule(downloadUrls)</string>

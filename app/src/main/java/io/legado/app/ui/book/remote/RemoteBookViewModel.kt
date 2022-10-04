@@ -3,8 +3,10 @@ package io.legado.app.ui.book.remote
 import android.app.Application
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
+import io.legado.app.constant.BookType
 import io.legado.app.model.localBook.LocalBook
-import io.legado.app.ui.book.remote.manager.RemoteBookWebDav
+import io.legado.app.model.remote.RemoteBook
+import io.legado.app.model.remote.RemoteBookWebDav
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -14,7 +16,7 @@ import kotlinx.coroutines.flow.map
 import java.util.*
 
 class RemoteBookViewModel(application: Application) : BaseViewModel(application) {
-    var sortKey = Sort.Default
+    var sortKey = RemoteBookSort.Default
     var sortAscending = false
     val dirList = arrayListOf<RemoteBook>()
 
@@ -48,10 +50,10 @@ class RemoteBookViewModel(application: Application) : BaseViewModel(application)
         }
     }.map { list ->
         if (sortAscending) when (sortKey) {
-            Sort.Name -> list.sortedWith(compareBy({ !it.isDir }, { it.filename }))
+            RemoteBookSort.Name -> list.sortedWith(compareBy({ !it.isDir }, { it.filename }))
             else -> list.sortedWith(compareBy({ !it.isDir }, { it.lastModify }))
         } else when (sortKey) {
-            Sort.Name -> list.sortedWith { o1, o2 ->
+            RemoteBookSort.Name -> list.sortedWith { o1, o2 ->
                 val compare = -compareValues(o1.isDir, o2.isDir)
                 if (compare == 0) {
                     return@sortedWith -compareValues(o1.filename, o2.filename)
@@ -93,9 +95,11 @@ class RemoteBookViewModel(application: Application) : BaseViewModel(application)
     fun addToBookshelf(remoteBooks: HashSet<RemoteBook>, finally: () -> Unit) {
         execute {
             remoteBooks.forEach { remoteBook ->
-                val downloadBookPath = RemoteBookWebDav.getRemoteBook(remoteBook)
-                downloadBookPath?.let {
-                    LocalBook.importFile(it)
+                val downloadBookPath = RemoteBookWebDav.downloadRemoteBook(remoteBook)
+                downloadBookPath.let {
+                    val localBook = LocalBook.importFile(it)
+                    localBook.origin = BookType.webDavTag + remoteBook.path
+                    localBook.save()
                     remoteBook.isOnBookShelf = true
                 }
             }

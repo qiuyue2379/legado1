@@ -12,8 +12,6 @@ buildscript {
     }
 }
 
-
-
 plugins {
     id 'com.android.application' version "$agp_version" apply false
     id 'com.android.library' version "$agp_version" apply false

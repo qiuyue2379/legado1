@@ -9,11 +9,15 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.R
-import io.legado.app.constant.*
+import io.legado.app.constant.AppConst
+import io.legado.app.constant.AppLog
+import io.legado.app.constant.EventBus
+import io.legado.app.constant.PreferKey
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.databinding.FragmentBookshelf1Binding
+import io.legado.app.help.book.isAudio
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.theme.accentColor
 import io.legado.app.lib.theme.primaryColor
@@ -181,8 +185,8 @@ class BookshelfFragment2 : BaseBookshelfFragment(R.layout.fragment_bookshelf1),
 
     override fun onItemClick(position: Int) {
         when (val item = getItem(position)) {
-            is Book -> when (item.type) {
-                BookType.audio ->
+            is Book -> when {
+                item.isAudio ->
                     startActivity<AudioPlayActivity> {
                         putExtra("bookUrl", item.bookUrl)
                     }

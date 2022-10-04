@@ -8,9 +8,10 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookProgress
 import io.legado.app.data.entities.BookSource
 import io.legado.app.help.AppWebDav
-import io.legado.app.help.BookHelp
 import io.legado.app.help.CacheManager
-import io.legado.app.help.ContentProcessor
+import io.legado.app.help.book.BookHelp
+import io.legado.app.help.book.ContentProcessor
+import io.legado.app.help.book.isLocal
 import io.legado.app.help.glide.ImageLoader
 import io.legado.app.model.BookCover
 import io.legado.app.model.localBook.LocalBook
@@ -98,7 +99,7 @@ object BookController {
             }
             val book = appDb.bookDao.getBook(bookUrl)
                 ?: return returnData.setErrorMsg("bookUrl不对")
-            if (book.isLocalBook()) {
+            if (book.isLocal) {
                 val toc = LocalBook.getChapterList(book)
                 appDb.bookChapterDao.delByBook(book.bookUrl)
                 appDb.bookChapterDao.insert(*toc.toTypedArray())

@@ -3,6 +3,7 @@ package io.legado.app.ui.book.toc
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
@@ -13,7 +14,8 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.databinding.FragmentChapterListBinding
-import io.legado.app.help.BookHelp
+import io.legado.app.help.book.BookHelp
+import io.legado.app.help.book.isLocal
 import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.lib.theme.getPrimaryTextColor
 import io.legado.app.ui.widget.recycler.UpLinearLayoutManager
@@ -43,8 +45,8 @@ class ChapterListFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_chapt
         val btc = requireContext().getPrimaryTextColor(ColorUtils.isColorLight(bbg))
         llChapterBaseInfo.setBackgroundColor(bbg)
         tvCurrentChapterInfo.setTextColor(btc)
-        ivChapterTop.setColorFilter(btc)
-        ivChapterBottom.setColorFilter(btc)
+        ivChapterTop.setColorFilter(btc, PorterDuff.Mode.SRC_IN)
+        ivChapterBottom.setColorFilter(btc, PorterDuff.Mode.SRC_IN)
         initRecyclerView()
         initView()
         viewModel.bookData.observe(this@ChapterListFragment) {
@@ -152,7 +154,7 @@ class ChapterListFragment : VMBaseFragment<TocViewModel>(R.layout.fragment_chapt
         get() = viewModel.bookData.value
 
     override val isLocalBook: Boolean
-        get() = viewModel.bookData.value?.isLocalBook() == true
+        get() = viewModel.bookData.value?.isLocal == true
 
     override fun durChapterIndex(): Int {
         return durChapterIndex

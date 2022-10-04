@@ -211,24 +211,27 @@ class AnalyzeUrl(
     }
 
     /**
-     * 解析QueryMap
+     * 解析QueryMap <key>=<value>
+     * name=
+     * name=name
+     * name=<BASE64> eg name=bmFtZQ==
      */
     private fun analyzeFields(fieldsTxt: String) {
         queryStr = fieldsTxt
         val queryS = fieldsTxt.splitNotBlank("&")
         for (query in queryS) {
-            val queryM = query.splitNotBlank("=")
-            val value = if (queryM.size > 1) queryM[1] else ""
+            val value = query.substringAfter("=")
+            val key = query.substringBefore("=")
             if (charset.isNullOrEmpty()) {
                 if (NetworkUtils.hasUrlEncoded(value)) {
-                    fieldMap[queryM[0]] = value
+                    fieldMap[key] = value
                 } else {
-                    fieldMap[queryM[0]] = URLEncoder.encode(value, "UTF-8")
+                    fieldMap[key] = URLEncoder.encode(value, "UTF-8")
                 }
             } else if (charset == "escape") {
-                fieldMap[queryM[0]] = EncoderUtils.escape(value)
+                fieldMap[key] = EncoderUtils.escape(value)
             } else {
-                fieldMap[queryM[0]] = URLEncoder.encode(value, charset)
+                fieldMap[key] = URLEncoder.encode(value, charset)
             }
         }
     }

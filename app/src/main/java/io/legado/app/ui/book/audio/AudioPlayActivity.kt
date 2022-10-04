@@ -12,7 +12,6 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.mutableStateOf
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
-import io.legado.app.constant.BookType
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.Status
 import io.legado.app.constant.Theme
@@ -21,6 +20,7 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.ActivityAudioPlayBinding
+import io.legado.app.help.book.isAudio
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.model.AudioPlay
@@ -189,7 +189,7 @@ class AudioPlayActivity :
     }
 
     private fun upCover(path: String?) {
-        BookCover.load(this, path)
+        BookCover.load(this, path, sourceOrigin = AudioPlay.bookSource?.bookSourceUrl)
             .into(binding.ivCover)
         BookCover.loadBlur(this, path)
             .into(binding.ivBg)
@@ -207,7 +207,7 @@ class AudioPlayActivity :
         get() = AudioPlay.book
 
     override fun changeTo(source: BookSource, book: Book, toc: List<BookChapter>) {
-        if (book.type == BookType.audio) {
+        if (book.isAudio) {
             viewModel.changeTo(source, book, toc)
         } else {
             AudioPlay.stop(this)

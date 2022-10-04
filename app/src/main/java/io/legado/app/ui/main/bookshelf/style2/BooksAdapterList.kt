@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import io.legado.app.constant.BookType
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.databinding.ItemBookshelfListBinding
 import io.legado.app.databinding.ItemBookshelfListGroupBinding
+import io.legado.app.help.book.isLocal
 import io.legado.app.help.config.AppConfig
 import io.legado.app.utils.gone
 import io.legado.app.utils.invisible
@@ -126,7 +126,7 @@ class BooksAdapterList(context: Context, callBack: CallBack) :
     }
 
     private fun upRefresh(binding: ItemBookshelfListBinding, item: Book) {
-        if (item.origin != BookType.local && callBack.isUpdate(item.bookUrl)) {
+        if (!item.isLocal && callBack.isUpdate(item.bookUrl)) {
             binding.bvUnread.invisible()
             binding.rlLoading.show()
         } else {

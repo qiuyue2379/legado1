@@ -2,7 +2,6 @@ package io.legado.app.ui.book.info
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -12,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
-import io.legado.app.constant.BookType
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.Theme
 import io.legado.app.data.appDb
@@ -21,12 +19,16 @@ import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.ActivityBookInfoBinding
 import io.legado.app.databinding.DialogEditTextBinding
+import io.legado.app.help.book.isAudio
+import io.legado.app.help.book.isLocal
+import io.legado.app.help.book.isLocalTxt
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.backgroundColor
 import io.legado.app.lib.theme.bottomBackground
 import io.legado.app.lib.theme.getPrimaryTextColor
 import io.legado.app.model.BookCover
+import io.legado.app.model.remote.RemoteBookWebDav
 import io.legado.app.ui.about.AppLogDialog
 import io.legado.app.ui.association.ImportOnLineBookFileDialog
 import io.legado.app.ui.book.audio.AudioPlayActivity
@@ -35,7 +37,6 @@ import io.legado.app.ui.book.changesource.ChangeBookSourceDialog
 import io.legado.app.ui.book.group.GroupSelectDialog
 import io.legado.app.ui.book.info.edit.BookInfoEditActivity
 import io.legado.app.ui.book.read.ReadBookActivity
-import io.legado.app.ui.book.remote.manager.RemoteBookWebDav
 import io.legado.app.ui.book.search.SearchActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.book.toc.TocActivityResult
@@ -80,7 +81,7 @@ class BookInfoActivity :
     private val readBookResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        viewModel.refreshData(intent)
+        viewModel.upBook(intent)
         if (it.resultCode == RESULT_OK) {
             viewModel.inBookshelf = true
             upTvBookshelf()
@@ -132,9 +133,9 @@ class BookInfoActivity :
         menu.findItem(R.id.menu_can_update)?.isVisible =
             viewModel.bookSource != null
         menu.findItem(R.id.menu_split_long_chapter)?.isVisible =
-            viewModel.bookData.value?.isLocalTxt() ?: false
+            viewModel.bookData.value?.isLocalTxt ?: false
         menu.findItem(R.id.menu_upload)?.isVisible =
-            viewModel.bookData.value?.isLocalBook() ?: false
+            viewModel.bookData.value?.isLocal ?: false
         return super.onMenuOpened(featureId, menu)
     }
 
@@ -161,10 +162,7 @@ class BookInfoActivity :
             R.id.menu_refresh -> {
                 upLoading(true)
                 viewModel.bookData.value?.let {
-                    if (it.isLocalBook()) {
-                        it.tocUrl = ""
-                    }
-                    viewModel.loadBookInfo(it, false)
+                    viewModel.refreshBook(it)
                 }
             }
             R.id.menu_login -> viewModel.bookSource?.let {
@@ -207,20 +205,20 @@ class BookInfoActivity :
 
             R.id.menu_upload -> {
                 launch {
-                    val uri = Uri.parse(viewModel.bookData.value?.bookUrl.toString())
-                    val waitDialog = WaitDialog(this@BookInfoActivity)
-                    waitDialog.setText("上传中.....")
-                    waitDialog.show()
-                    try {
-                        val isUpload = RemoteBookWebDav.upload(uri)
-                        if (isUpload)
-                            toastOnUi(getString(R.string.upload_book_success))
-                        else
-                            toastOnUi(getString(R.string.upload_book_fail))
-                    } catch (e: Exception) {
-                        toastOnUi(e.localizedMessage)
-                    } finally {
-                        waitDialog.dismiss()
+                    viewModel.bookData.value?.let {
+                        val waitDialog = WaitDialog(this@BookInfoActivity)
+                        waitDialog.setText("上传中.....")
+                        waitDialog.show()
+                        try {
+                            RemoteBookWebDav.upload(it)
+                            //更新书籍最后更新时间,使之比远程书籍的时间新
+                            it.latestChapterTime = System.currentTimeMillis()
+                            viewModel.saveBook(it)
+                        } catch (e: Exception) {
+                            toastOnUi(e.localizedMessage)
+                        } finally {
+                            waitDialog.dismiss()
+                        }
                     }
                 }
             }
@@ -436,7 +434,7 @@ class BookInfoActivity :
     @SuppressLint("InflateParams")
     private fun deleteBook() {
         viewModel.bookData.value?.let {
-            if (it.isLocalBook()) {
+            if (it.isLocal) {
                 alert(
                     titleResource = R.string.sure,
                     messageResource = R.string.sure_del
@@ -489,8 +487,8 @@ class BookInfoActivity :
     }
 
     private fun startReadActivity(book: Book) {
-        when (book.type) {
-            BookType.audio -> readBookResult.launch(
+        when {
+            book.isAudio -> readBookResult.launch(
                 Intent(this, AudioPlayActivity::class.java)
                     .putExtra("bookUrl", book.bookUrl)
                     .putExtra("inBookshelf", viewModel.inBookshelf)
