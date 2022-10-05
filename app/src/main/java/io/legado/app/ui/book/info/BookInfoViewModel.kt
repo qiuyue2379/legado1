@@ -8,6 +8,7 @@ import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.BookSourceType
+import io.legado.app.constant.BookType
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
@@ -18,12 +19,14 @@ import io.legado.app.help.book.BookHelp
 import io.legado.app.help.book.getRemoteUrl
 import io.legado.app.help.book.isLocal
 import io.legado.app.help.coroutine.Coroutine
+import io.legado.app.lib.webdav.ObjectNotFoundException
 import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
 import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.remote.RemoteBookWebDav
 import io.legado.app.model.webBook.WebBook
+import io.legado.app.utils.isContentScheme
 import io.legado.app.utils.postEvent
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.CoroutineScope
@@ -116,14 +119,22 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
                 book.getRemoteUrl()?.let {
                     val remoteBook = RemoteBookWebDav.getRemoteBook(it)
                     if (remoteBook == null) {
-
-                    } else if (remoteBook.lastModify > book.latestChapterTime) {
-
+                        book.origin = BookType.localTag
+                    } else if (remoteBook.lastModify > book.lastCheckTime) {
+                        val uri = RemoteBookWebDav.downloadRemoteBook(remoteBook)
+                        book.bookUrl = if (uri.isContentScheme()) uri.toString() else uri.path!!
                     }
                 }
             }
         }.onError {
-            AppLog.put("下载远程书籍<${book.name}>失败", it)
+            when (it) {
+                is ObjectNotFoundException -> {
+                    book.origin = BookType.localTag
+                }
+                else -> {
+                    AppLog.put("下载远程书籍<${book.name}>失败", it)
+                }
+            }
         }.onFinally {
             loadBookInfo(book, false)
         }
