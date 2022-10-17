@@ -18,11 +18,11 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.book.BookHelp
 import io.legado.app.help.book.getRemoteUrl
 import io.legado.app.help.book.isLocal
+import io.legado.app.help.book.removeType
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.webdav.ObjectNotFoundException
 import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
-import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.remote.RemoteBookWebDav
 import io.legado.app.model.webBook.WebBook
@@ -190,11 +190,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             } else {
                 bookSource?.let { bookSource ->
                     val oldBook = book.copy()
-                    val preUpdateJs = bookSource.ruleToc?.preUpdateJs
-                    if (!preUpdateJs.isNullOrBlank()) {
-                        AnalyzeRule(book, bookSource).evalJS(preUpdateJs)
-                    }
-                    WebBook.getChapterList(this, bookSource, book)
+                    WebBook.getChapterList(this, bookSource, book, true)
                         .onSuccess(IO) {
                             if (inBookshelf) {
                                 if (oldBook.bookUrl == book.bookUrl) {
@@ -234,8 +230,9 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         changeSourceCoroutine?.cancel()
         changeSourceCoroutine = execute {
             bookSource = source
-            bookData.value?.changeTo(book, toc)
+            bookData.value?.migrateTo(book, toc)
             if (inBookshelf) {
+                book.removeType(BookType.updateError)
                 appDb.bookDao.insert(book)
                 appDb.bookChapterDao.insert(*toc.toTypedArray())
             }

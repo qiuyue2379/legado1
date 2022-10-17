@@ -59,6 +59,7 @@ android {
         }
     }
     buildFeatures {
+        buildConfig true
         viewBinding true
         compose true
     }
@@ -69,6 +70,7 @@ android {
             }
             applicationIdSuffix '.release'
 
+            //混淆还是有点问题, exoplayer的库出问题了
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -215,7 +217,7 @@ dependencies {
     implementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
 
     //Glide
-    def glideVersion = "4.14.1"
+    def glideVersion = "4.14.2"
     implementation("com.github.bumptech.glide:glide:$glideVersion")
     kapt("com.github.bumptech.glide:compiler:$glideVersion")
 

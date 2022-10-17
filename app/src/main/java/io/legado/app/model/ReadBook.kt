@@ -42,6 +42,25 @@ object ReadBook : CoroutineScope by MainScope() {
     private val loadingChapters = arrayListOf<Int>()
     private val readRecord = ReadRecord()
     var readStartTime: Long = System.currentTimeMillis()
+    /* 跳转历史记录 */
+    var bookProgressHistory: List<BookProgress>? = null
+    /* 跳转进度前进度记录 */
+    var lastBookPress: BookProgress? = null
+    /* web端阅读进度记录 */
+    var webBookProgress: BookProgress? = null
+
+    //暂时保存跳转前进度
+    fun saveCurrentBookProcess() {
+        if (lastBookPress != null) return //避免进度条连续跳转不能覆盖最初的进度记录
+        lastBookPress = book?.let { BookProgress(it) }
+    }
+    //恢复跳转前进度
+    fun restoreLastBookProcess() {
+        lastBookPress?.let {
+            setProgress(it)
+            lastBookPress = null
+        }
+    }
 
     fun resetData(book: Book) {
         ReadBook.book = book
@@ -55,6 +74,8 @@ object ReadBook : CoroutineScope by MainScope() {
         callBack?.upMenuView()
         callBack?.upPageAnim()
         upWebBook(book)
+        lastBookPress = null
+        webBookProgress = null
         synchronized(this) {
             loadingChapters.clear()
         }

@@ -7,6 +7,7 @@ import io.legado.app.base.BaseViewModel
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.SearchBook
 import io.legado.app.data.entities.SearchKeyword
+import io.legado.app.help.config.AppConfig
 import io.legado.app.model.webBook.SearchModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.channels.awaitClose
@@ -14,7 +15,13 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 
 class SearchViewModel(application: Application) : BaseViewModel(application) {
+    val searchScope: SearchScope = SearchScope(AppConfig.searchScope)
     private val searchModel = SearchModel(viewModelScope, object : SearchModel.CallBack {
+
+        override fun getSearchScope(): SearchScope {
+            return searchScope
+        }
+
         override fun onSearchStart() {
             isSearchLiveData.postValue(true)
         }

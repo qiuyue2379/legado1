@@ -87,4 +87,5 @@ class LoadMoreView(context: Context, attrs: AttributeSet? = null) : FrameLayout(
         }
         return true
     }
+
 }

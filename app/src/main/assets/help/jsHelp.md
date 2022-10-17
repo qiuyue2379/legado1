@@ -132,7 +132,17 @@ java.getZipStringContent(url: String, path: String)
 > flags参数可省略，默认Base64.NO_WRAP，查看[flags参数说明](https://blog.csdn.net/zcmain/article/details/97051870)
 ```
 java.base64Decode(str: String, flags: Int)
+java.base64DecodeToByteArray(str: String, flags: Int)
 java.base64Encode(str: String, flags: Int)
+```
+* Hex
+```
+/* HexString 解码为字节数组 */
+hexDecodeToByteArray(hex: String): ByteArray?
+/* hexString 解码为utf8String*/
+hexDecodeToString(hex: String): String?
+/* utf8 编码为hexString */
+hexEncodeToString(utf8: String): String?
 ```
 * 文件
 >  所有对于文件的读写删操作都是相对路径,只能操作阅读缓存/android/data/{package}/cache/内的文件
@@ -157,34 +167,25 @@ deleteFile(path: String)
 
 > 其他加密方式 可在js中[调用](https://m.jb51.net/article/92138.htm)[hutool-crypto](https://www.hutool.cn/docs/#/)
 
-* AES
-> transformation默认实现AES/ECB/PKCS5Padding
+* 对称加密AES/DES/TripleDES
+> AES transformation默认实现AES/ECB/PKCS5Padding  
+> DES transformation默认实现DES/ECB/PKCS5Padding  
+> TripleDES tansformation默认实现DESede/ECB/PKCS5Padding  
+> 内部实现为cn.hutool.crypto 解密加密接口支持ByteArray|Base64String|HexString|InputStream  
+> 输入参数key iv 支持ByteArray|Utf8String  
+> 如果key iv 为Hex Base64,且需要解码为ByteArray，自行调用java.base64DecodeToByteArray java.hexDecodeToByteArray
 ```
-java.aesDecodeToString(str: String, key: String, transformation: String, iv: String)
+//解密为ByteArray 字符串
+java.createSymmetricCrypto(transformation, key, iv).decrypt(data)
 
-java.aesBase64DecodeToString(str: String, key: String, transformation: String, iv: String)
+java.createSymmetricCrypto(transformation, key, iv).decryptStr(data)
 
-java.aesEncodeToString(str: String, key: String, transformation: String, iv: String)
+//加密为ByteArray Base64字符 HEX字符
+java.createSymmetricCrypto(transformation, key, iv).encrypt(data)
 
-java.aesEncodeToBase64String(str: String, key: String, transformation: String, iv: String)
-```
-* DES
-> transformation默认实现DES/ECB/PKCS5Padding
-```
-java.desDecodeToString(str: String, key: String, transformation: String, iv: String)
+java.createSymmetricCrypto(transformation, key, iv).encryptBase64(data)
 
-java.desBase64DecodeToString(str: String, key: String, transformation: String, iv: String)
-
-java.desEncodeToString(str: String, key: String, transformation: String, iv: String)
-
-java.desEncodeToBase64String(str: String, key: String, transformation: String, iv: String)
-```
-* 3DES
-> tansformation默认实现DESede/ECB/PKCS5Padding
-```
-java.tripleDESEncodeBase64Str(data: String,key: String,mode: String,padding: String,iv: String): String?
-
-java.tripleDESDecodeStr(data: String,key: String,mode: String,padding: String,iv: String): String?
+java.createSymmetricCrypto(transformation, key, iv).encryptHex(data)
 ```
 * 摘要
 > MD5 SHA-1 SHA-224 SHA-256 SHA-384 SHA-512

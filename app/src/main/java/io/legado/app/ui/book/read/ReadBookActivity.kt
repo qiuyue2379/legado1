@@ -125,6 +125,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                     viewModel.searchResultIndex = index
                     binding.searchMenu.updateSearchResultIndex(index)
                     binding.searchMenu.selectedSearchResult?.let { currentResult ->
+                        ReadBook.saveCurrentBookProcess() //退出全文搜索恢复此时进度
                         skipToSearch(currentResult)
                         showActionMenu()
                     }
@@ -166,6 +167,9 @@ class ReadBookActivity : BaseReadBookActivity(),
     private val nextPageRunnable by lazy { Runnable { mouseWheelPage(PageDirection.NEXT) } }
     private val prevPageRunnable by lazy { Runnable { mouseWheelPage(PageDirection.PREV) } }
 
+    //恢复跳转前进度对话框的交互结果
+    private var confirmRestoreProcess: Boolean? = null
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -198,6 +202,11 @@ class ReadBookActivity : BaseReadBookActivity(),
     override fun onResume() {
         super.onResume()
         ReadBook.readStartTime = System.currentTimeMillis()
+        //web端阅读时，app处于阅读界面，本地记录会覆盖web保存的进度，在此处恢复
+        ReadBook.webBookProgress?.let {
+            ReadBook.setProgress(it)
+            ReadBook.webBookProgress = null
+        }
         upSystemUiVisibility()
         registerReceiver(timeBatteryReceiver, timeBatteryReceiver.filter)
         binding.readView.upTime()
@@ -493,6 +502,12 @@ class ReadBookActivity : BaseReadBookActivity(),
             keyCode == KeyEvent.KEYCODE_BACK -> {
                 if (isShowingSearchResult) {
                     exitSearchMenu()
+                    restoreLastBookProcess()
+                    return true
+                }
+                //拦截返回供恢复阅读进度
+                if (ReadBook.lastBookPress != null && confirmRestoreProcess != false) {
+                    restoreLastBookProcess()
                     return true
                 }
             }
@@ -807,7 +822,7 @@ class ReadBookActivity : BaseReadBookActivity(),
         } else {
             ReadAloud.stop(this)
             launch {
-                ReadBook.book?.changeTo(book, toc)
+                ReadBook.book?.migrateTo(book, toc)
                 appDb.bookDao.insert(book)
             }
             startActivity<AudioPlayActivity> {
@@ -927,13 +942,6 @@ class ReadBookActivity : BaseReadBookActivity(),
     }
 
     /**
-     * 跳转到指定章节
-     */
-    override fun skipToChapter(index: Int) {
-        viewModel.openChapter(index)
-    }
-
-    /**
      * 打开搜索界面
      */
     override fun openSearchActivity(searchWord: String?) {
@@ -984,6 +992,7 @@ class ReadBookActivity : BaseReadBookActivity(),
         upNavigationBarColor()
     }
 
+    // 退出全文搜索
     override fun exitSearchMenu() {
         if (isShowingSearchResult) {
             isShowingSearchResult = false
@@ -991,6 +1000,29 @@ class ReadBookActivity : BaseReadBookActivity(),
             binding.searchMenu.invisible()
             binding.readView.isTextSelected = false
             binding.readView.curPage.cancelSelect(true)
+        }
+    }
+
+    /* 恢复到 全文搜索/进度条跳转前的位置 */
+    private fun restoreLastBookProcess() {
+        if (confirmRestoreProcess == true) {
+            ReadBook.restoreLastBookProcess()
+        } else if (confirmRestoreProcess == null) {
+            alert(R.string.draw) {
+                setMessage(R.string.restore_last_book_process)
+                yesButton {
+                    confirmRestoreProcess = true
+                    ReadBook.restoreLastBookProcess() //恢复启动全文搜索前的进度
+                }
+                noButton {
+                    ReadBook.lastBookPress = null
+                    confirmRestoreProcess = false
+                }
+                onCancelled {
+                   ReadBook.lastBookPress = null
+                   confirmRestoreProcess = false
+                }
+            }
         }
     }
 
@@ -1141,11 +1173,19 @@ class ReadBookActivity : BaseReadBookActivity(),
         }
     }
 
+    /* 进度条跳转到指定章节 */
+    override fun skipToChapter(index: Int) {
+        ReadBook.saveCurrentBookProcess() //退出章节跳转恢复此时进度
+        viewModel.openChapter(index)
+    }
+
+    /* 全文搜索跳转 */
     override fun navigateToSearch(searchResult: SearchResult, index: Int) {
         viewModel.searchResultIndex = index
         skipToSearch(searchResult)
     }
 
+    /* 全文搜索跳转 */
     private fun skipToSearch(searchResult: SearchResult) {
         val previousResult = binding.searchMenu.previousSearchResult
 
@@ -1237,10 +1277,6 @@ class ReadBookActivity : BaseReadBookActivity(),
         super.observeLiveBus()
         observeEvent<String>(EventBus.TIME_CHANGED) { readView.upTime() }
         observeEvent<Int>(EventBus.BATTERY_CHANGED) { readView.upBattery(it) }
-        observeEvent<BookChapter>(EventBus.OPEN_CHAPTER) {
-            viewModel.openChapter(it.index, ReadBook.durChapterPos)
-            readView.upContent()
-        }
         observeEvent<Boolean>(EventBus.MEDIA_BUTTON) {
             if (it) {
                 onClickReadAloud()
@@ -1297,7 +1333,7 @@ class ReadBookActivity : BaseReadBookActivity(),
         observeEvent<List<SearchResult>>(EventBus.SEARCH_RESULT) {
             viewModel.searchResultList = it
         }
-        observeEvent<Boolean>(EventBus.updateReadActionBar) {
+        observeEvent<Boolean>(EventBus.UPDATE_READ_ACTION_BAR) {
             binding.readMenu.reset()
         }
         observeEvent<Boolean>(EventBus.UP_SEEK_BAR) {

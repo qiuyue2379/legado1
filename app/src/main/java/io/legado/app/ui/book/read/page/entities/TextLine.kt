@@ -59,7 +59,41 @@ data class TextLine(
 
     fun isTouchY(y: Float, relativeOffset: Float): Boolean {
         return y > lineTop + relativeOffset
-            && y < lineBottom + relativeOffset
+                && y < lineBottom + relativeOffset
+    }
+
+    fun isVisible(relativeOffset: Float): Boolean {
+        val top = lineTop + relativeOffset
+        val bottom = lineBottom + relativeOffset
+        val width = bottom - top
+        val visibleTop = ChapterProvider.paddingTop
+        val visibleBottom = ChapterProvider.visibleBottom
+        val visible = when {
+            // 完全可视
+            top >= visibleTop && bottom <= visibleBottom -> true
+            top <= visibleTop && bottom >= visibleBottom -> true
+            // 上方第一行部分可视
+            top < visibleTop && bottom > visibleTop && bottom < visibleBottom -> {
+                if (isImage) {
+                    true
+                } else {
+                    val visibleRate = (bottom - visibleTop) / width
+                    visibleRate > 0.6
+                }
+            }
+            // 下方第一行部分可视
+            top > visibleTop && top < visibleBottom && bottom > visibleBottom -> {
+                if (isImage) {
+                    true
+                } else {
+                    val visibleRate = (visibleBottom - top) / width
+                    visibleRate > 0.6
+                }
+            }
+            // 不可视
+            else -> false
+        }
+        return visible
     }
 
 }

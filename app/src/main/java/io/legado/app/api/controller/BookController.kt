@@ -12,10 +12,12 @@ import io.legado.app.help.CacheManager
 import io.legado.app.help.book.BookHelp
 import io.legado.app.help.book.ContentProcessor
 import io.legado.app.help.book.isLocal
+import io.legado.app.help.config.AppConfig
 import io.legado.app.help.glide.ImageLoader
 import io.legado.app.model.BookCover
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.webBook.WebBook
+import io.legado.app.model.ReadBook
 import io.legado.app.ui.book.read.page.provider.ImageProvider
 import io.legado.app.utils.*
 import kotlinx.coroutines.delay
@@ -38,7 +40,7 @@ object BookController {
             return if (books.isEmpty()) {
                 returnData.setErrorMsg("还没有添加小说")
             } else {
-                val data = when (appCtx.getPrefInt(PreferKey.bookshelfSort)) {
+                val data = when (AppConfig.bookshelfSort) {
                     1 -> books.sortedByDescending { it.latestChapterTime }
                     2 -> books.sortedWith { o1, o2 ->
                         o1.name.cnCompare(o2.name)
@@ -221,6 +223,13 @@ object BookController {
                     book.durChapterTime = bookProgress.durChapterTime
                     appDb.bookDao.update(book)
                     AppWebDav.uploadBookProgress(bookProgress)
+                    ReadBook.book?.let {
+                        if (it.name == bookProgress.name &&
+                            it.author == bookProgress.author
+                        ) {
+                            ReadBook.webBookProgress = bookProgress
+                        }
+                    }
                     return returnData.setData("")
                 }
             }

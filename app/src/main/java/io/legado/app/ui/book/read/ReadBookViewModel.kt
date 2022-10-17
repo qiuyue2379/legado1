@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
+import io.legado.app.constant.BookType
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
@@ -19,11 +20,11 @@ import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.BookHelp
 import io.legado.app.help.book.ContentProcessor
 import io.legado.app.help.book.isLocal
+import io.legado.app.help.book.removeType
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.ReadAloud
 import io.legado.app.model.ReadBook
-import io.legado.app.model.analyzeRule.AnalyzeRule
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.service.BaseReadAloudService
@@ -152,11 +153,7 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
             ReadBook.bookSource?.let {
                 viewModelScope.launch(IO) {
                     val oldBook = book.copy()
-                    val preUpdateJs = it.ruleToc?.preUpdateJs
-                    if (!preUpdateJs.isNullOrBlank()) {
-                        AnalyzeRule(book, it).evalJS(preUpdateJs)
-                    }
-                    WebBook.getChapterList(viewModelScope, it, book)
+                    WebBook.getChapterList(viewModelScope, it, book, true)
                         .onSuccess(IO) { cList ->
                             if (oldBook.bookUrl == book.bookUrl) {
                                 appDb.bookDao.update(book)
@@ -214,7 +211,8 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
         changeSourceCoroutine?.cancel()
         changeSourceCoroutine = execute {
             ReadBook.upMsg(context.getString(R.string.loading))
-            ReadBook.book?.changeTo(book, toc)
+            ReadBook.book?.migrateTo(book, toc)
+            book.removeType(BookType.updateError)
             appDb.bookDao.insert(book)
             appDb.bookChapterDao.insert(*toc.toTypedArray())
             ReadBook.resetData(book)

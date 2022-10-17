@@ -3,17 +3,20 @@ package io.legado.app.ui.book.manage
 import android.app.Application
 import androidx.compose.runtime.mutableStateOf
 import io.legado.app.base.BaseViewModel
+import io.legado.app.constant.BookType
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookSource
 import io.legado.app.help.book.isLocal
+import io.legado.app.help.book.removeType
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.toastOnUi
 
 
 class BookshelfManageViewModel(application: Application) : BaseViewModel(application) {
-
+    var groupId: Long = -1L
+    var groupName: String? = null
     val batchChangeSourceState = mutableStateOf(false)
     val batchChangeSourceSize = mutableStateOf(0)
     val batchChangeSourcePosition = mutableStateOf(0)
@@ -56,7 +59,8 @@ class BookshelfManageViewModel(application: Application) : BaseViewModel(applica
                             .onFailure {
                                 context.toastOnUi("获取目录出错\n${it.localizedMessage}")
                             }.getOrNull()?.let { toc ->
-                                book.changeTo(newBook, toc)
+                                book.migrateTo(newBook, toc)
+                                book.removeType(BookType.updateError)
                                 appDb.bookDao.insert(newBook)
                                 appDb.bookChapterDao.insert(*toc.toTypedArray())
                             }

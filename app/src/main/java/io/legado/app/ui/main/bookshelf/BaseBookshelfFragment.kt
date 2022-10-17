@@ -22,8 +22,8 @@ import io.legado.app.ui.about.AppLogDialog
 import io.legado.app.ui.book.cache.CacheActivity
 import io.legado.app.ui.book.group.GroupManageDialog
 import io.legado.app.ui.book.import.local.ImportBookActivity
-import io.legado.app.ui.book.manage.BookshelfManageActivity
 import io.legado.app.ui.book.import.remote.RemoteBookActivity
+import io.legado.app.ui.book.manage.BookshelfManageActivity
 import io.legado.app.ui.book.search.SearchActivity
 import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.main.MainViewModel
@@ -75,7 +75,6 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
     override fun onCompatOptionsItemSelected(item: MenuItem) {
         super.onCompatOptionsItemSelected(item)
         when (item.itemId) {
-            // 查看远程书籍
             R.id.menu_remote -> startActivity<RemoteBookActivity>()
             R.id.menu_search -> startActivity<SearchActivity>()
             R.id.menu_update_toc -> activityViewModel.upToc(books)
@@ -131,7 +130,7 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
     fun configBookshelf() {
         alert(titleResource = R.string.bookshelf_layout) {
             val bookshelfLayout = getPrefInt(PreferKey.bookshelfLayout)
-            val bookshelfSort = getPrefInt(PreferKey.bookshelfSort)
+            val bookshelfSort = AppConfig.bookshelfSort
             val alertBinding =
                 DialogBookshelfConfigBinding.inflate(layoutInflater)
                     .apply {
@@ -157,7 +156,7 @@ abstract class BaseBookshelfFragment(layoutId: Int) : VMBaseFragment<BookshelfVi
                         changed = true
                     }
                     if (bookshelfSort != rgSort.getCheckedIndex()) {
-                        putPrefInt(PreferKey.bookshelfSort, rgSort.getCheckedIndex())
+                        AppConfig.bookshelfSort = rgSort.getCheckedIndex()
                         changed = true
                     }
                     if (changed) {

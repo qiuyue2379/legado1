@@ -15,7 +15,7 @@ object SvgUtils {
     /**
      * 从Svg中解码bitmap
      */
-
+    
     fun createBitmap(filePath: String, width: Int, height: Int? = null): Bitmap? {
         return kotlin.runCatching {
             val inputStream = FileInputStream(filePath)
@@ -46,9 +46,9 @@ object SvgUtils {
     }
 
     /////// private method
-    private fun createBitmap(svg: SVG, width: Int, height: Int? = null): Bitmap {
+    private fun createBitmap(svg: SVG, width: Int? = null, height: Int? = null): Bitmap {
         val size = getSize(svg)
-        val wRatio = width.let { size.width / it } ?: -1
+        val wRatio = width?.let { size.width / it } ?: -1
         val hRatio = height?.let { size.height / it } ?: -1
         //如果超出指定大小，则缩小相应的比例
         val ratio = when {
@@ -79,7 +79,7 @@ object SvgUtils {
             ?: (svg.documentViewBox.right - svg.documentViewBox.left).toInt()
         val height = svg.documentHeight.toInt().takeIf { it > 0 }
             ?: (svg.documentViewBox.bottom - svg.documentViewBox.top).toInt()
-        return Size(width, height)
+        return Size(width, height)      
     }
 
 }
