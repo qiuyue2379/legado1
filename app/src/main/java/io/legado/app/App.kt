@@ -28,6 +28,8 @@ import io.legado.app.help.http.cronet.CronetLoader
 import io.legado.app.model.BookCover
 import io.legado.app.utils.defaultSharedPreferences
 import io.legado.app.utils.getPrefBoolean
+import kotlinx.coroutines.launch
+import splitties.init.appCtx
 import splitties.systemservices.notificationManager
 import java.util.concurrent.TimeUnit
 
@@ -49,7 +51,7 @@ class App : MultiDexApplication() {
         registerActivityLifecycleCallbacks(LifecycleHelp)
         defaultSharedPreferences.registerOnSharedPreferenceChangeListener(AppConfig)
         Coroutine.async {
-            installGmsTlsProvider(this@App)
+            launch { installGmsTlsProvider(appCtx) }
             //初始化封面
             BookCover.toString()
             //清除过期数据
@@ -95,8 +97,8 @@ class App : MultiDexApplication() {
      * @param context
      * @return
      */
-    private suspend fun installGmsTlsProvider(context: Context): Boolean {
-        return try {
+    private fun installGmsTlsProvider(context: Context) {
+        try {
             val gms = context.createPackageContext(
                 "com.google.android.gms",
                 CONTEXT_INCLUDE_CODE or CONTEXT_IGNORE_SECURITY
@@ -105,10 +107,8 @@ class App : MultiDexApplication() {
                 .loadClass("com.google.android.gms.common.security.ProviderInstallerImpl")
                 .getMethod("insertProvider", Context::class.java)
                 .invoke(null, gms)
-            true
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
-            false
         }
     }
 
