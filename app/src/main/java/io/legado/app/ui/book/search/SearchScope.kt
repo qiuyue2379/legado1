@@ -24,19 +24,28 @@ data class SearchScope(private var scope: String) {
         return scope
     }
 
-    val stateLiveData = MutableLiveData("")
+    val stateLiveData = MutableLiveData(scope)
 
     fun update(scope: String) {
         this.scope = scope
         stateLiveData.postValue(scope)
+        save()
     }
 
     fun update(groups: List<String>) {
         scope = groups.joinToString(",")
+        stateLiveData.postValue(scope)
+        save()
     }
 
     fun update(source: BookSource) {
         scope = "${source.bookSourceName}::${source.bookSourceUrl}"
+        stateLiveData.postValue(scope)
+        save()
+    }
+
+    fun isSource(): Boolean {
+        return scope.contains("::")
     }
 
     val display: String
@@ -63,39 +72,62 @@ data class SearchScope(private var scope: String) {
                     list.add(it)
                 }
             }
-            if (list.isEmpty()) {
-                list.add(appCtx.getString(R.string.all_source))
-            }
             return list
         }
+
+    fun remove(scope: String) {
+        if (isSource()) {
+            this.scope = ""
+        } else {
+            val stringBuilder = StringBuilder()
+            this.scope.split(",").forEach {
+                if (it != scope) {
+                    if (stringBuilder.isNotEmpty()) {
+                        stringBuilder.append(",")
+                    }
+                    stringBuilder.append(it)
+                }
+            }
+            this.scope = stringBuilder.toString()
+        }
+        stateLiveData.postValue(this.scope)
+    }
 
     /**
      * 搜索范围书源
      */
     fun getBookSources(): List<BookSource> {
         val list = hashSetOf<BookSource>()
-        if (scope.contains("::")) {
-            scope.substringAfter("::").let {
-                appDb.bookSourceDao.getBookSource(it)?.let { source ->
-                    list.add(source)
+        if (scope.isEmpty()) {
+            list.addAll(appDb.bookSourceDao.allEnabled)
+        } else {
+            if (scope.contains("::")) {
+                scope.substringAfter("::").let {
+                    appDb.bookSourceDao.getBookSource(it)?.let { source ->
+                        list.add(source)
+                    }
+                }
+            } else {
+                val oldScope = scope.splitNotBlank(",")
+                val newScope = oldScope.filter {
+                    val bookSources = appDb.bookSourceDao.getEnabledByGroup(it)
+                    list.addAll(bookSources)
+                    bookSources.isNotEmpty()
+                }
+                if (oldScope.size != newScope.size) {
+                    update(newScope)
+                    stateLiveData.postValue(scope)
                 }
             }
-        } else {
-            val oldScope = scope.splitNotBlank(",")
-            val newScope = oldScope.filter {
-                val bookSources = appDb.bookSourceDao.getEnabledByGroup(it)
-                list.addAll(bookSources)
-                bookSources.isNotEmpty()
+            if (list.isEmpty()) {
+                scope = ""
+                appDb.bookSourceDao.allEnabled.let {
+                    if (it.isNotEmpty()) {
+                        stateLiveData.postValue(scope)
+                        list.addAll(it)
+                    }
+                }
             }
-            if (oldScope.size != newScope.size) {
-                update(newScope)
-                stateLiveData.postValue(scope)
-            }
-        }
-        if (list.isEmpty()) {
-            scope = ""
-            stateLiveData.postValue(scope)
-            return appDb.bookSourceDao.allEnabled
         }
         return list.sortedBy { it.customOrder }
     }

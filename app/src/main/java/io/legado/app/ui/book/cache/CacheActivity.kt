@@ -12,6 +12,7 @@ import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppConst.charsets
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
+import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookGroup
 import io.legado.app.databinding.ActivityCacheBookBinding
@@ -26,7 +27,6 @@ import io.legado.app.ui.about.AppLogDialog
 import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -41,6 +41,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
     private val exportBookPathKey = "exportBookPath"
     private val exportTypes = arrayListOf("txt", "epub")
+    private val layoutManager by lazy { LinearLayoutManager(this) }
     private val adapter by lazy { CacheAdapter(this, this) }
     private var booksFlowJob: Job? = null
     private var menu: Menu? = null
@@ -72,7 +73,6 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         initRecyclerView()
         initGroupData()
         initBookData()
-        initCacheData()
     }
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
@@ -147,7 +147,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     }
 
     private fun initRecyclerView() {
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.adapter = adapter
     }
 
@@ -175,6 +175,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                 }
             }.conflate().collect { books ->
                 adapter.setItems(books)
+                viewModel.loadCacheFiles(books)
             }
         }
     }
@@ -191,12 +192,12 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         }
     }
 
-    private fun initCacheData() {
-        launch {
-            viewModel.bookCacheFlow.conflate().collect {
-                viewModel.cacheChapters[it.first] = it.second
-                withContext(Dispatchers.Main) {
-                    adapter.notifyItemRangeChanged(0, adapter.itemCount, true)
+    private fun notifyItemChanged(bookUrl: String) {
+        kotlin.runCatching {
+            adapter.getItems().forEachIndexed { index, book ->
+                if (bookUrl == book.bookUrl) {
+                    adapter.notifyItemChanged(index, true)
+                    return
                 }
             }
         }
@@ -204,11 +205,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
     override fun observeLiveBus() {
         viewModel.upAdapterLiveData.observe(this) {
-            adapter.getItems().forEachIndexed { index, book ->
-                if (book.bookUrl == it) {
-                    adapter.notifyItemChanged(index, true)
-                }
-            }
+            notifyItemChanged(it)
         }
         observeEvent<String>(EventBus.UP_DOWNLOAD) {
             if (!CacheBook.isRun) {
@@ -224,14 +221,11 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                 }
                 menu?.applyTint(this)
             }
-            adapter.getItems().forEachIndexed { index, book ->
-                if (book.bookUrl == it) {
-                    adapter.notifyItemChanged(index, true)
-                }
-            }
+            notifyItemChanged(it)
         }
-        observeEvent<BookChapter>(EventBus.SAVE_CONTENT) {
-            viewModel.cacheChapters[it.bookUrl]?.add(it.url)
+        observeEvent<Pair<Book, BookChapter>>(EventBus.SAVE_CONTENT) { (book, chapter) ->
+            viewModel.cacheChapters[book.bookUrl]?.add(chapter.url)
+            notifyItemChanged(book.bookUrl)
         }
     }
 

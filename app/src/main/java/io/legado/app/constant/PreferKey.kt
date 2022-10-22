@@ -117,6 +117,9 @@ object PreferKey {
     const val progressBarBehavior = "progressBarBehavior"
     const val sourceEditMaxLine = "sourceEditMaxLine"
     const val ttsTimer = "ttsTimer"
+    const val noAnimScrollPage = "noAnimScrollPage"
+    const val webDavDeviceName = "webDavDeviceName"
+    const val wakeLock = "wakeLock"
 
     const val cPrimary = "colorPrimary"
     const val cAccent = "colorAccent"

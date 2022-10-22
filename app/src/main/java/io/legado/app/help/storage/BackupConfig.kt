@@ -31,7 +31,8 @@ object BackupConfig {
         PreferKey.webDavAccount,
         PreferKey.webDavPassword,
         PreferKey.launcherIcon,
-        PreferKey.bitmapCacheSize
+        PreferKey.bitmapCacheSize,
+        PreferKey.wakeLock
     )
 
     //配置忽略标题
@@ -49,7 +50,8 @@ object BackupConfig {
         PreferKey.defaultCover,
         PreferKey.defaultCoverDark,
         PreferKey.backupPath,
-        PreferKey.defaultBookTreeUri
+        PreferKey.defaultBookTreeUri,
+        PreferKey.webDavDeviceName
     )
 
     //阅读配置

@@ -14,7 +14,6 @@ import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppPattern
-import io.legado.app.constant.BookType
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
@@ -22,17 +21,16 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.BookHelp
 import io.legado.app.help.book.ContentProcessor
+import io.legado.app.help.book.isLocal
 import io.legado.app.help.config.AppConfig
+import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.help.coroutine.OrderCoroutine
 import io.legado.app.utils.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.ag2s.epublib.domain.*
+import me.ag2s.epublib.domain.Date
 import me.ag2s.epublib.epub.EpubWriter
 import me.ag2s.epublib.util.ResourceUtil
 import splitties.init.appCtx
@@ -40,6 +38,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
+import java.nio.file.*
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.coroutineContext
 
@@ -49,26 +49,33 @@ class CacheViewModel(application: Application) : BaseViewModel(application) {
     val exportProgress = ConcurrentHashMap<String, Int>()
     val exportMsg = ConcurrentHashMap<String, String>()
     private val mutex = Mutex()
-
     val cacheChapters = hashMapOf<String, HashSet<String>>()
-
-    val bookCacheFlow = flow {
-        //直接获取全部缓存信息,避免切换分组重新获取
-        val books = appDb.bookDao.getByTypeOnLine(BookType.text or BookType.image)
-        books.forEach { book ->
-            val chapterCaches = hashSetOf<String>()
-            val cacheNames = BookHelp.getChapterFiles(book)
-            appDb.bookChapterDao.getChapterList(book.bookUrl).forEach { chapter ->
-                if (cacheNames.contains(chapter.getFileName())) {
-                    chapterCaches.add(chapter.url)
-                }
-            }
-            emit(Pair(book.bookUrl, chapterCaches))
-        }
-    }.flowOn(Dispatchers.IO)
+    private var loadChapterCoroutine: Coroutine<Unit>? = null
 
     @Volatile
     private var exportNumber = 0
+
+    fun loadCacheFiles(books: List<Book>) {
+        loadChapterCoroutine?.cancel()
+        loadChapterCoroutine = execute {
+            books.forEach { book ->
+                if (!book.isLocal && !cacheChapters.contains(book.bookUrl)) {
+                    val chapterCaches = hashSetOf<String>()
+                    val cacheNames = BookHelp.getChapterFiles(book)
+                    if (cacheNames.isNotEmpty()) {
+                        appDb.bookChapterDao.getChapterList(book.bookUrl).forEach { chapter ->
+                            if (cacheNames.contains(chapter.getFileName())) {
+                                chapterCaches.add(chapter.url)
+                            }
+                        }
+                    }
+                    cacheChapters[book.bookUrl] = chapterCaches
+                    upAdapterLiveData.postValue(book.bookUrl)
+                }
+                ensureActive()
+            }
+        }
+    }
 
     private fun getExportFileName(book: Book): String {
         val jsStr = AppConfig.bookExportFileName

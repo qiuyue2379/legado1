@@ -61,6 +61,7 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
         binding.titleBar.findViewById(R.id.search_view)
     }
     private var menu: Menu? = null
+    private var groups: List<String>? = null
     private var historyFlowJob: Job? = null
     private var booksFlowJob: Job? = null
     private var precisionSearchMenuItem: MenuItem? = null
@@ -82,8 +83,6 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
                     setMessage("${viewModel.searchScope.display}分组搜索结果为空，是否切换到全部分组？")
                     yesButton {
                         viewModel.searchScope.update("")
-                        viewModel.searchScope.save()
-                        viewModel.search(searchView.query.toString())
                     }
                 }
                 noButton()
@@ -114,6 +113,44 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
         return super.onCompatCreateOptionsMenu(menu)
     }
 
+    override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
+        menu.removeGroup(R.id.menu_group_1)
+        menu.removeGroup(R.id.menu_group_2)
+        var hasChecked = false
+        val searchScopeNames = viewModel.searchScope.displayNames
+        if (viewModel.searchScope.isSource()) {
+            menu.add(R.id.menu_group_1, Menu.NONE, Menu.NONE, searchScopeNames.first()).apply {
+                isChecked = true
+                hasChecked = true
+            }
+        }
+        val allSourceMenu =
+            menu.add(R.id.menu_group_2, R.id.menu_1, Menu.NONE, getString(R.string.all_source))
+                .apply {
+                    if (searchScopeNames.isEmpty()) {
+                        isChecked = true
+                        hasChecked = true
+                    }
+                }
+        groups?.forEach {
+            if (searchScopeNames.contains(it)) {
+                menu.add(R.id.menu_group_1, Menu.NONE, Menu.NONE, it).apply {
+                    isChecked = true
+                    hasChecked = true
+                }
+            } else {
+                menu.add(R.id.menu_group_2, Menu.NONE, Menu.NONE, it)
+            }
+        }
+        if (!hasChecked) {
+            viewModel.searchScope.update("")
+            allSourceMenu.isChecked = true
+        }
+        menu.setGroupCheckable(R.id.menu_group_1, true, false)
+        menu.setGroupCheckable(R.id.menu_group_2, true, true)
+        return super.onMenuOpened(featureId, menu)
+    }
+
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_precision_search -> {
@@ -129,6 +166,14 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
             R.id.menu_search_scope -> alertSearchScope()
             R.id.menu_source_manage -> startActivity<BookSourceActivity>()
             R.id.menu_log -> showDialogFragment(AppLogDialog())
+            R.id.menu_1 -> viewModel.searchScope.update("")
+            else -> {
+                if (item.groupId == R.id.menu_group_1) {
+                    viewModel.searchScope.remove(item.title.toString())
+                } else if (item.groupId == R.id.menu_group_2) {
+                    viewModel.searchScope.update(item.title.toString())
+                }
+            }
         }
         return super.onCompatOptionsItemSelected(item)
     }
@@ -219,7 +264,11 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
 
     private fun initData() {
         viewModel.searchScope.stateLiveData.observe(this) {
-            upSearchScope()
+            if (!binding.llInputHelp.isVisible) {
+                searchView.query?.toString()?.trim()?.let {
+                    searchView.setQuery(it, true)
+                }
+            }
         }
         viewModel.isSearchLiveData.observe(this) {
             if (it) {
@@ -234,10 +283,11 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
                 delay(1000)
             }
         }
-    }
-
-    private fun upSearchScope() {
-        binding.tvSearchScope.text = viewModel.searchScope.display
+        launch {
+            appDb.bookSourceDao.flowEnabledGroups().collect {
+                groups = it
+            }
+        }
     }
 
     /**
@@ -247,7 +297,6 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
         val searchScope = intent?.getStringExtra("searchScope")
         searchScope?.let {
             viewModel.searchScope.update(searchScope)
-            upSearchScope()
         }
         val key = intent?.getStringExtra("key")
         if (key.isNullOrBlank()) {
@@ -384,13 +433,7 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
 
 
     override fun onSearchScopeOk(searchScope: SearchScope) {
-        searchScope.save()
         viewModel.searchScope.update(searchScope.toString())
-        if (!binding.llInputHelp.isVisible) {
-            searchView.query?.toString()?.trim()?.let {
-                searchView.setQuery(it, true)
-            }
-        }
     }
 
     private fun alertSearchScope() {

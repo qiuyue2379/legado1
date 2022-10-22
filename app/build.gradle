@@ -70,7 +70,6 @@ android {
             }
             applicationIdSuffix '.release'
 
-            //混淆还是有点问题, exoplayer的库出问题了
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -163,13 +162,14 @@ dependencies {
     implementation('androidx.webkit:webkit:1.5.0')
 
     //google
-    implementation('com.google.android.material:material:1.6.1')
+    implementation('com.google.android.material:material:1.7.0')
     implementation('com.google.android.flexbox:flexbox:3.0.0')
     implementation('com.google.code.gson:gson:2.9.1')
 
     //lifecycle
     def lifecycle_version = '2.5.1'
     implementation("androidx.lifecycle:lifecycle-common-java8:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-service:$lifecycle_version")
 
     //compose
     // Integration with activities

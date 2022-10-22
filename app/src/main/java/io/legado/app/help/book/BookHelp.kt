@@ -34,6 +34,8 @@ object BookHelp {
     private const val cacheEpubFolderName = "epub"
     private val downloadImages = CopyOnWriteArraySet<String>()
 
+    val cachePath = FileUtils.getPath(downloadDir, cacheFolderName)
+
     fun clearCache() {
         FileUtils.delete(
             FileUtils.getPath(downloadDir, cacheFolderName)
@@ -85,7 +87,7 @@ object BookHelp {
     ) {
         saveText(book, bookChapter, content)
         saveImages(bookSource, book, bookChapter, content)
-        postEvent(EventBus.SAVE_CONTENT, bookChapter)
+        postEvent(EventBus.SAVE_CONTENT, Pair(book, bookChapter))
     }
 
     fun saveText(
@@ -196,18 +198,18 @@ object BookHelp {
         return ZipFile(uri.path)
     }
 
-    fun getChapterFiles(book: Book): List<String> {
-        val fileNameList = arrayListOf<String>()
+    fun getChapterFiles(book: Book): HashSet<String> {
+        val fileNames = hashSetOf<String>()
         if (book.isLocalTxt) {
-            return fileNameList
+            return fileNames
         }
         FileUtils.createFolderIfNotExist(
             downloadDir,
             subDirs = arrayOf(cacheFolderName, book.getFolderName())
         ).list()?.let {
-            fileNameList.addAll(it)
+            fileNames.addAll(it)
         }
-        return fileNameList
+        return fileNames
     }
 
     /**

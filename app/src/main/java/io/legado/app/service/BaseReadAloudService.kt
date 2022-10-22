@@ -8,7 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.media.AudioManager
-import android.os.PowerManager
+import android.os.Bundle
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.annotation.CallSuper
@@ -28,7 +28,6 @@ import io.legado.app.ui.book.read.page.entities.TextChapter
 import io.legado.app.utils.*
 import kotlinx.coroutines.*
 import splitties.systemservices.audioManager
-import splitties.systemservices.powerManager
 
 /**
  * 朗读服务
@@ -54,9 +53,6 @@ abstract class BaseReadAloudService : BaseService(),
         }
     }
 
-    private val wakeLock by lazy {
-        powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "legado:readAloud")
-    }
     private val mFocusRequest: AudioFocusRequestCompat by lazy {
         MediaHelp.buildAudioFocusRequestCompat(this)
     }
@@ -82,9 +78,9 @@ abstract class BaseReadAloudService : BaseService(),
     @SuppressLint("WakelockTimeout")
     override fun onCreate() {
         super.onCreate()
-        wakeLock.acquire()
         isRun = true
         pause = false
+        observeLiveBus()
         initMediaSession()
         initBroadcastReceiver()
         upNotification()
@@ -92,9 +88,17 @@ abstract class BaseReadAloudService : BaseService(),
         setTimer(AppConfig.ttsTimer)
     }
 
+    fun observeLiveBus() {
+        observeEvent<Bundle>(EventBus.READ_ALOUD_PLAY) {
+            val play = it.getBoolean("play")
+            val pageIndex = it.getInt("pageIndex")
+            val startPos = it.getInt("startPos")
+            newReadAloud(play, pageIndex, startPos)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        wakeLock.release()
         isRun = false
         pause = true
         abandonFocus()
@@ -165,6 +169,7 @@ abstract class BaseReadAloudService : BaseService(),
         doDs()
     }
 
+    @SuppressLint("WakelockTimeout")
     @CallSuper
     open fun resumeReadAloud() {
         pause = false
