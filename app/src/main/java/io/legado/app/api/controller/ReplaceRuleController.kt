@@ -35,6 +35,7 @@ object ReplaceRuleController {
         return returnData
     }
 
+
     fun delete(postData: String?): ReturnData {
         val returnData = ReturnData()
         postData ?: return returnData.setErrorMsg("数据不能为空")
