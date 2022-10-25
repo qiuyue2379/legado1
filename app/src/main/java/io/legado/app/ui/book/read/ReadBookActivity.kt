@@ -167,6 +167,7 @@ class ReadBookActivity : BaseReadBookActivity(),
     private val menuLayoutIsVisible get() = bottomDialog > 0 || binding.readMenu.isVisible
     private val nextPageRunnable by lazy { Runnable { mouseWheelPage(PageDirection.NEXT) } }
     private val prevPageRunnable by lazy { Runnable { mouseWheelPage(PageDirection.PREV) } }
+    private var isFirstResume = true
 
     //恢复跳转前进度对话框的交互结果
     private var confirmRestoreProcess: Boolean? = null
@@ -203,14 +204,23 @@ class ReadBookActivity : BaseReadBookActivity(),
     override fun onResume() {
         super.onResume()
         ReadBook.readStartTime = System.currentTimeMillis()
-        //web端阅读时，app处于阅读界面，本地记录会覆盖web保存的进度，在此处恢复
-        ReadBook.webBookProgress?.let {
-            ReadBook.setProgress(it)
-            ReadBook.webBookProgress = null
+        val bookUrl = intent.getStringExtra("bookUrl")
+        if (!isFirstResume && ReadBook.book?.bookUrl != bookUrl) {
+            ReadBook.callBack = this
+            viewModel.initData(intent)
+        } else {
+            //web端阅读时，app处于阅读界面，本地记录会覆盖web保存的进度，在此处恢复
+            ReadBook.webBookProgress?.let {
+                ReadBook.setProgress(it)
+                ReadBook.webBookProgress = null
+            }
         }
         upSystemUiVisibility()
         registerReceiver(timeBatteryReceiver, timeBatteryReceiver.filter)
         binding.readView.upTime()
+        if (isFirstResume) {
+            isFirstResume = false
+        }
     }
 
     override fun onPause() {
@@ -785,6 +795,16 @@ class ReadBookActivity : BaseReadBookActivity(),
         }
     }
 
+    override fun exit() {
+        ReadBook.book?.let {
+            if (!ReadBook.inBookshelf) {
+                viewModel.removeFromBookshelf { super.finish() }
+            } else {
+                super.finish()
+            }
+        } ?: super.finish()
+    }
+
     /**
      * 页面改变
      */
@@ -1020,8 +1040,8 @@ class ReadBookActivity : BaseReadBookActivity(),
                     confirmRestoreProcess = false
                 }
                 onCancelled {
-                   ReadBook.lastBookPress = null
-                   confirmRestoreProcess = false
+                    ReadBook.lastBookPress = null
+                    confirmRestoreProcess = false
                 }
             }
         }

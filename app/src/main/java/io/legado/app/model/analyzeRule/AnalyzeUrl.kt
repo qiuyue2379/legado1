@@ -3,9 +3,9 @@ package io.legado.app.model.analyzeRule
 import android.annotation.SuppressLint
 import android.util.Base64
 import androidx.annotation.Keep
+import cn.hutool.core.util.HexUtil
 import com.bumptech.glide.load.model.GlideUrl
 import com.script.SimpleBindings
-import cn.hutool.core.util.HexUtil
 import io.legado.app.constant.AppConst.SCRIPT_ENGINE
 import io.legado.app.constant.AppConst.UA_NAME
 import io.legado.app.constant.AppPattern.JS_PATTERN
@@ -279,6 +279,7 @@ class AnalyzeUrl(
     /**
      * 开始访问,并发判断
      */
+    @Throws(ConcurrentException::class)
     private fun fetchStart(): ConcurrentRecord? {
         source ?: return null
         val concurrentRate = source.concurrentRate
@@ -294,10 +295,13 @@ class AnalyzeUrl(
         }
         val waitTime: Int = synchronized(fetchRecord) {
             try {
-                if (rateIndex == -1) {
+                if (!fetchRecord.isConcurrent) {
+                    //并发控制非 次数/毫秒
                     if (fetchRecord.frequency > 0) {
+                        //已经有访问线程,直接等待
                         return@synchronized concurrentRate.toInt()
                     }
+                    //没有线程访问,判断还剩多少时间可以访问
                     val nextTime = fetchRecord.time + concurrentRate.toInt()
                     if (System.currentTimeMillis() >= nextTime) {
                         fetchRecord.time = System.currentTimeMillis()
@@ -306,9 +310,11 @@ class AnalyzeUrl(
                     }
                     return@synchronized (nextTime - System.currentTimeMillis()).toInt()
                 } else {
+                    //并发控制为 次数/毫秒
                     val sj = concurrentRate.substring(rateIndex + 1)
                     val nextTime = fetchRecord.time + sj.toInt()
                     if (System.currentTimeMillis() >= nextTime) {
+                        //已经过了限制时间,重置开始时间
                         fetchRecord.time = System.currentTimeMillis()
                         fetchRecord.frequency = 1
                         return@synchronized 0
@@ -335,7 +341,7 @@ class AnalyzeUrl(
      * 访问结束
      */
     private fun fetchEnd(concurrentRecord: ConcurrentRecord?) {
-        if (concurrentRecord != null && !concurrentRecord.concurrent) {
+        if (concurrentRecord != null && !concurrentRecord.isConcurrent) {
             synchronized(concurrentRecord) {
                 concurrentRecord.frequency = concurrentRecord.frequency - 1
             }
@@ -345,6 +351,7 @@ class AnalyzeUrl(
     /**
      * 访问网站,返回StrResponse
      */
+    @Throws(ConcurrentException::class)
     suspend fun getStrResponseAwait(
         jsStr: String? = null,
         sourceRegex: String? = null,
@@ -414,6 +421,7 @@ class AnalyzeUrl(
     }
 
     @JvmOverloads
+    @Throws(ConcurrentException::class)
     fun getStrResponse(
         jsStr: String? = null,
         sourceRegex: String? = null,
@@ -427,6 +435,7 @@ class AnalyzeUrl(
     /**
      * 访问网站,返回Response
      */
+    @Throws(ConcurrentException::class)
     suspend fun getResponseAwait(): Response {
         val concurrentRecord = fetchStart()
         try {
@@ -457,52 +466,37 @@ class AnalyzeUrl(
         }
     }
 
+    @Throws(ConcurrentException::class)
     fun getResponse(): Response {
         return runBlocking {
             getResponseAwait()
         }
     }
 
+    @Suppress("UnnecessaryVariable")
+    @Throws(ConcurrentException::class)
+    private fun getByteArrayIfDataUri(): ByteArray? {
+        @Suppress("RegExpRedundantEscape")
+        val dataUriFindResult = dataUriRegex.find(urlNoQuery)
+        @Suppress("BlockingMethodInNonBlockingContext")
+        if (dataUriFindResult != null) {
+            val dataUriBase64 = dataUriFindResult.groupValues[1]
+            val byteArray = Base64.decode(dataUriBase64, Base64.DEFAULT)
+            return byteArray
+        }
+        return null
+    }
+
     /**
      * 访问网站,返回ByteArray
      */
-    @Suppress("UnnecessaryVariable")
+    @Suppress("UnnecessaryVariable", "LiftReturnOrAssignment")
+    @Throws(ConcurrentException::class)
     suspend fun getByteArrayAwait(): ByteArray {
-        val concurrentRecord = fetchStart()
-        try {
-            @Suppress("RegExpRedundantEscape")
-            val dataUriFindResult = dataUriRegex.find(urlNoQuery)
-            @Suppress("BlockingMethodInNonBlockingContext")
-            if (dataUriFindResult != null) {
-                val dataUriBase64 = dataUriFindResult.groupValues[1]
-                val byteArray = Base64.decode(dataUriBase64, Base64.DEFAULT)
-                return byteArray
-            } else {
-                setCookie(source?.getKey())
-                val byteArray = getProxyClient(proxy).newCallResponseBody(retry) {
-                    addHeaders(headerMap)
-                    when (method) {
-                        RequestMethod.POST -> {
-                            url(urlNoQuery)
-                            val contentType = headerMap["Content-Type"]
-                            val body = body
-                            if (fieldMap.isNotEmpty() || body.isNullOrBlank()) {
-                                postForm(fieldMap, true)
-                            } else if (!contentType.isNullOrBlank()) {
-                                val requestBody = body.toRequestBody(contentType.toMediaType())
-                                post(requestBody)
-                            } else {
-                                postJson(body)
-                            }
-                        }
-                        else -> get(urlNoQuery, fieldMap, true)
-                    }
-                }.bytes()
-                return byteArray
-            }
-        } finally {
-            fetchEnd(concurrentRecord)
+        getByteArrayIfDataUri()?.let {
+            return it
         }
+        return getResponseAwait().body!!.bytes()
     }
 
     fun getByteArray(): ByteArray {
@@ -511,9 +505,22 @@ class AnalyzeUrl(
         }
     }
 
+    /**
+     * 访问网站,返回InputStream
+     */
+    @Suppress("LiftReturnOrAssignment")
+    @Throws(ConcurrentException::class)
+    suspend fun getInputStreamAwait(): InputStream {
+        getByteArrayIfDataUri()?.let {
+            return ByteArrayInputStream(it)
+        }
+        return getResponseAwait().body!!.byteStream()
+    }
+
+    @Throws(ConcurrentException::class)
     fun getInputStream(): InputStream {
         return runBlocking {
-            getResponseAwait().body!!.byteStream()
+            getInputStreamAwait()
         }
     }
 
@@ -686,8 +693,17 @@ class AnalyzeUrl(
     }
 
     data class ConcurrentRecord(
-        val concurrent: Boolean,
+        /**
+         * 是否按频率
+         */
+        val isConcurrent: Boolean,
+        /**
+         * 开始访问时间
+         */
         var time: Long,
+        /**
+         * 正在访问的个数
+         */
         var frequency: Int
     )
 
