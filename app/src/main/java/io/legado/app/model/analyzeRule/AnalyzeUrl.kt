@@ -20,6 +20,7 @@ import io.legado.app.help.config.AppConfig
 import io.legado.app.help.glide.GlideHeaders
 import io.legado.app.help.http.*
 import io.legado.app.utils.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -221,8 +222,9 @@ class AnalyzeUrl(
         queryStr = fieldsTxt
         val queryS = fieldsTxt.splitNotBlank("&")
         for (query in queryS) {
-            val value = query.substringAfter("=")
-            val key = query.substringBefore("=")
+            val queryPair = query.splitNotBlank("=", limit = 2)
+            val key = queryPair[0]
+            val value = queryPair.getOrNull(1) ?: ""
             if (charset.isNullOrEmpty()) {
                 if (NetworkUtils.hasUrlEncoded(value)) {
                     fieldMap[key] = value
@@ -417,6 +419,24 @@ class AnalyzeUrl(
             return strResponse
         } finally {
             fetchEnd(concurrentRecord)
+        }
+    }
+
+    /**
+     * 访问网站,返回StrResponse
+     * 并发异常自动重试
+     */
+    suspend fun getStrResponseConcurrentAwait(
+        jsStr: String? = null,
+        sourceRegex: String? = null,
+        useWebView: Boolean = true,
+    ): StrResponse {
+        while (true) {
+            try {
+                return getStrResponseAwait(jsStr, sourceRegex, useWebView)
+            } catch (e: ConcurrentException) {
+                delay(e.waitTime.toLong())
+            }
         }
     }
 

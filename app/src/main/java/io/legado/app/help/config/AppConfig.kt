@@ -34,19 +34,19 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
             PreferKey.clickActionTC -> clickActionTC =
                 appCtx.getPrefInt(PreferKey.clickActionTC, 2)
             PreferKey.clickActionTR -> clickActionTR =
-                appCtx.getPrefInt(PreferKey.clickActionTR, 2)
+                appCtx.getPrefInt(PreferKey.clickActionTR, 1)
             PreferKey.clickActionML -> clickActionML =
                 appCtx.getPrefInt(PreferKey.clickActionML, 2)
             PreferKey.clickActionMC -> clickActionMC =
-                appCtx.getPrefInt(PreferKey.clickActionMC, 2)
+                appCtx.getPrefInt(PreferKey.clickActionMC, 0)
             PreferKey.clickActionMR -> clickActionMR =
-                appCtx.getPrefInt(PreferKey.clickActionMR, 2)
+                appCtx.getPrefInt(PreferKey.clickActionMR, 1)
             PreferKey.clickActionBL -> clickActionBL =
                 appCtx.getPrefInt(PreferKey.clickActionBL, 2)
             PreferKey.clickActionBC -> clickActionBC =
-                appCtx.getPrefInt(PreferKey.clickActionBC, 2)
+                appCtx.getPrefInt(PreferKey.clickActionBC, 1)
             PreferKey.clickActionBR -> clickActionBR =
-                appCtx.getPrefInt(PreferKey.clickActionBR, 2)
+                appCtx.getPrefInt(PreferKey.clickActionBR, 1)
             PreferKey.readBodyToLh -> ReadBookConfig.readBodyToLh =
                 appCtx.getPrefBoolean(PreferKey.readBodyToLh, true)
             PreferKey.useZhLayout -> ReadBookConfig.useZhLayout =
@@ -80,6 +80,12 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
         get() = appCtx.getPrefBoolean(PreferKey.showUnread, true)
         set(value) {
             appCtx.putPrefBoolean(PreferKey.showUnread, value)
+        }
+
+    var showLastUpdateTime: Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.showLastUpdateTime, false)
+        set(value) {
+            appCtx.putPrefBoolean(PreferKey.showLastUpdateTime, value)
         }
 
     var readBrightness: Int
@@ -407,14 +413,30 @@ object AppConfig : SharedPreferences.OnSharedPreferenceChangeListener {
 
     var sourceEditMaxLine: Int
         get() {
-            val maxLine = appCtx.getPrefInt(PreferKey.sourceEditMaxLine, 99)
+            val maxLine = appCtx.getPrefInt(PreferKey.sourceEditMaxLine, Int.MAX_VALUE)
             if (maxLine < 10) {
-                return 99
+                return Int.MAX_VALUE
             }
             return maxLine
         }
         set(value) {
             appCtx.putPrefInt(PreferKey.sourceEditMaxLine, value)
         }
+
+    var audioPlayUseWakeLock: Boolean
+        get() = appCtx.getPrefBoolean(PreferKey.audioPlayWakeLock)
+        set(value) {
+            appCtx.putPrefBoolean(PreferKey.audioPlayWakeLock, value)
+        }
+
+    fun detectClickArea() {
+        if (clickActionTL * clickActionTC * clickActionTR
+            * clickActionML * clickActionMC * clickActionMR
+            * clickActionBL * clickActionBC * clickActionBR != 0
+        ) {
+            appCtx.putPrefInt(PreferKey.clickActionMC, 0)
+            appCtx.toastOnUi("当前没有配置菜单区域,自动恢复中间区域为菜单.")
+        }
+    }
 }
 

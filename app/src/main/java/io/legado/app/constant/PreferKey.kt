@@ -119,7 +119,10 @@ object PreferKey {
     const val ttsTimer = "ttsTimer"
     const val noAnimScrollPage = "noAnimScrollPage"
     const val webDavDeviceName = "webDavDeviceName"
-    const val wakeLock = "wakeLock"
+    const val webServiceWakeLock = "webServiceWakeLock"
+    const val audioPlayWakeLock = "audioPlayWakeLock"
+    const val readAloudWakeLock = "readAloudWakeLock"
+    const val showLastUpdateTime = "showLastUpdateTime"
 
     const val cPrimary = "colorPrimary"
     const val cAccent = "colorAccent"
