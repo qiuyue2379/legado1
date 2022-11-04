@@ -112,16 +112,17 @@ class EpubFile(var book: Book) {
         }.onFailure {
             AppLog.put("读取Epub文件失败\n${it.localizedMessage}", it)
             it.printOnDebug()
-        }.getOrNull()
+        }.getOrThrow()
     }
 
     private fun getContent(chapter: BookChapter): String? {
         /**
          * <image width="1038" height="670" xlink:href="..."/>
          * ...titlepage.xhtml
+         * 大多数epub文件的封面页都会带有cover，可以一定程度上解决封面读取问题
          */
         if (chapter.url.contains("titlepage.xhtml") ||
-            chapter.url.contains("cover.xhtml")
+            chapter.url.contains("cover")
         ) {
             return "<img src=\"cover.jpeg\" />"
         }

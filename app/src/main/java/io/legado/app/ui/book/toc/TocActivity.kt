@@ -45,6 +45,7 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>() {
         tabLayout.setSelectedTabIndicatorColor(accentColor)
         binding.viewPager.adapter = TabFragmentPageAdapter()
         tabLayout.setupWithViewPager(binding.viewPager)
+        tabLayout.tabGravity = TabLayout.GRAVITY_CENTER
         viewModel.bookData.observe(this) {
             menu?.setGroupVisible(R.id.menu_group_text, it.isLocalTxt)
         }
@@ -85,6 +86,11 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>() {
                     return false
                 }
             })
+            setOnQueryTextFocusChangeListener { v, hasFocus ->
+                if (!hasFocus) {
+                    searchView?.isIconified = true
+                }
+            }
         }
         return super.onCompatCreateOptionsMenu(menu)
     }
@@ -114,15 +120,6 @@ class TocActivity : VMBaseActivity<ActivityChapterListBinding, TocViewModel>() {
             R.id.menu_log -> showDialogFragment<AppLogDialog>()
         }
         return super.onCompatOptionsItemSelected(item)
-    }
-
-    override fun finish() {
-        if (tabLayout.isGone) {
-            searchView?.onActionViewCollapsed()
-            tabLayout.visible()
-        } else {
-            super.finish()
-        }
     }
 
     @Suppress("DEPRECATION")
