@@ -47,6 +47,7 @@ android {
         multiDexEnabled true
 
         buildConfigField "String", "Cronet_Version", "\"$CronetVersion\""
+        buildConfigField "String", "Cronet_Main_Version", "\"$CronetMainVersion\""
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -129,8 +130,8 @@ dependencies {
     //noinspection GradleDependency,GradlePackageUpdate
     coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:1.2.2')
     testImplementation('junit:junit:4.13.2')
-    androidTestImplementation('androidx.test:runner:1.4.0')
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0')
+    androidTestImplementation('androidx.test:runner:1.5.1')
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.5.0')
     implementation('androidx.multidex:multidex:2.0.1')
     //kotlin
     //noinspection GradleDependency,DifferentStdlibGradleVersion

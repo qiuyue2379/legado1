@@ -73,8 +73,8 @@ class OnLineImportActivity :
                 "/readConfig" -> viewModel.getBytes(url) { bytes ->
                     viewModel.importReadConfig(bytes, this::finallyDialog)
                 }
-                "addToBookshelf" -> showDialogFragment(
-                    AddToBookshelfDialog(url)
+                "/addToBookshelf" -> showDialogFragment(
+                    AddToBookshelfDialog(url, true)
                 )
                 "/importonline" -> when (it.host) {
                     "booksource" -> showDialogFragment(

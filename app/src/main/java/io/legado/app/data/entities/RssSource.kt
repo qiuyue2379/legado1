@@ -59,6 +59,8 @@ data class RssSource(
     var style: String? = null,
     var enableJs: Boolean = true,
     var loadWithBaseUrl: Boolean = true,
+    /**注入js**/
+    var injectJs: String? = null,
     /*其它规则*/
     // 最后更新时间，用于排序
     @ColumnInfo(defaultValue = "0")
@@ -109,6 +111,8 @@ data class RssSource(
                 && enableJs == source.enableJs
                 && loadWithBaseUrl == source.loadWithBaseUrl
                 && equal(variableComment, source.variableComment)
+                && equal(style, source.style)
+                && equal(injectJs, source.injectJs)
     }
 
     private fun equal(a: String?, b: String?): Boolean {
@@ -178,6 +182,7 @@ data class RssSource(
                     ruleLink = doc.readString("$.ruleLink"),
                     ruleContent = doc.readString("$.ruleContent"),
                     style = doc.readString("$.style"),
+                    injectJs = doc.readString("$.injectJs"),
                     enableJs = doc.readBool("$.enableJs") ?: true,
                     loadWithBaseUrl = doc.readBool("$.loadWithBaseUrl") ?: true,
                     enabledCookieJar = doc.readBool("$.enabledCookieJar") ?: false,
