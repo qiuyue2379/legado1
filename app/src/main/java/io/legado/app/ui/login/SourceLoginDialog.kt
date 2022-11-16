@@ -11,6 +11,7 @@ import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
 import io.legado.app.constant.AppLog
 import io.legado.app.data.entities.BaseSource
+import io.legado.app.data.entities.rule.RowUi
 import io.legado.app.databinding.DialogLoginBinding
 import io.legado.app.databinding.ItemFilletTextBinding
 import io.legado.app.databinding.ItemSourceEditBinding
@@ -69,9 +70,13 @@ class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login, true) {
                             context?.openUrl(rowUi.action!!)
                         } else {
                             // JavaScript
-                            rowUi.action?.let {
+                            rowUi.action?.let { buttonFunctionJS ->
                                 kotlin.runCatching {
-                                    source.evalJS(it)
+                                    source.getLoginJs()?.let { loginJS ->
+                                        source.evalJS("$loginJS\n$buttonFunctionJS") {
+                                            put("result", getLoginData(loginUi))
+                                        }
+                                    }
                                 }.onFailure {
                                     AppLog.put("LoginUI Button ${rowUi.name} JavaScript error", it)
                                 }
@@ -86,17 +91,7 @@ class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login, true) {
         binding.toolBar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.menu_ok -> {
-                    val loginData = hashMapOf<String, String>()
-                    loginUi?.forEachIndexed { index, rowUi ->
-                        when (rowUi.type) {
-                            "text", "password" -> {
-                                val rowView = binding.root.findViewById<View>(index)
-                                ItemSourceEditBinding.bind(rowView).editText.text?.let {
-                                    loginData[rowUi.name] = it.toString()
-                                }
-                            }
-                        }
-                    }
+                    val loginData = getLoginData(loginUi)
                     login(source, loginData)
                 }
                 R.id.menu_show_login_header -> alert {
@@ -112,6 +107,21 @@ class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login, true) {
         }
     }
 
+    private fun getLoginData(loginUi: List<RowUi>?): HashMap<String, String> {
+        val loginData = hashMapOf<String, String>()
+        loginUi?.forEachIndexed { index, rowUi ->
+            when (rowUi.type) {
+                "text", "password" -> {
+                    val rowView = binding.root.findViewById<View>(index)
+                    ItemSourceEditBinding.bind(rowView).editText.text?.let {
+                        loginData[rowUi.name] = it.toString()
+                    }
+                }
+            }
+        }
+        return loginData
+    }
+
     private fun login(source: BaseSource, loginData: HashMap<String, String>) {
         launch(IO) {
             if (loginData.isEmpty()) {
@@ -120,18 +130,16 @@ class SourceLoginDialog : BaseDialogFragment(R.layout.dialog_login, true) {
                     dismiss()
                 }
             } else if (source.putLoginInfo(GSON.toJson(loginData))) {
-                source.getLoginJs()?.let {
-                    try {
-                        source.evalJS(it)
-                        context?.toastOnUi(R.string.success)
-                        withContext(Main) {
-                            dismiss()
-                        }
-                    } catch (e: Exception) {
-                        AppLog.put("登录出错\n${e.localizedMessage}", e)
-                        context?.toastOnUi("登录出错\n${e.localizedMessage}")
-                        e.printOnDebug()
+                try {
+                    source.login()
+                    context?.toastOnUi(R.string.success)
+                    withContext(Main) {
+                        dismiss()
                     }
+                } catch (e: Exception) {
+                    AppLog.put("登录出错\n${e.localizedMessage}", e)
+                    context?.toastOnUi("登录出错\n${e.localizedMessage}")
+                    e.printOnDebug()
                 }
             }
         }

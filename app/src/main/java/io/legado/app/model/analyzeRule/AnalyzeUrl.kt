@@ -619,10 +619,30 @@ class AnalyzeUrl(
         private var charset: String? = null,
         private var headers: Any? = null,
         private var body: Any? = null,
+        /**
+         * 源Url
+         **/
+        private var origin: String? = null,
+        /**
+         * 重试次数
+         **/
         private var retry: Int? = null,
+        /**
+         * 类型
+         **/
         private var type: String? = null,
+        /**
+         * 是否使用webView
+         **/
         private var webView: Any? = null,
+        /**
+         * webView中执行的js
+         **/
         private var webJs: String? = null,
+        /**
+         * 解析完url参数时执行的js
+         * 执行结果会赋值给url
+         */
         private var js: String? = null,
     ) {
         fun setMethod(value: String?) {
@@ -639,6 +659,14 @@ class AnalyzeUrl(
 
         fun getCharset(): String? {
             return charset
+        }
+
+        fun setOrigin(value: String?) {
+            origin = if (value.isNullOrBlank()) null else value
+        }
+
+        fun getOrigin(): String? {
+            return origin
         }
 
         fun setRetry(value: String?) {
