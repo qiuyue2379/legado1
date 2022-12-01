@@ -13,15 +13,17 @@
 
 **2022/11/28**
 
+* 更新cronet: 108.0.5359.61
 * 修复验证码同一网址不刷新的bug
 
-**2022/11/21**
+**2022/11/22**
 
 * 修复朗读长时间暂停后恢复时朗读速度可能不对的bug
+* addBookshelf url参数添加origin,可以指定书源
 * 通过增加特定标识使用无UA请求，适用于网络导入书源等,用法：http://xxx.xxx/xxxx#requestWithoutUA
 * 修复cookie.getCookie(source.getKey())返回的cookie不及时的bug
 * 书签添加导出功能
-* 
+
 **2022/11/13**
 
 * 订阅添加js注入

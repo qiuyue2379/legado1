@@ -38,4 +38,9 @@ object EncoderUtils {
         return Base64.encodeToString(str.toByteArray(), flags)
     }
 
+    @JvmOverloads
+    fun base64DecodeToByteArray(str: String, flags: Int = Base64.DEFAULT): ByteArray {
+        return Base64.decode(str, flags)
+    }
+
 }
