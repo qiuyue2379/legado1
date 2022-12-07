@@ -313,21 +313,21 @@ interface JsExtensions : JsEncodeUtils {
         }
         return response
     }
-
+    
     /* Str转ByteArray */
     fun strToBytes(str: String): ByteArray {
         return str.toByteArray(charset("UTF-8"))
     }
-
+    
     fun strToBytes(str: String, charset: String): ByteArray {
         return str.toByteArray(charset(charset))
     }
-
+    
     /* ByteArray转Str */
     fun bytesToStr(bytes: ByteArray): String {
         return String(bytes, charset("UTF-8"))
     }
-
+    
     fun bytesToStr(bytes: ByteArray, charset: String): String {
         return String(bytes, charset(charset))
     }
@@ -338,7 +338,7 @@ interface JsExtensions : JsEncodeUtils {
     fun base64Decode(str: String?): String {
         return Base64.decodeStr(str)
     }
-
+    
     fun base64Decode(str: String?, charset: String): String {
         return Base64.decodeStr(str, charset(charset))
     }

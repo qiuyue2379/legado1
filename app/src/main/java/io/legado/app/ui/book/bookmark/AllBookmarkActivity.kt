@@ -66,4 +66,5 @@ class AllBookmarkActivity : VMBaseActivity<ActivityAllBookmarkBinding, AllBookma
         }
         adapter.removeItem(pos)
     }
+
 }

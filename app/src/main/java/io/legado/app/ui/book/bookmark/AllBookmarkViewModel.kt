@@ -52,4 +52,5 @@ class AllBookmarkViewModel(application: Application) : BaseViewModel(application
             }
         }
     }
+
 }
