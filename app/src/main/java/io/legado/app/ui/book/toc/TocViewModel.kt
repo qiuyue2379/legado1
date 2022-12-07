@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import io.legado.app.base.BaseViewModel
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
+import io.legado.app.model.localBook.LocalBook
 
 class TocViewModel(application: Application) : BaseViewModel(application) {
     var bookUrl: String = ""
@@ -20,6 +21,22 @@ class TocViewModel(application: Application) : BaseViewModel(application) {
             appDb.bookDao.getBook(bookUrl)?.let {
                 bookData.postValue(it)
             }
+        }
+    }
+
+    fun upBookTocRule(book: Book, finally: () -> Unit) {
+        execute {
+            execute {
+                appDb.bookDao.update(book)
+                LocalBook.getChapterList(book).let {
+                    book.latestChapterTime = System.currentTimeMillis()
+                    appDb.bookChapterDao.delByBook(book.bookUrl)
+                    appDb.bookChapterDao.insert(*it.toTypedArray())
+                    appDb.bookDao.update(book)
+                }
+            }
+        }.onFinally {
+            finally.invoke()
         }
     }
 
