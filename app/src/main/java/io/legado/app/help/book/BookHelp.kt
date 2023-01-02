@@ -1,5 +1,6 @@
 package io.legado.app.help.book
 
+import android.os.ParcelFileDescriptor
 import androidx.documentfile.provider.DocumentFile
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
@@ -198,6 +199,22 @@ object BookHelp {
         return ZipFile(uri.path)
     }
 
+    /**
+     * 获取本地书籍文件的ParcelFileDescriptor
+     *
+     * @param book
+     * @return
+     */
+    @Throws(IOException::class, FileNotFoundException::class)
+    fun getBookPFD(book: Book): ParcelFileDescriptor? {
+        val uri = book.getLocalUri()
+        return if (uri.isContentScheme()) {
+            appCtx.contentResolver.openFileDescriptor(uri, "r")
+        } else {
+            ParcelFileDescriptor.open(File(uri.path), ParcelFileDescriptor.MODE_READ_ONLY)
+        }
+    }
+
     fun getChapterFiles(book: Book): HashSet<String> {
         val fileNames = hashSetOf<String>()
         if (book.isLocalTxt) {
@@ -280,6 +297,41 @@ object BookHelp {
             book.getFolderName(),
             bookChapter.getFileName()
         ).delete()
+    }
+
+    /**
+     * 设置是否禁用正文的去除重复标题,针对单个章节
+     */
+    fun setRemoveSameTitle(book: Book, bookChapter: BookChapter, removeSameTitle: Boolean) {
+        if (removeSameTitle) {
+            val path = FileUtils.getPath(
+                downloadDir,
+                cacheFolderName,
+                book.getFolderName(),
+                bookChapter.getFileName(".nr")
+            )
+            File(path).delete()
+        } else {
+            FileUtils.createFileIfNotExist(
+                downloadDir,
+                cacheFolderName,
+                book.getFolderName(),
+                bookChapter.getFileName(".nr")
+            )
+        }
+    }
+
+    /**
+     * 获取是否去除重复标题
+     */
+    fun removeSameTitle(book: Book, bookChapter: BookChapter): Boolean {
+        val path = FileUtils.getPath(
+            downloadDir,
+            cacheFolderName,
+            book.getFolderName(),
+            bookChapter.getFileName(".nr")
+        )
+        return !File(path).exists()
     }
 
     /**

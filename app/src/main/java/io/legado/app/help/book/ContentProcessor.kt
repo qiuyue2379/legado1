@@ -16,6 +16,7 @@ import kotlinx.coroutines.CancellationException
 import splitties.init.appCtx
 import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.regex.Pattern
 
 class ContentProcessor private constructor(
     private val bookName: String,
@@ -78,9 +79,24 @@ class ContentProcessor private constructor(
         useReplace: Boolean = true,
         chineseConvert: Boolean = true,
         reSegment: Boolean = true
-    ): List<String> {
+    ): BookContent {
         var mContent = content
+        var sameTitleRemoved = false
         if (content != "null") {
+            //去除重复标题
+            if (BookHelp.removeSameTitle(book, chapter)) try {
+                val name = Pattern.quote(book.name)
+                val title = Pattern.quote(chapter.title)
+                val titleRegex = "^(\\s|\\p{P}|${name})*${title}(\\s)*"
+                val matcher = Pattern.compile(titleRegex)
+                    .matcher(mContent)
+                if (matcher.find()) {
+                    mContent = mContent.substring(matcher.end())
+                    sameTitleRemoved = true
+                }
+            } catch (e: Exception) {
+                AppLog.put("去除重复标题出错\n${e.localizedMessage}", e)
+            }
             if (reSegment && book.getReSegment()) {
                 //重新分段
                 mContent = ContentHelp.reSegment(mContent, chapter.title)
@@ -121,7 +137,7 @@ class ContentProcessor private constructor(
                 }
             }
         }
-        return contents
+        return BookContent(sameTitleRemoved, contents)
     }
 
     suspend fun replaceContent(content: String): String {

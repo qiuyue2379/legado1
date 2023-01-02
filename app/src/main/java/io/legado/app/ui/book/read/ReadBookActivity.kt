@@ -191,6 +191,11 @@ class ReadBookActivity : BaseReadBookActivity(),
         viewModel.initData(intent)
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        viewModel.initData(intent ?: return)
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         upSystemUiVisibility()
@@ -259,6 +264,12 @@ class ReadBookActivity : BaseReadBookActivity(),
         this.menu = menu
         upMenu()
         return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
+        menu.findItem(R.id.menu_same_title_removed)?.isChecked =
+            ReadBook.curTextChapter?.sameTitleRemoved == true
+        return super.onMenuOpened(featureId, menu)
     }
 
     /**
@@ -398,6 +409,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                     sureSyncProgress(progress)
                 }
             }
+            R.id.menu_same_title_removed -> viewModel.reverseRemoveSameTitle()
             R.id.menu_help -> showReadMenuHelp()
         }
         return super.onCompatOptionsItemSelected(item)

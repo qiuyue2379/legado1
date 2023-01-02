@@ -76,6 +76,9 @@ object LocalBook {
             book.isUmd -> {
                 UmdFile.getChapterList(book)
             }
+            book.isPdf -> {
+                PdfFile.getChapterList(book)
+            }
             else -> {
                 TextFile.getChapterList(book)
             }
@@ -100,6 +103,9 @@ object LocalBook {
                 book.isUmd -> {
                     UmdFile.getContent(book, chapter)
                 }
+                book.isPdf -> {
+                    PdfFile.getContent(book, chapter)
+                }
                 else -> {
                     TextFile.getContent(book, chapter)
                 }
@@ -115,6 +121,18 @@ object LocalBook {
         }.onFailure {
             AppLog.put("HTML实体解码失败\n${it.localizedMessage}", it)
         }.getOrElse { content }
+    }
+
+    fun getCoverPath(book: Book): String {
+        return getCoverPath(book.bookUrl)
+    }
+
+    private fun getCoverPath(bookUrl: String): String {
+        return FileUtils.getPath(
+            appCtx.externalFiles,
+            "covers",
+            "${MD5Utils.md5Encode16(bookUrl)}.jpg"
+        )
     }
 
     /**
@@ -156,16 +174,13 @@ object LocalBook {
                 name = nameAuthor.first,
                 author = nameAuthor.second,
                 originName = fileName,
-                coverUrl = FileUtils.getPath(
-                    appCtx.externalFiles,
-                    "covers",
-                    "${MD5Utils.md5Encode16(bookUrl)}.jpg"
-                ),
+                coverUrl = getCoverPath(bookUrl),
                 latestChapterTime = updateTime,
                 order = appDb.bookDao.minOrder - 1
             )
             if (book.isEpub) EpubFile.upBookInfo(book)
             if (book.isUmd) UmdFile.upBookInfo(book)
+            if (book.isPdf) PdfFile.upBookInfo(book)
             appDb.bookDao.insert(book)
         } else {
             //已有书籍说明是更新,删除原有目录

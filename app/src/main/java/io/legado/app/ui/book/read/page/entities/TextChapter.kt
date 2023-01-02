@@ -2,6 +2,7 @@ package io.legado.app.ui.book.read.page.entities
 
 
 import androidx.annotation.Keep
+import io.legado.app.data.entities.BookChapter
 import kotlin.math.min
 
 /**
@@ -10,11 +11,12 @@ import kotlin.math.min
 @Keep
 @Suppress("unused")
 data class TextChapter(
+    val chapter: BookChapter,
     val position: Int,
     val title: String,
-    val url: String,
     val pages: List<TextPage>,
     val chaptersSize: Int,
+    val sameTitleRemoved: Boolean,
     val isVip: Boolean,
     val isPay: Boolean,
 ) {

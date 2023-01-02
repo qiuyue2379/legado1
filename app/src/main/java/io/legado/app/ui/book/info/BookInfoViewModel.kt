@@ -80,7 +80,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             upCoverByRule(book)
             bookSource = if (book.isLocal) null else
                 appDb.bookSourceDao.getBookSource(book.origin)
-            if (book.tocUrl.isEmpty()) {
+            if (book.tocUrl.isEmpty() && !book.isLocal) {
                 loadBookInfo(book)
             } else if (isImportBookOnLine) {
                 chapterListData.postValue(emptyList())
@@ -150,6 +150,9 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
                 bookSource?.let { bookSource ->
                     WebBook.getBookInfo(this, bookSource, book, canReName = canReName)
                         .onSuccess(IO) {
+                            appDb.bookDao.getBook(book.name, book.author)?.let {
+                                inBookshelf = true
+                            }
                             bookData.postValue(book)
                             if (isImportBookOnLine) {
                                 appDb.searchBookDao.update(book.toSearchBook())
