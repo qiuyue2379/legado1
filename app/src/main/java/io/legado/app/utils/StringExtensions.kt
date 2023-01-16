@@ -90,8 +90,8 @@ fun String.cnCompare(other: String): Int {
 }
 
 /**
-* 字符串所占内存大小
-*/
+ * 字符串所占内存大小
+ */
 fun String?.memorySize(): Int {
     this ?: return 0
     return 40 + 2 * length
