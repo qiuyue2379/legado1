@@ -2,6 +2,7 @@ package io.legado.app.lib.permission
 
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Environment
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,7 @@ internal class Request : OnRequestPermissionsResultCallback {
     private var permissions: ArrayList<String>? = null
     private var grantedCallback: OnPermissionsGrantedCallback? = null
     private var deniedCallback: OnPermissionsDeniedCallback? = null
+    private var errorCallback: OnErrorCallback? = null
     private var rationaleResId: Int = 0
     private var rationale: CharSequence? = null
 
@@ -51,6 +53,10 @@ internal class Request : OnRequestPermissionsResultCallback {
 
     fun setOnDeniedCallback(callback: OnPermissionsDeniedCallback) {
         deniedCallback = callback
+    }
+
+    fun setOnErrorCallBack(callback: OnErrorCallback) {
+        errorCallback = callback
     }
 
     fun setRationale(@StringRes resId: Int) {
@@ -114,15 +120,19 @@ internal class Request : OnRequestPermissionsResultCallback {
     }
 
     fun getDeniedPermissions(permissions: Array<String>?): Array<String>? {
+        val context = source?.context ?: return permissions
         if (permissions != null) {
             val deniedPermissionList = ArrayList<String>()
             for (permission in permissions) {
-                if (source?.context?.let {
-                        ContextCompat.checkSelfPermission(
-                            it,
-                            permission
-                        )
-                    } != PackageManager.PERMISSION_GRANTED
+                if (permission == Permissions.MANAGE_EXTERNAL_STORAGE) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        if (!Environment.isExternalStorageManager()) {
+                            deniedPermissionList.add(permission)
+                        }
+                    }
+                } else if (
+                    ContextCompat.checkSelfPermission(context, permission)
+                    != PackageManager.PERMISSION_GRANTED
                 ) {
                     deniedPermissionList.add(permission)
                 }
@@ -199,6 +209,11 @@ internal class Request : OnRequestPermissionsResultCallback {
         } else {
             onPermissionsDenied(deniedPermissions)
         }
+    }
+
+    override fun onError(e: Exception) {
+        errorCallback?.onError(e)
+        RequestPlugins.sResultCallback?.onError(e)
     }
 
     companion object {
