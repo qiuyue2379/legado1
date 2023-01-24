@@ -160,6 +160,10 @@
 -keep class **.help.CacheManager{*;}
 # StrResponse
 -keep class **.help.http.StrResponse{*;}
+# Class.forName调用
+-keep class **.lib.cronet.CronetInterceptor{*;}
+-keep class **.lib.cronet.CronetLoader{*;}
+-keep class **.help.AppUpdateGitHub{*;}
 
 -dontwarn rx.**
 -dontwarn okio.**
@@ -389,6 +393,3 @@
 # class/merging/horizontal proguard optimization is enabled.
 -keep class org.chromium.base.CollectionUtil
 #-------------------Cronet------------------------------------
-
-
-
