@@ -118,15 +118,13 @@ object BookHelp {
         content: String
     ) = coroutineScope {
         val awaitList = arrayListOf<Deferred<Unit>>()
-        content.split("\n").forEach {
-            val matcher = AppPattern.imgPattern.matcher(it)
-            if (matcher.find()) {
-                matcher.group(1)?.let { src ->
-                    val mSrc = NetworkUtils.getAbsoluteURL(bookChapter.url, src)
-                    awaitList.add(async {
-                        saveImage(bookSource, book, mSrc)
-                    })
-                }
+        val matcher = AppPattern.imgPattern.matcher(content)
+        while (matcher.find()) {
+            matcher.group(1)?.let { src ->
+                val mSrc = NetworkUtils.getAbsoluteURL(bookChapter.url, src)
+                awaitList.add(async {
+                    saveImage(bookSource, book, mSrc)
+                })
             }
         }
         awaitList.forEach {
@@ -158,7 +156,8 @@ object BookHelp {
                 ).writeBytes(it)
             }
         } catch (e: Exception) {
-            AppLog.putDebug("${src}下载错误", e)
+            e.printStackTrace()
+            AppLog.put("${src}下载错误", e)
         } finally {
             downloadImages.remove(src)
         }
