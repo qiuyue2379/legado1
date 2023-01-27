@@ -10,11 +10,21 @@ import java.nio.ByteBuffer
 
 @Keep
 class BodyUploadProvider(private val body: RequestBody) : UploadDataProvider(), AutoCloseable {
+
     private val buffer = Buffer()
 
+    @Volatile
+    private var filled: Boolean = false
+
     init {
+        fillBuffer()
+    }
+
+    private fun fillBuffer() {
         try {
+            buffer.clear()
             body.writeTo(buffer)
+            buffer.flush()
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -27,6 +37,9 @@ class BodyUploadProvider(private val body: RequestBody) : UploadDataProvider(), 
 
     @Throws(IOException::class)
     override fun read(uploadDataSink: UploadDataSink, byteBuffer: ByteBuffer) {
+        if (!filled) {
+            fillBuffer()
+        }
         check(byteBuffer.hasRemaining()) { "Cronet passed a buffer with no bytes remaining" }
         var read: Int
         var bytesRead = 0
@@ -39,8 +52,9 @@ class BodyUploadProvider(private val body: RequestBody) : UploadDataProvider(), 
 
     @Throws(IOException::class)
     override fun rewind(uploadDataSink: UploadDataSink) {
-        buffer.clear()
-        body.writeTo(buffer)
+        check(body.isOneShot()) { "Okhttp RequestBody is oneShot" }
+        filled = false
+        fillBuffer()
         uploadDataSink.onRewindSucceeded()
     }
 

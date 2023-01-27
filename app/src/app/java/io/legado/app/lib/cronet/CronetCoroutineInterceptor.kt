@@ -17,6 +17,7 @@ import kotlin.coroutines.resumeWithException
 @Keep
 @Suppress("unused")
 class CronetCoroutineInterceptor : Interceptor {
+
     override fun intercept(chain: Interceptor.Chain): Response {
         if (chain.call().isCanceled()) {
             throw IOException("Canceled")
@@ -92,7 +93,10 @@ class CronetCoroutineInterceptor : Interceptor {
 
             }
 
-            buildRequest(request, callBack)?.start()
+            val req = buildRequest(request, callBack)?.also { it.start() }
+            coroutine.invokeOnCancellation {
+                req?.cancel()
+            }
 
 
         }
