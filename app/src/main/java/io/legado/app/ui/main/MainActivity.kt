@@ -28,6 +28,8 @@ import io.legado.app.help.config.LocalConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.help.storage.Backup
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.lib.permission.Permissions
+import io.legado.app.lib.permission.PermissionsCompat
 import io.legado.app.lib.theme.elevation
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.service.BaseReadAloudService
@@ -92,6 +94,10 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             if (!privacyPolicy()) return@launch
             //版本更新
             upVersion()
+            //检测通知权限
+            checkNotificationPermission()
+            //备份同步
+            backupSync()
             //自动更新书籍
             val isAutoRefreshedBook = savedInstanceState?.getBoolean("isAutoRefreshedBook") ?: false
             if (AppConfig.autoRefreshBook && !isAutoRefreshedBook) {
@@ -102,7 +108,6 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             binding.viewPagerMain.postDelayed(3000) {
                 viewModel.postLoad()
             }
-            syncAlert()
         }
     }
 
@@ -176,14 +181,14 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         viewModel.upVersion()
         if (LocalConfig.isFirstOpenApp) {
             val help = String(assets.open("help/appHelp.md").readBytes())
-            val dialog = TextDialog(help, TextDialog.Mode.MD)
+            val dialog = TextDialog(getString(R.string.help), help, TextDialog.Mode.MD)
             dialog.setOnDismissListener {
                 block.resume(Unit)
             }
             showDialogFragment(dialog)
         } else if (!BuildConfig.DEBUG) {
             val log = String(assets.open("updateLog.md").readBytes())
-            val dialog = TextDialog(log, TextDialog.Mode.MD)
+            val dialog = TextDialog(getString(R.string.update_log), log, TextDialog.Mode.MD)
             dialog.setOnDismissListener {
                 block.resume(Unit)
             }
@@ -194,17 +199,38 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     }
 
     /**
-     * 同步提示
+     * 检测通知权限
      */
-    private fun syncAlert() = launch {
-        val lastBackupFile = withContext(IO) { AppWebDav.lastBackUp().getOrNull() }
-            ?: return@launch
-        if (lastBackupFile.lastModify - LocalConfig.lastBackup > DateUtils.MINUTE_IN_MILLIS) {
-            LocalConfig.lastBackup = lastBackupFile.lastModify
-            alert("恢复", "webDav书源比本地新,是否恢复") {
-                cancelButton()
-                okButton {
-                    viewModel.restoreWebDav(lastBackupFile.displayName)
+    private suspend fun checkNotificationPermission() = suspendCoroutine { block ->
+        PermissionsCompat.Builder(this)
+            .addPermissions(Permissions.POST_NOTIFICATIONS)
+            .rationale("阅读需要发送通知来显示朗读控制和下载进度")
+            .onDenied {
+                block.resume(null)
+            }
+            .onGranted {
+                block.resume(null)
+            }
+            .onError {
+                block.resume(null)
+            }
+            .request()
+    }
+
+    /**
+     * 备份同步
+     */
+    private fun backupSync() {
+        launch {
+            val lastBackupFile =
+                withContext(IO) { AppWebDav.lastBackUp().getOrNull() } ?: return@launch
+            if (lastBackupFile.lastModify - LocalConfig.lastBackup > DateUtils.MINUTE_IN_MILLIS) {
+                LocalConfig.lastBackup = lastBackupFile.lastModify
+                alert("恢复", "webDav书源比本地新,是否恢复") {
+                    cancelButton()
+                    okButton {
+                        viewModel.restoreWebDav(lastBackupFile.displayName)
+                    }
                 }
             }
         }
