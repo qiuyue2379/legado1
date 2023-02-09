@@ -150,7 +150,7 @@ dependencies {
 
     //androidX
     implementation('androidx.core:core-ktx:1.9.0')
-    implementation('androidx.appcompat:appcompat:1.6.0')
+    implementation('androidx.appcompat:appcompat:1.6.1')
     implementation('androidx.activity:activity-ktx:1.6.1')
     implementation('androidx.fragment:fragment-ktx:1.5.5')
     implementation('androidx.preference:preference-ktx:1.2.0')
@@ -191,7 +191,7 @@ dependencies {
     //规则相关
     implementation('org.jsoup:jsoup:1.15.3')
     implementation('com.jayway.jsonpath:json-path:2.7.0')
-    implementation('cn.wanghaomiao:JsoupXpath:2.5.1')
+    implementation('cn.wanghaomiao:JsoupXpath:2.5.2')
     implementation(project(path: ':epublib'))
 
     //JS rhino
@@ -199,7 +199,7 @@ dependencies {
     implementation(fileTree(dir: 'lib', include: ['rhino-*.jar']))
 
     //网络
-    implementation('com.squareup.okhttp3:okhttp:4.10.0')
+    implementation('com.squareup.okhttp3:okhttp:5.0.0-alpha.11')
     appImplementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
 
     //Glide
