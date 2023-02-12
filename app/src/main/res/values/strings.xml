@@ -1070,4 +1070,6 @@
     <string name="webdav_after_local_restore_confirm">The webDav book source is newer than the local one, whether to restore it or not</string>
     <string name="c_whitelist">白名单(contentWhitelist)</string>
     <string name="c_blacklist">黑名单(contentBlacklist)</string>
+    <string name="clear_webview_data">清除 WebView 数据</string>
+    <string name="clear_webview_data_summary">清除内置浏览器所有数据</string>
 </resources>

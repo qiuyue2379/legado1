@@ -1,6 +1,7 @@
 package io.legado.app.ui.config
 
 import android.app.Application
+import android.content.Context
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.help.AppWebDav
@@ -25,5 +26,12 @@ class ConfigViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+    fun clearWebViewData() {
+        execute {
+            FileUtils.delete(context.getDir("webview", Context.MODE_PRIVATE))
+        }.onSuccess {
+            context.toastOnUi(R.string.success)
+        }
+    }
 
 }
