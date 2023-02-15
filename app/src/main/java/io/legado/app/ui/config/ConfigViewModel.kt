@@ -34,4 +34,5 @@ class ConfigViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+
 }

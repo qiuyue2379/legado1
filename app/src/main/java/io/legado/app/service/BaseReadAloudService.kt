@@ -94,7 +94,6 @@ abstract class BaseReadAloudService : BaseService(),
         observeLiveBus()
         initMediaSession()
         initBroadcastReceiver()
-        upNotification()
         upMediaSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING)
         setTimer(AppConfig.ttsTimer)
         if (AppConfig.ttsTimer > 0) {
@@ -355,7 +354,7 @@ abstract class BaseReadAloudService : BaseService(),
     /**
      * 更新通知
      */
-    private fun upNotification() {
+    override fun upNotification() {
         execute {
             var nTitle: String = when {
                 pause -> getString(R.string.read_aloud_pause)
