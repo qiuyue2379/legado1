@@ -62,7 +62,9 @@ abstract class BaseService : LifecycleService(), CoroutineScope by MainScope() {
             .addPermissions(Permissions.POST_NOTIFICATIONS)
             .rationale(R.string.notification_permission_rationale)
             .onGranted {
-                upNotification()
+                if (isActive) {
+                    upNotification()
+                }
             }
             .request()
     }
