@@ -12,9 +12,9 @@ import io.legado.app.model.analyzeRule.AnalyzeUrl
 @Entity(tableName = "dictRules")
 data class DictRule(
     @PrimaryKey
-    val name: String,
-    var urlRule: String,
-    var showRule: String,
+    var name: String = "",
+    var urlRule: String = "",
+    var showRule: String = "",
     @ColumnInfo(defaultValue = "1")
     var enabled: Boolean = true,
     @ColumnInfo(defaultValue = "0")
@@ -24,11 +24,11 @@ data class DictRule(
     /**
      * 搜索字典
      */
-    suspend fun search(word: String): String? {
+    suspend fun search(word: String): String {
         val analyzeUrl = AnalyzeUrl(urlRule, key = word)
         val body = analyzeUrl.getStrResponseAwait().body
         if (showRule.isBlank()) {
-             return body
+            return body!!
         }
         val analyzeRule = AnalyzeRule()
         return analyzeRule.getString(showRule, mContent = body)

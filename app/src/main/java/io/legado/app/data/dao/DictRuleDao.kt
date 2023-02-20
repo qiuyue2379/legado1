@@ -5,15 +5,23 @@ import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import io.legado.app.data.entities.DictRule
+import kotlinx.coroutines.flow.Flow
+
 
 @Dao
 interface DictRuleDao {
 
-    @get:Query("select * from dictRules")
+    @get:Query("select * from dictRules order by sortNumber")
     val all: List<DictRule>
 
-    @get:Query("select * from dictRules where enabled = 1")
+    @get:Query("select * from dictRules where enabled = 1 order by sortNumber")
     val enabled: List<DictRule>
+
+    @Query("select * from dictRules where enabled = 1 order by sortNumber")
+    fun flowAll(): Flow<List<DictRule>>
+
+    @Query("select * from dictRules where name = :name")
+    fun getByName(name: String): DictRule?
 
     @Upsert
     fun upsert(vararg dictRule: DictRule)
