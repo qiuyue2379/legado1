@@ -3,6 +3,7 @@ package io.legado.app.model.analyzeRule
 import androidx.annotation.Keep
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.jsoup.parser.Parser
 import org.jsoup.select.Collector
 import org.jsoup.select.Elements
 import org.jsoup.select.Evaluator
@@ -14,19 +15,21 @@ import org.seimicrawler.xpath.JXNode
  */
 @Keep
 class AnalyzeByJSoup(doc: Any) {
-    companion object {
-
-        fun parse(doc: Any): Element {
-            return when (doc) {
-                is Element -> doc
-                is JXNode -> if (doc.isElement) doc.asElement() else Jsoup.parse(doc.toString())
-                else -> Jsoup.parse(doc.toString())
-            }
-        }
-
-    }
 
     private var element: Element = parse(doc)
+
+    private fun parse(doc: Any): Element {
+        if (doc is Element) {
+            return doc
+        }
+        if (doc is JXNode) {
+            return if (doc.isElement) doc.asElement() else Jsoup.parse(doc.toString())
+        }
+        if (doc.toString().startsWith("<?xml", true)) {
+            return Jsoup.parse(doc.toString(), Parser.xmlParser())
+        }
+        return Jsoup.parse(doc.toString())
+    }
 
     /**
      * 获取列表
@@ -470,7 +473,6 @@ class AnalyzeByJSoup(doc: Any) {
                     l = "" //清空
                     curMinus = false //重置
                 }
-
             }
 
             split = ' '
