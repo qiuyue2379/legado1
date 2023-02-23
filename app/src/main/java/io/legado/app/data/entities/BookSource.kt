@@ -193,7 +193,6 @@ data class BookSource(
     }
 
     fun equal(source: BookSource): Boolean {
-        source ?: return false
         return equal(bookSourceName, source.bookSourceName)
                 && equal(bookSourceUrl, source.bookSourceUrl)
                 && equal(bookSourceGroup, source.bookSourceGroup)
