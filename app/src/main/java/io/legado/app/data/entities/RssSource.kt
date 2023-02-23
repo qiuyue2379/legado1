@@ -26,7 +26,7 @@ data class RssSource(
     // 自定义变量说明
     var variableComment: String? = null,
     @ColumnInfo(defaultValue = "0")
-    override var enabledCookieJar: Boolean? = false,
+    override var enabledCookieJar: Boolean? = true,
     /**并发率**/
     override var concurrentRate: String? = null,
     /**请求头**/
@@ -101,7 +101,7 @@ data class RssSource(
 
     override fun hashCode() = sourceUrl.hashCode()
 
-    fun equal(source: RssSource?): Boolean {
+    fun equal(source: RssSource): Boolean {
         source ?: return false
         return equal(sourceUrl, source.sourceUrl)
                 && equal(sourceName, source.sourceName)
