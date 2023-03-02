@@ -18,6 +18,7 @@ import io.legado.app.lib.webdav.Authorization
 import io.legado.app.lib.webdav.WebDav
 import io.legado.app.lib.webdav.WebDavException
 import io.legado.app.lib.webdav.WebDavFile
+import io.legado.app.model.remote.RemoteBookWebDav
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
 import kotlinx.coroutines.Dispatchers.IO
@@ -77,6 +78,14 @@ object AppWebDav {
                 "backup${backupDate}.zip"
             }
         }
+
+    @Throws(NoStackTraceException::class)
+    fun getDefaultRemoteBookWebDav(): RemoteBookWebDav {
+        val rootUrl = "${rootWebDavUrl}books"
+        val authorization = AppWebDav.authorization
+            ?: throw NoStackTraceException("webDav没有配置")
+        return RemoteBookWebDav(rootUrl, authorization)
+    }
 
     suspend fun upConfig() {
         kotlin.runCatching {
@@ -197,6 +206,7 @@ object AppWebDav {
         }
     }
 
+    @Suppress("unused")
     suspend fun exportWebDav(byteArray: ByteArray, fileName: String) {
         if (!NetworkUtils.isAvailable()) return
         try {
