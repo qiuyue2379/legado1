@@ -9,6 +9,7 @@ import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.webdav.Authorization
 import io.legado.app.lib.webdav.WebDav
 import io.legado.app.lib.webdav.WebDavFile
+import io.legado.app.model.analyzeRule.CustomUrl
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.utils.NetworkUtils
 import io.legado.app.utils.isContentScheme
@@ -17,14 +18,18 @@ import kotlinx.coroutines.runBlocking
 import splitties.init.appCtx
 import java.io.File
 
-class RemoteBookWebDav(val rootBookUrl: String, val authorization: Authorization) :
-    RemoteBookManager() {
+class RemoteBookWebDav(
+    val rootBookUrl: String,
+    val authorization: Authorization,
+    val serverID: Long? = null
+) : RemoteBookManager() {
 
     init {
         runBlocking {
             WebDav(rootBookUrl, authorization).makeAsDir()
         }
     }
+
 
     @Throws(Exception::class)
     override suspend fun getRemoteBookList(path: String): MutableList<RemoteBook> {
@@ -63,15 +68,18 @@ class RemoteBookWebDav(val rootBookUrl: String, val authorization: Authorization
         if (!NetworkUtils.isAvailable()) throw NoStackTraceException("网络不可用")
         val localBookUri = Uri.parse(book.bookUrl)
         val putUrl = "$rootBookUrl${File.separator}${book.originName}"
+        val webDav =  WebDav(putUrl, authorization)
         if (localBookUri.isContentScheme()) {
-            WebDav(putUrl, authorization).upload(
+            webDav.upload(
                 byteArray = localBookUri.readBytes(appCtx),
                 contentType = "application/octet-stream"
             )
         } else {
-            WebDav(putUrl, authorization).upload(localBookUri.path!!)
+            webDav.upload(localBookUri.path!!)
         }
-        book.origin = BookType.webDavTag + putUrl
+        book.origin = BookType.webDavTag + CustomUrl(putUrl)
+          .putAttribute("serverID", serverID)
+          .toString()
         book.save()
     }
 

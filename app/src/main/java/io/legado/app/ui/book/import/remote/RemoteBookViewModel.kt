@@ -4,13 +4,14 @@ import android.app.Application
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.BookType
+import io.legado.app.data.appDb
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.lib.webdav.Authorization
+import io.legado.app.model.analyzeRule.CustomUrl
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.remote.RemoteBook
 import io.legado.app.model.remote.RemoteBookWebDav
-import io.legado.app.utils.ACache
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -78,14 +79,14 @@ class RemoteBookViewModel(application: Application) : BaseViewModel(application)
 
     fun initData(onSuccess: () -> Unit) {
         execute {
-            val config = ACache.get().getAsJSONObject("remoteServerConfig")
+            val config = appDb.serverDao.get(10001)?.getConfigJsonObject()
             if (config != null && config.has("url")) {
                 val url = config.getString("url")
                 if (url.isNotBlank()) {
                     val user = config.getString("user")
                     val password = config.getString("password")
                     val authorization = Authorization(user, password)
-                    remoteBookWebDav = RemoteBookWebDav(url, authorization)
+                    remoteBookWebDav = RemoteBookWebDav(url, authorization, 10001)
                     return@execute
                 }
             }
@@ -124,7 +125,11 @@ class RemoteBookViewModel(application: Application) : BaseViewModel(application)
                 val downloadBookPath = bookWebDav.downloadRemoteBook(remoteBook)
                 downloadBookPath.let {
                     val localBook = LocalBook.importFile(it)
-                    localBook.origin = BookType.webDavTag + remoteBook.path
+                    localBook.origin = BookType.webDavTag + CustomUrl(remoteBook.path)
+                        .putAttribute(
+                            "serverID",
+                            bookWebDav.serverID
+                        ).toString()
                     localBook.save()
                     remoteBook.isOnBookShelf = true
                 }
