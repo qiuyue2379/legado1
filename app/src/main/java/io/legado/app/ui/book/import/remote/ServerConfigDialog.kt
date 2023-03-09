@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.viewModels
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
 import io.legado.app.data.appDb
@@ -20,10 +21,17 @@ import io.legado.app.utils.applyTint
 import io.legado.app.utils.setLayout
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
-class ServerConfigDialog : BaseDialogFragment(R.layout.dialog_webdav_server, true),
+class ServerConfigDialog() : BaseDialogFragment(R.layout.dialog_webdav_server, true),
     Toolbar.OnMenuItemClickListener {
 
+    constructor(id: Long) : this() {
+        arguments = Bundle().apply {
+            putLong("id", id)
+        }
+    }
+
     private val binding by viewBinding(DialogWebdavServerBinding::bind)
+    private val viewModel by viewModels<ServerConfigViewModel>()
 
     private val serverUi = listOf(
         RowUi("url"),
@@ -41,7 +49,9 @@ class ServerConfigDialog : BaseDialogFragment(R.layout.dialog_webdav_server, tru
         binding.toolBar.inflateMenu(R.menu.server_config)
         binding.toolBar.menu.applyTint(requireContext())
         binding.toolBar.setOnMenuItemClickListener(this)
-        initConfigView()
+        viewModel.init(arguments?.getLong("id")) {
+            upConfigView(viewModel.server)
+        }
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -64,7 +74,7 @@ class ServerConfigDialog : BaseDialogFragment(R.layout.dialog_webdav_server, tru
         return true
     }
 
-    private fun initConfigView() {
+    private fun upConfigView(server: Server?) {
         val data = appDb.serverDao.get(10001)?.getConfigJsonObject()
         serverUi.forEachIndexed { index, rowUi ->
             when (rowUi.type) {

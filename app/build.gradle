@@ -170,7 +170,7 @@ dependencies {
     implementation('com.google.code.gson:gson:2.10.1')
 
     //lifecycle
-    def lifecycle_version = '2.5.1'
+    def lifecycle_version = '2.6.0'
     implementation("androidx.lifecycle:lifecycle-common-java8:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-service:$lifecycle_version")
 
@@ -196,7 +196,7 @@ dependencies {
     //规则相关
     implementation('org.jsoup:jsoup:1.15.4')
     implementation('com.jayway.jsonpath:json-path:2.7.0')
-    implementation('cn.wanghaomiao:JsoupXpath:2.5.2')
+    implementation('cn.wanghaomiao:JsoupXpath:2.5.3')
     implementation(project(path: ':epublib'))
 
     //JS rhino
@@ -206,7 +206,7 @@ dependencies {
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.10.0')
     appImplementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
-    appImplementation 'com.google.protobuf:protobuf-javalite:3.22.0'
+    appImplementation 'com.google.protobuf:protobuf-javalite:3.22.1'
 
     //Glide
     def glideVersion = "4.15.0"
@@ -244,7 +244,7 @@ dependencies {
 
     //加解密类库,有些书源使用
     //noinspection GradleDependency,GradlePackageUpdate
-    implementation('cn.hutool:hutool-crypto:5.8.12')
+    implementation('cn.hutool:hutool-crypto:5.8.15')
 
     //firebase, 崩溃统计和性能统计, 会导致共存版本崩溃
     //implementation platform('com.google.firebase:firebase-bom:30.0.1')

@@ -21,8 +21,6 @@ import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.*
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.webdav.ObjectNotFoundException
-import io.legado.app.model.analyzeRule.AnalyzeRule
-import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
 import io.legado.app.model.localBook.LocalBook
@@ -36,10 +34,11 @@ import kotlinx.coroutines.Dispatchers.IO
 class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     val bookData = MutableLiveData<Book>()
     val chapterListData = MutableLiveData<List<BookChapter>>()
-    val webFileData = MutableLiveData<List<WebFile>>()
+    val webFiles = mutableListOf<WebFile>()
     var inBookshelf = false
     var bookSource: BookSource? = null
     private var changeSourceCoroutine: Coroutine<*>? = null
+    val waitDialogData = MutableLiveData<Boolean>()
 
     fun initData(intent: Intent) {
         execute {
@@ -239,51 +238,37 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         scope: CoroutineScope = viewModelScope
     ) {
         execute(scope) {
+            webFiles.clear()
             val fileName = "${book.name} 作者：${book.author}"
-            if (book.downloadUrls.isNullOrEmpty()) {
-                val ruleDownloadUrls = bookSource.getBookInfoRule().downloadUrls
-                val content = AnalyzeUrl(book.bookUrl, source = bookSource).getStrResponse().body
-                val analyzeRule = AnalyzeRule(book, bookSource)
-                analyzeRule.setContent(content).setBaseUrl(book.bookUrl)
-                analyzeRule.getStringList(ruleDownloadUrls, isUrl = true)?.let {
-                    parseDownloadUrls(it, fileName)
-                } ?: throw NoStackTraceException("Unexpected ruleDownloadUrls")
-            } else {
-                parseDownloadUrls(book.downloadUrls, fileName)
+            book.downloadUrls!!.map {
+                val mFileName = "${fileName}.${LocalBook.parseFileSuffix(it)}"
+                val isSupportedFile = AppPattern.bookFileRegex.matches(mFileName)
+                WebFile(it, mFileName, isSupportedFile)
             }
         }.onError {
             context.toastOnUi("LoadWebFileError\n${it.localizedMessage}")
         }.onSuccess {
-            webFileData.postValue(it)
-        }
-    }
-
-    private fun parseDownloadUrls(
-        downloadUrls: List<String>?,
-        fileName: String
-    ): List<WebFile>? {
-        val urls = downloadUrls
-        return urls?.map {
-            val mFileName = "${fileName}.${LocalBook.parseFileSuffix(it)}"
-            val isSupportedFile = AppPattern.bookFileRegex.matches(mFileName)
-            WebFile(it, mFileName, isSupportedFile)
+            webFiles.addAll(it)
         }
     }
 
     fun <T> importOrDownloadWebFile(webFile: WebFile, success: ((T) -> Unit)?) {
-       bookSource ?: return
-       execute {
-           if (webFile.isSupported) {
-               val book = LocalBook.importFileOnLine(webFile.url, webFile.name, bookSource)
-               changeToLocalBook(book)
-           } else {
-               LocalBook.saveBookFile(webFile.url, webFile.name, bookSource)
-           }
-       }.onSuccess {
-           success?.invoke(it as T)
-       }.onError {
-           context.toastOnUi("ImportWebFileError\n${it.localizedMessage}")
-       }
+        bookSource ?: return
+        execute {
+            waitDialogData.postValue(true)
+            if (webFile.isSupported) {
+                val book = LocalBook.importFileOnLine(webFile.url, webFile.name, bookSource)
+                changeToLocalBook(book)
+            } else {
+                LocalBook.saveBookFile(webFile.url, webFile.name, bookSource)
+            }
+        }.onSuccess {
+            success?.invoke(it as T)
+        }.onError {
+            context.toastOnUi("ImportWebFileError\n${it.localizedMessage}")
+        }.onFinally {
+            waitDialogData.postValue(false)
+        }
     }
 
     fun changeTo(source: BookSource, book: Book, toc: List<BookChapter>) {
