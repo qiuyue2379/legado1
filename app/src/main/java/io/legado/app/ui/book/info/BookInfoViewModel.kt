@@ -253,22 +253,23 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     }
 
     fun <T> importOrDownloadWebFile(webFile: WebFile, success: ((T) -> Unit)?) {
-        bookSource ?: return
-        execute {
-            waitDialogData.postValue(true)
-            if (webFile.isSupported) {
-                val book = LocalBook.importFileOnLine(webFile.url, webFile.name, bookSource)
-                changeToLocalBook(book)
-            } else {
-                LocalBook.saveBookFile(webFile.url, webFile.name, bookSource)
-            }
-        }.onSuccess {
-            success?.invoke(it as T)
-        }.onError {
-            context.toastOnUi("ImportWebFileError\n${it.localizedMessage}")
-        }.onFinally {
-            waitDialogData.postValue(false)
-        }
+       bookSource ?: return
+       execute {
+           waitDialogData.postValue(true)
+           if (webFile.isSupported) {
+               val book = LocalBook.importFileOnLine(webFile.url, webFile.name, bookSource)
+               changeToLocalBook(book)
+           } else {
+               LocalBook.saveBookFile(webFile.url, webFile.name, bookSource)
+           }
+       }.onSuccess {
+           success?.invoke(it as T)
+       }.onError {
+           context.toastOnUi("ImportWebFileError\n${it.localizedMessage}")
+           webFiles.remove(webFile)
+       }.onFinally {
+           waitDialogData.postValue(false)
+       }
     }
 
     fun changeTo(source: BookSource, book: Book, toc: List<BookChapter>) {
@@ -386,10 +387,10 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     }
 
     private fun changeToLocalBook(localBook: Book): Book {
-        inBookshelf = true
         return LocalBook.mergeBook(localBook, bookData.value).let {
             bookData.postValue(it)
             loadChapter(it)
+            inBookshelf = true
             it
         }
     }

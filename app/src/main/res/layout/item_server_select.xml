@@ -17,6 +17,7 @@
         android:singleLine="true"
         android:textColor="@color/primaryText" />
 
+
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/iv_edit"
         android:layout_width="36dp"
