@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.recyclerview.widget.GridLayoutManager
 import io.legado.app.R
 import io.legado.app.base.BaseDialogFragment
@@ -18,6 +20,7 @@ import io.legado.app.utils.setLayout
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.launch
 
 /**
  * 换封面
@@ -67,10 +70,12 @@ class ChangeCoverDialog() : BaseDialogFragment(R.layout.dialog_change_cover),
     }
 
     private fun initData() {
-        lifecycleScope.launchWhenStarted {
-            viewModel.dataFlow.conflate().collect {
-                adapter.setItems(it)
-                delay(1000)
+        lifecycleScope.launch {
+            repeatOnLifecycle(STARTED) {
+                viewModel.dataFlow.conflate().collect {
+                    adapter.setItems(it)
+                    delay(1000)
+                }
             }
         }
     }
