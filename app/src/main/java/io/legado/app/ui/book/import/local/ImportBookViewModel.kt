@@ -48,6 +48,16 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
                 list.clear()
                 trySend(emptyList())
             }
+
+            override fun screen(key: String?) {
+                if (key.isNullOrBlank()) {
+                    trySend(list)
+                } else {
+                    trySend(
+                        list.filter { it.name.contains(key) }
+                    )
+                }
+            }
         }
 
         withContext(Main) {
@@ -139,12 +149,7 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
                 }
                 if (docItem.isDir) {
                     scanDoc(docItem, false, scope)
-                } else if (docItem.name.endsWith(".txt", true)
-                    || docItem.name.endsWith(".epub", true) || docItem.name.endsWith(
-                        ".pdf",
-                        true
-                    ) || docItem.name.endsWith(".umd", true)
-                ) {
+                } else if (docItem.name.matches(bookFileRegex)) {
                     list.add(docItem)
                 }
             }
@@ -163,6 +168,10 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
         }
     }
 
+    fun updateCallBackFlow(filterKey: String?) {
+       dataCallback?.screen(filterKey)
+    }
+
     interface DataCallback {
 
         fun setItems(fileDocs: List<FileDoc>)
@@ -170,6 +179,8 @@ class ImportBookViewModel(application: Application) : BaseViewModel(application)
         fun addItems(fileDocs: List<FileDoc>)
 
         fun clear()
+
+        fun screen(key: String?)
 
     }
 

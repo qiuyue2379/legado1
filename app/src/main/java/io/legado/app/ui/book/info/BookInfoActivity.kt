@@ -117,6 +117,7 @@ class BookInfoActivity :
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.book_info, menu)
+        menu.findItem(R.id.menu_edit)?.isVisible = viewModel.inBookshelf
         return super.onCompatCreateOptionsMenu(menu)
     }
 
@@ -137,22 +138,16 @@ class BookInfoActivity :
             viewModel.bookData.value?.isLocalTxt ?: false
         menu.findItem(R.id.menu_upload)?.isVisible =
             viewModel.bookData.value?.isLocal ?: false
-        menu.findItem(R.id.menu_edit)?.isVisible =
-            !(viewModel.bookData.value?.isWebFile ?: true)
         return super.onMenuOpened(featureId, menu)
     }
 
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_edit -> {
-                if (viewModel.inBookshelf) {
-                    viewModel.bookData.value?.let {
-                        infoEditResult.launch {
-                            putExtra("bookUrl", it.bookUrl)
-                        }
+                viewModel.bookData.value?.let {
+                    infoEditResult.launch {
+                        putExtra("bookUrl", it.bookUrl)
                     }
-                } else {
-                    toastOnUi(R.string.after_add_bookshelf)
                 }
             }
             R.id.menu_share_it -> {
@@ -184,13 +179,11 @@ class BookInfoActivity :
                 sendToClip(it)
             } ?: toastOnUi(R.string.no_book)
             R.id.menu_can_update -> {
-                if (viewModel.inBookshelf) {
-                    viewModel.bookData.value?.let {
-                        it.canUpdate = !it.canUpdate
+                viewModel.bookData.value?.let {
+                    it.canUpdate = !it.canUpdate
+                    if (viewModel.inBookshelf) {
                         viewModel.saveBook(it)
                     }
-                } else {
-                    toastOnUi(R.string.after_add_bookshelf)
                 }
             }
             R.id.menu_clear_cache -> viewModel.clearCache()
