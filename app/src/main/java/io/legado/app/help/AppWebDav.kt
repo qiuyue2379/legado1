@@ -21,12 +21,14 @@ import io.legado.app.lib.webdav.WebDavFile
 import io.legado.app.model.remote.RemoteBookWebDav
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
+import io.legado.app.utils.compress.ZipUtils
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import splitties.init.appCtx
+import java.io.File
 import java.util.*
 import kotlin.coroutines.coroutineContext
 
@@ -140,7 +142,7 @@ object AppWebDav {
             val webDav = WebDav(rootWebDavUrl + name, it)
             webDav.downloadTo(Backup.zipFilePath, true)
             FileUtils.delete(Backup.backupPath)
-            ZipUtils.unzipFile(Backup.zipFilePath, Backup.backupPath)
+            ZipUtils.unZipToPath(File(Backup.zipFilePath), Backup.backupPath)
             Restore.restoreDatabase()
             Restore.restoreConfig()
         }

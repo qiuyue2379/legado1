@@ -40,6 +40,7 @@ import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.book.search.SearchActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.book.toc.TocActivityResult
+import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.login.SourceLoginActivity
 import io.legado.app.ui.widget.dialog.PhotoDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
@@ -75,6 +76,11 @@ class BookInfoActivity :
             if (!viewModel.inBookshelf) {
                 viewModel.delBook()
             }
+        }
+    }
+    private val localBookTreeSelect = registerForActivityResult(HandleFileContract()) {
+        it.uri?.let { treeUri ->
+            AppConfig.defaultBookTreeUri = treeUri.toString()
         }
     }
     private val readBookResult = registerForActivityResult(
@@ -213,6 +219,16 @@ class BookInfoActivity :
             }
         }
         return super.onCompatOptionsItemSelected(item)
+    }
+
+    override fun observeLiveBus() {
+        viewModel.actionLive.observe(this) {
+            when (it) {
+                "selectBooksDir" -> localBookTreeSelect.launch {
+                    title = getString(R.string.select_book_folder)
+                }
+            }
+        }
     }
 
     private fun upLoadBook(
@@ -473,8 +489,13 @@ class BookInfoActivity :
                     negativeButton(R.string.no)
                 }
             } else {
-                viewModel.delBook {
-                    upTvBookshelf()
+                alert(R.string.sure, R.string.sure_del) {
+                    okButton {
+                        viewModel.delBook {
+                            upTvBookshelf()
+                        }
+                    }
+                    noButton()
                 }
             }
         }
@@ -507,6 +528,17 @@ class BookInfoActivity :
                 viewModel.importOrDownloadWebFile<Book>(webFile) {
                     onClick?.invoke(it)
                 }
+            } else if (webFile.isSupportDecompress) {
+                /* 解压筛选后再选择导入项 */
+                viewModel.importOrDownloadWebFile<Uri>(webFile) { uri ->
+                    viewModel.deCompress(uri) {
+                        if (it.size == 1) {
+                            viewModel.importBook(it[0])
+                        } else {
+                            showDecompressFileImportAlert(it)
+                        }
+                    }
+                }
             } else {
                 alert(
                     title = getString(R.string.draw),
@@ -514,13 +546,29 @@ class BookInfoActivity :
                 ) {
                     neutralButton(R.string.open_fun) {
                         /* download only */
-                        viewModel.importOrDownloadWebFile<Uri>(webFile) { uri ->
-                            openFileUri(uri, "*/*")
+                        viewModel.importOrDownloadWebFile<Uri>(webFile) {
+                            openFileUri(it, "*/*")
                         }
                     }
                     noButton()
                 }
             }
+        }
+    }
+
+    private fun showDecompressFileImportAlert(
+        fileDocs: List<FileDoc>
+    ) {
+        if (fileDocs.isEmpty()) {
+            toastOnUi(R.string.unsupport_archivefile_entry)
+            return
+        }
+        val selectorNames = fileDocs.map { it.name }
+        selector(
+            R.string.import_select_book,
+            selectorNames
+        ) { _, _, index ->
+            viewModel.importBook(fileDocs[index])
         }
     }
 

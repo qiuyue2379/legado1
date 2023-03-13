@@ -1,21 +1,21 @@
 package io.legado.app.ui.book.info
 
-import android.net.Uri
 import android.app.Application
 import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
-import io.legado.app.constant.BookSourceType
 import io.legado.app.constant.BookType
 import io.legado.app.constant.EventBus
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
+import io.legado.app.exception.NoBooksDirException
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.*
@@ -25,9 +25,7 @@ import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.webBook.WebBook
-import io.legado.app.utils.isContentScheme
-import io.legado.app.utils.postEvent
-import io.legado.app.utils.toastOnUi
+import io.legado.app.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 
@@ -39,6 +37,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     var bookSource: BookSource? = null
     private var changeSourceCoroutine: Coroutine<*>? = null
     val waitDialogData = MutableLiveData<Boolean>()
+    val actionLive = MutableLiveData<String>()
 
     fun initData(intent: Intent) {
         execute {
@@ -242,7 +241,8 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             book.downloadUrls!!.map {
                 val mFileName = "${fileName}.${LocalBook.parseFileSuffix(it)}"
                 val isSupportedFile = AppPattern.bookFileRegex.matches(mFileName)
-                WebFile(it, mFileName, isSupportedFile)
+                val isSupportDecompress = AppPattern.archiveFileRegex.matches(mFileName)
+                WebFile(it, mFileName, isSupportedFile, isSupportDecompress)
             }
         }.onError {
             context.toastOnUi("LoadWebFileError\n${it.localizedMessage}")
@@ -251,25 +251,52 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
+    /* 导入或者下载在线文件 */
     fun <T> importOrDownloadWebFile(webFile: WebFile, success: ((T) -> Unit)?) {
-       bookSource ?: return
-       execute {
-           waitDialogData.postValue(true)
-           if (webFile.isSupported) {
-               val book = LocalBook.importFileOnLine(webFile.url, webFile.name, bookSource)
-               changeToLocalBook(book)
-           } else {
-               LocalBook.saveBookFile(webFile.url, webFile.name, bookSource)
-           }
-       }.onSuccess {
-           @Suppress("unchecked_cast")
-           success?.invoke(it as T)
-       }.onError {
-           context.toastOnUi("ImportWebFileError\n${it.localizedMessage}")
-           webFiles.remove(webFile)
-       }.onFinally {
-           waitDialogData.postValue(false)
-       }
+        bookSource ?: return
+        execute {
+            waitDialogData.postValue(true)
+            if (webFile.isSupported) {
+                val book = LocalBook.importFileOnLine(webFile.url, webFile.name, bookSource)
+                changeToLocalBook(book)
+            } else {
+                LocalBook.saveBookFile(webFile.url, webFile.name, bookSource)
+            }
+        }.onSuccess {
+            @Suppress("unchecked_cast")
+            success?.invoke(it as T)
+        }.onError {
+            when (it) {
+                is NoBooksDirException -> actionLive.postValue("selectBooksDir")
+                else -> {
+                    AppLog.put("ImportWebFileError\n${it.localizedMessage}", it)
+                    context.toastOnUi("ImportWebFileError\n${it.localizedMessage}")
+                    webFiles.remove(webFile)
+                }
+            }
+        }.onFinally {
+            waitDialogData.postValue(false)
+        }
+    }
+
+    fun deCompress(archiveFileUri: Uri, onSuccess: (List<FileDoc>) -> Unit) {
+        execute {
+            ArchiveUtils.deCompress(archiveFileUri).list {
+                AppPattern.bookFileRegex.matches(it.name)
+            } ?: emptyList()
+        }.onError {
+            context.toastOnUi("DeCompress Error:\n${it.localizedMessage}")
+        }.onSuccess {
+            onSuccess.invoke(it)
+        }
+    }
+
+    fun importBook(fileDoc: FileDoc) {
+        val uri = LocalBook.saveBookFile(
+            fileDoc.uri.inputStream(context).getOrThrow(),
+            fileDoc.name
+        )
+        changeToLocalBook(LocalBook.importFile(uri))
     }
 
     fun changeTo(source: BookSource, book: Book, toc: List<BookChapter>) {
@@ -398,7 +425,10 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     data class WebFile(
         val url: String,
         val name: String,
-        val isSupported: Boolean
+        // txt epub umd pdf等文件
+        val isSupported: Boolean,
+        // 压缩包形式的txt epub umd pdf文件
+        val isSupportDecompress: Boolean
     ) {
         override fun toString(): String {
             return name

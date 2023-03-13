@@ -57,7 +57,7 @@ object BookHelp {
     }
 
     /**
-     * 清除已删除书的缓存
+     * 清除已删除书的缓存 解压缓存
      */
     suspend fun clearInvalidCache() {
         withContext(IO) {
@@ -79,6 +79,7 @@ object BookHelp {
                         FileUtils.delete(epubFile.absolutePath)
                     }
                 }
+            FileUtils.delete(ArchiveUtils.TEMP_PATH)
         }
     }
 
@@ -178,13 +179,7 @@ object BookHelp {
     }
 
     fun getImageSuffix(src: String): String {
-        var suffix = src.substringAfterLast(".").substringBefore(",")
-        //检查截取的后缀字符是否合法 [a-zA-Z0-9]
-        val fileSuffixRegex = Regex("^[a-z0-9]+$", RegexOption.IGNORE_CASE)
-        if (suffix.length > 5 || !suffix.matches(fileSuffixRegex)) {
-            suffix = "jpg"
-        }
-        return suffix
+        return UrlUtil.getSuffix(src, "jpg")
     }
 
     @Throws(IOException::class, FileNotFoundException::class)

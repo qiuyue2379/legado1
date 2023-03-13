@@ -1,5 +1,7 @@
-package io.legado.app.utils
+package io.legado.app.utils.compress
 
+import io.legado.app.utils.DebugLog
+import io.legado.app.utils.printOnDebug
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import java.io.*
@@ -174,16 +176,43 @@ object ZipUtils {
         return true
     }
 
-    fun unZipToPath(inputStream: InputStream, path: String) {
-        val zipInputStream = ZipInputStream(inputStream)
-        unZipToPath(zipInputStream, path)
+    @Throws(SecurityException::class)
+    fun unZipToPath(file: File, path: String) {
+        FileInputStream(file).use {
+            unZipToPath(it, path)
+        }
     }
 
-    fun unZipToPath(zipInputStream: ZipInputStream, path: String) {
-        var entry: ZipEntry
+    @Throws(SecurityException::class)
+    fun unZipToPath(file: File, dir: File) {
+        FileInputStream(file).use {
+            unZipToPath(it, dir)
+        }
+    }
+
+    @Throws(SecurityException::class)
+    fun unZipToPath(inputStream: InputStream, path: String) {
+        ZipInputStream(inputStream).use {
+            unZipToPath(it, File(path))
+        }
+    }
+
+    @Throws(SecurityException::class)
+    fun unZipToPath(inputStream: InputStream, dir: File) {
+        ZipInputStream(inputStream).use {
+            unZipToPath(it, dir)
+        }
+    }
+
+    @Throws(SecurityException::class)
+    fun unZipToPath(zipInputStream: ZipInputStream, dir: File) {
+        var entry: ZipEntry?
         while (zipInputStream.nextEntry.also { entry = it } != null) {
-            val entryFile = File(path, entry.name)
-            if (entry.isDirectory) {
+            val entryFile = File(dir, entry!!.name)
+            if (!entryFile.canonicalPath.startsWith(dir.canonicalPath)) {
+                throw SecurityException("压缩文件只能解压到指定路径")
+            }
+            if (entry!!.isDirectory) {
                 if (!entryFile.exists()) {
                     entryFile.mkdirs()
                 }
@@ -201,129 +230,8 @@ object ZipUtils {
                 zipInputStream.copyTo(it)
             }
         }
-        zipInputStream.close()
     }
 
-    /**
-     * Unzip the file.
-     *
-     * @param zipFilePath The path of ZIP file.
-     * @param destDirPath The path of destination directory.
-     * @return the unzipped files
-     * @throws IOException if unzip unsuccessfully
-     */
-    @Throws(IOException::class)
-    fun unzipFile(zipFilePath: String, destDirPath: String): List<File>? {
-        return unzipFileByKeyword(zipFilePath, destDirPath, null)
-    }
-
-    /**
-     * Unzip the file.
-     *
-     * @param zipFile The ZIP file.
-     * @param destDir The destination directory.
-     * @return the unzipped files
-     * @throws IOException if unzip unsuccessfully
-     */
-    @Throws(IOException::class)
-    fun unzipFile(
-        zipFile: File,
-        destDir: File
-    ): List<File>? {
-        return unzipFileByKeyword(zipFile, destDir, null)
-    }
-
-    /**
-     * Unzip the file by keyword.
-     *
-     * @param zipFilePath The path of ZIP file.
-     * @param destDirPath The path of destination directory.
-     * @param keyword     The keyboard.
-     * @return the unzipped files
-     * @throws IOException if unzip unsuccessfully
-     */
-    @Throws(IOException::class)
-    fun unzipFileByKeyword(
-        zipFilePath: String,
-        destDirPath: String,
-        keyword: String?
-    ): List<File>? {
-        return unzipFileByKeyword(
-            getFileByPath(zipFilePath),
-            getFileByPath(destDirPath),
-            keyword
-        )
-    }
-
-    /**
-     * Unzip the file by keyword.
-     *
-     * @param zipFile The ZIP file.
-     * @param destDir The destination directory.
-     * @param keyword The keyboard.
-     * @return the unzipped files
-     * @throws IOException if unzip unsuccessfully
-     */
-    @Throws(IOException::class)
-    fun unzipFileByKeyword(
-        zipFile: File?,
-        destDir: File?,
-        keyword: String?
-    ): List<File>? {
-        if (zipFile == null || destDir == null) return null
-        val files = ArrayList<File>()
-        val zip = ZipFile(zipFile)
-        val entries = zip.entries()
-        zip.use {
-            if (isSpace(keyword)) {
-                while (entries.hasMoreElements()) {
-                    val entry = entries.nextElement() as ZipEntry
-                    val entryName = entry.name
-                    if (entryName.contains("../")) {
-                        DebugLog.e(javaClass.name, "entryName: $entryName is dangerous!")
-                        continue
-                    }
-                    if (!unzipChildFile(destDir, files, zip, entry, entryName)) return files
-                }
-            } else {
-                while (entries.hasMoreElements()) {
-                    val entry = entries.nextElement() as ZipEntry
-                    val entryName = entry.name
-                    if (entryName.contains("../")) {
-                        DebugLog.e(javaClass.name, "entryName: $entryName is dangerous!")
-                        continue
-                    }
-                    if (entryName.contains(keyword!!)) {
-                        if (!unzipChildFile(destDir, files, zip, entry, entryName)) return files
-                    }
-                }
-            }
-        }
-        return files
-    }
-
-    @Throws(IOException::class)
-    private fun unzipChildFile(
-        destDir: File,
-        files: MutableList<File>,
-        zip: ZipFile,
-        entry: ZipEntry,
-        name: String
-    ): Boolean {
-        val file = File(destDir, name)
-        files.add(file)
-        if (entry.isDirectory) {
-            return createOrExistsDir(file)
-        } else {
-            if (!createOrExistsFile(file)) return false
-            BufferedInputStream(zip.getInputStream(entry)).use { `in` ->
-                BufferedOutputStream(FileOutputStream(file)).use { out ->
-                    out.write(`in`.readBytes())
-                }
-            }
-        }
-        return true
-    }
 
     /**
      * Return the files' path in ZIP file.

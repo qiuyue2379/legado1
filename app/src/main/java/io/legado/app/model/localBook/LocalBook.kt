@@ -12,8 +12,9 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.BaseSource
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
-import io.legado.app.exception.NoStackTraceException
 import io.legado.app.exception.EmptyFileException
+import io.legado.app.exception.NoBooksDirException
+import io.legado.app.exception.NoStackTraceException
 import io.legado.app.exception.TocEmptyException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.*
@@ -157,18 +158,11 @@ object LocalBook {
      */
     fun importFile(uri: Uri): Book {
         val bookUrl: String
-        val updateTime: Long
-        //这个变量不要修改,否则会导致读取不到缓存
-        val fileName = if (uri.isContentScheme()) {
-            bookUrl = uri.toString()
-            val doc = DocumentFile.fromSingleUri(appCtx, uri)!!
-            updateTime = doc.lastModified()
-            doc.name!!
-        } else {
-            bookUrl = uri.path!!
-            val file = File(bookUrl)
-            updateTime = file.lastModified()
-            file.name
+        //updateTime变量不要修改,否则会导致读取不到缓存
+        val (fileName, _, _, updateTime, _) = FileDoc.fromUri(uri, false).apply {
+            if (size == 0L) throw EmptyFileException("Unexpected empty File")
+
+            bookUrl = toString()
         }
         var book = appDb.bookDao.getBook(bookUrl)
         if (book == null) {
@@ -215,7 +209,7 @@ object LocalBook {
                 name = bookMess["name"] ?: ""
                 author = bookMess["author"]?.takeIf { it.length != tempFileName.length } ?: ""
             } catch (e: Exception) {
-               AppLog.put("执行导入文件名规则出错\n${e.localizedMessage}", e)
+                AppLog.put("执行导入文件名规则出错\n${e.localizedMessage}", e)
             }
         }
         if (name.isBlank()) {
@@ -258,7 +252,7 @@ object LocalBook {
         source: BaseSource? = null,
     ): Uri {
         AppConfig.defaultBookTreeUri
-            ?: throw NoStackTraceException("没有设置书籍保存位置!")
+            ?: throw NoBooksDirException()
         val inputStream = when {
             str.isAbsUrl() -> AnalyzeUrl(str, source = source).getInputStream()
             str.isDataUrl() -> ByteArrayInputStream(
@@ -274,16 +268,9 @@ object LocalBook {
 
     /**
      * 分析下载文件类书源的下载链接的文件后缀
-     * https://www.example.com/download/{fileName}.{type} 含有文件名和后缀
-     * https://www.example.com/download/?fileid=1234, {type: "txt"} 规则设置
      */
     fun parseFileSuffix(url: String): String {
-        val analyzeUrl = AnalyzeUrl(url)
-        val urlNoOption = analyzeUrl.url
-        val lastPath = urlNoOption.substringAfterLast("/")
-        val fileType = lastPath.substringAfterLast(".")
-        val type = analyzeUrl.type
-        return type ?: fileType
+        return UrlUtil.getSuffix(url, "ext")
     }
 
     fun saveBookFile(
@@ -291,9 +278,8 @@ object LocalBook {
         fileName: String
     ): Uri {
         inputStream.use {
-            if (it.isEmpty()) throw EmptyFileException("Unexpected empty inputStream")
             val defaultBookTreeUri = AppConfig.defaultBookTreeUri
-            if (defaultBookTreeUri.isNullOrBlank()) throw NoStackTraceException("没有设置书籍保存位置!")
+            if (defaultBookTreeUri.isNullOrBlank()) throw NoBooksDirException()
             val treeUri = Uri.parse(defaultBookTreeUri)
             return if (treeUri.isContentScheme()) {
                 val treeDoc = DocumentFile.fromTreeUri(appCtx, treeUri)
@@ -341,14 +327,14 @@ object LocalBook {
         if (webDavUrl.isNullOrBlank()) return null
         try {
             AppConfig.defaultBookTreeUri
-                ?: throw NoStackTraceException("没有设置书籍保存位置!")
+                ?: throw NoBooksDirException()
             // 兼容旧版链接
             val webdav: WebDav = kotlin.runCatching {
                 WebDav.fromPath(webDavUrl)
-            }.onFailure {
-                AppWebDav.defaultBookWebDav
+            }.getOrElse {
+                AppWebDav.authorization?.let { WebDav(webDavUrl, it) }
                     ?: throw WebDavException("Unexpected defaultBookWebDav")
-            }.getOrThrow()
+            }
             val uri = runBlocking {
                 saveBookFile(webdav.downloadInputStream(), localBook.originName)
             }
