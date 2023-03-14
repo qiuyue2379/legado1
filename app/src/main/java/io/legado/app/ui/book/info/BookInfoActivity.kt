@@ -49,6 +49,7 @@ import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class BookInfoActivity :
     VMBaseActivity<ActivityBookInfoBinding, BookInfoViewModel>(toolBarTheme = Theme.Dark),
@@ -101,6 +102,7 @@ class BookInfoActivity :
     }
     private var tocChanged = false
     private val waitDialog by lazy { WaitDialog(this) }
+    private var editMenuItem: MenuItem? = null
 
     override val binding by viewBinding(ActivityBookInfoBinding::inflate)
     override val viewModel by viewModels<BookInfoViewModel>()
@@ -123,7 +125,7 @@ class BookInfoActivity :
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.book_info, menu)
-        menu.findItem(R.id.menu_edit)?.isVisible = viewModel.inBookshelf
+        editMenuItem = menu.findItem(R.id.menu_edit)
         return super.onCompatCreateOptionsMenu(menu)
     }
 
@@ -261,6 +263,7 @@ class BookInfoActivity :
         tvLasted.text = getString(R.string.lasted_show, book.latestChapterTitle)
         tvIntro.text = book.getDisplayIntro()
         llToc?.visible(!book.isWebFile)
+        editMenuItem?.isVisible = viewModel.inBookshelf
         upTvBookshelf()
         val kinds = book.getKindList()
         if (kinds.isEmpty()) {
@@ -481,16 +484,16 @@ class BookInfoActivity :
                         addView(checkBox)
                     }
                     customView { view }
-                    positiveButton(R.string.yes) {
+                    yesButton {
                         viewModel.delBook(checkBox.isChecked) {
                             finish()
                         }
                     }
-                    negativeButton(R.string.no)
+                    noButton()
                 }
             } else {
                 alert(R.string.sure, R.string.sure_del) {
-                    okButton {
+                    yesButton {
                         viewModel.delBook {
                             upTvBookshelf()
                         }
@@ -531,11 +534,13 @@ class BookInfoActivity :
             } else if (webFile.isSupportDecompress) {
                 /* 解压筛选后再选择导入项 */
                 viewModel.importOrDownloadWebFile<Uri>(webFile) { uri ->
-                    viewModel.deCompress(uri) {
-                        if (it.size == 1) {
-                            viewModel.importBook(it[0])
+                    viewModel.deCompress(uri) { files ->
+                        if (files.size == 1) {
+                            viewModel.importBook(files[0]) {
+                                onClick?.invoke(it)
+                            }
                         } else {
-                            showDecompressFileImportAlert(it)
+                            showDecompressFileImportAlert(files, onClick)
                         }
                     }
                 }
@@ -557,18 +562,21 @@ class BookInfoActivity :
     }
 
     private fun showDecompressFileImportAlert(
-        fileDocs: List<FileDoc>
+        files: List<File>,
+        success: ((Book) -> Unit)? = null
     ) {
-        if (fileDocs.isEmpty()) {
+        if (files.isEmpty()) {
             toastOnUi(R.string.unsupport_archivefile_entry)
             return
         }
-        val selectorNames = fileDocs.map { it.name }
+        val selectorNames = files.map { it.name }
         selector(
             R.string.import_select_book,
             selectorNames
         ) { _, _, index ->
-            viewModel.importBook(fileDocs[index])
+            viewModel.importBook(files[index]) {
+                success?.invoke(it)
+            }
         }
     }
 

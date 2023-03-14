@@ -28,6 +28,8 @@ import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import java.io.File
+import java.io.FileInputStream
 
 class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     val bookData = MutableLiveData<Book>()
@@ -279,24 +281,34 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun deCompress(archiveFileUri: Uri, onSuccess: (List<FileDoc>) -> Unit) {
+    fun deCompress(archiveFileUri: Uri, onSuccess: (List<File>) -> Unit) {
         execute {
-            ArchiveUtils.deCompress(archiveFileUri).list {
+            ArchiveUtils.deCompress(archiveFileUri).filter {
                 AppPattern.bookFileRegex.matches(it.name)
-            } ?: emptyList()
+            }
         }.onError {
+            AppLog.put("DeCompress Error:\n${it.localizedMessage}", it)
             context.toastOnUi("DeCompress Error:\n${it.localizedMessage}")
         }.onSuccess {
             onSuccess.invoke(it)
         }
     }
 
-    fun importBook(fileDoc: FileDoc) {
-        val uri = LocalBook.saveBookFile(
-            fileDoc.uri.inputStream(context).getOrThrow(),
-            fileDoc.name
-        )
-        changeToLocalBook(LocalBook.importFile(uri))
+    @Suppress("BlockingMethodInNonBlockingContext")
+    fun importBook(file: File, success: ((Book) -> Unit)? = null) {
+        execute {
+            val suffix = file.name.substringAfterLast(".")
+            LocalBook.saveBookFile(
+                FileInputStream(file),
+                bookData.value!!.getExportFileName(suffix)
+            )
+        }.onSuccess {
+            val book = changeToLocalBook(LocalBook.importFile(it))
+            success?.invoke(book)
+        }.onError {
+            AppLog.put("ImportBook Error:\n${it.localizedMessage}", it)
+            context.toastOnUi("ImportBook Error:\n${it.localizedMessage}")
+        }
     }
 
     fun changeTo(source: BookSource, book: Book, toc: List<BookChapter>) {

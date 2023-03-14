@@ -135,7 +135,7 @@ android {
 dependencies {
     compileOnly "com.android.tools.build:gradle:$agp_version"
     //noinspection GradleDependency,GradlePackageUpdate
-    coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.0.2')
+    coreLibraryDesugaring('com.android.tools:desugar_jdk_libs_nio:2.0.2')
     testImplementation('junit:junit:4.13.2')
     androidTestImplementation('androidx.test:runner:1.5.2')
     androidTestImplementation('androidx.test.espresso:espresso-core:3.5.1')
@@ -206,10 +206,10 @@ dependencies {
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.10.0')
     appImplementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
-    appImplementation 'com.google.protobuf:protobuf-javalite:3.22.1'
+    appImplementation 'com.google.protobuf:protobuf-javalite:3.22.2'
 
     //Glide
-    def glideVersion = "4.15.0"
+    def glideVersion = "4.15.1"
     implementation("com.github.bumptech.glide:glide:$glideVersion")
     kapt("com.github.bumptech.glide:compiler:$glideVersion")
 
@@ -231,6 +231,11 @@ dependencies {
 
     //apache
     implementation('org.apache.commons:commons-text:1.10.0')
+    implementation 'org.apache.commons:commons-compress:1.22'
+    implementation 'org.tukaani:xz:1.9'
+
+    //RAR
+    implementation 'com.github.junrar:junrar:7.5.4'
 
     //MarkDown
     def markwonVersion = "4.6.2"
