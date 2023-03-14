@@ -61,15 +61,17 @@ class AboutFragment : PreferenceFragmentCompat() {
 
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         when (preference.key) {
-            "contributors" -> openUrl(R.string.contributors_url)
-            "update_log" -> showMdFile(getString(R.string.update_log),"updateLog.md")
+            "contributors" -> if (!AppConst.isPlayChannel) {
+                openUrl(R.string.contributors_url)
+            }
+            "update_log" -> showMdFile(getString(R.string.update_log), "updateLog.md")
             "check_update" -> checkUpdate()
             "mail" -> requireContext().sendMail(getString(R.string.email))
             "sourceRuleSummary" -> openUrl(R.string.source_rule_url)
             "git" -> openUrl(R.string.this_github_url)
             "home_page" -> openUrl(R.string.home_page_url)
-            "license" -> openUrl(R.string.license_url)
-            "disclaimer" -> showMdFile(getString(R.string.disclaimer),"disclaimer.md")
+            "license" -> showMdFile(getString(R.string.license), "LICENSE.md")
+            "disclaimer" -> showMdFile(getString(R.string.disclaimer), "disclaimer.md")
             "qq" -> showQqGroups()
             "gzGzh" -> requireContext().sendToClip(getString(R.string.legado_gzh))
             "crashLog" -> showCrashLogs()
