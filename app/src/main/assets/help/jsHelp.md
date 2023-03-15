@@ -184,7 +184,10 @@ deleteFile(path: String)
 ```
 ****
 > 提供在JavaScript环境中快捷调用crypto算法的函数，由[hutool-crypto](https://www.hutool.cn/docs/#/crypto/概述)实现  
-> 其他没有添加的算法可在JavaScript中使用`JavaImporter`[调用](https://m.jb51.net/article/92138.htm)Java，例子可参考`朗读引擎-阿里云语音`
+
+> 其他没有添加的算法可在JavaScript中使用`JavaImporter`[调用](https://m.jb51.net/article/92138.htm)Java，例子可参考`朗读引擎-阿里云语音`  
+
+> 注意：如果输入的参数不是Utf8String 可先调用`java.hexDecodeToByteArray java.base64DecodeToByteArray`转成ByteArray
 * 对称加密
 > 输入参数key iv 支持ByteArray|**Utf8String**
 ```
@@ -212,15 +215,19 @@ java.createAsymmetricCrypto(transformation)
 
 ```
 > 解密加密参数 data支持ByteArray|Base64String|HexString|InputStream  
->  keyType: 1 使用公钥 2 使用私钥
 ```
 //解密为ByteArray String
-cipher.decrypt(data, keyType)
-cipher.decryptStr(data, keyType)
+cipher.decrypt(data,  usePublicKey: Boolean? = true
+)
+cipher.decryptStr(data, usePublicKey: Boolean? = true
+)
 //加密为ByteArray Base64字符 HEX字符
-cipher.encrypt(data, keyType)
-cipher.encryptBase64(data, keyType)
-cipher.encryptHex(data, keyType)
+cipher.encrypt(data,  usePublicKey: Boolean? = true
+)
+cipher.encryptBase64(data,  usePublicKey: Boolean? = true
+)
+cipher.encryptHex(data,  usePublicKey: Boolean? = true
+)
 ```
 * 签名
 > 输入参数 key 支持ByteArray|**Utf8String**
