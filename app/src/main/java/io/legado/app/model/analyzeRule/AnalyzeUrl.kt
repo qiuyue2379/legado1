@@ -116,7 +116,7 @@ class AnalyzeUrl(
         val jsMatcher = JS_PATTERN.matcher(ruleUrl)
         var result = ruleUrl
         while (jsMatcher.find()) {
-            if (jsMatcher.start() > start && start > 0) {
+            if (jsMatcher.start() > start) {
                 ruleUrl.substring(start, jsMatcher.start()).trim().let {
                     if (it.isNotEmpty()) {
                         result = it.replace("@result", result)
