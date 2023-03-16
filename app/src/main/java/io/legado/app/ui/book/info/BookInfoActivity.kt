@@ -23,6 +23,7 @@ import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.*
 import io.legado.app.help.config.AppConfig
+import io.legado.app.help.config.LocalConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.backgroundColor
@@ -49,7 +50,6 @@ import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 class BookInfoActivity :
     VMBaseActivity<ActivityBookInfoBinding, BookInfoViewModel>(toolBarTheme = Theme.Dark),
@@ -146,6 +146,8 @@ class BookInfoActivity :
             viewModel.bookData.value?.isLocalTxt ?: false
         menu.findItem(R.id.menu_upload)?.isVisible =
             viewModel.bookData.value?.isLocal ?: false
+        menu.findItem(R.id.menu_delete_alert)?.isChecked =
+            LocalConfig.bookInfoDeleteAlert
         return super.onMenuOpened(featureId, menu)
     }
 
@@ -206,7 +208,7 @@ class BookInfoActivity :
                 item.isChecked = !item.isChecked
                 if (!item.isChecked) longToastOnUi(R.string.need_more_time_load_content)
             }
-
+            R.id.menu_delete_alert -> LocalConfig.bookInfoDeleteAlert = !item.isChecked
             R.id.menu_upload -> {
                 viewModel.bookData.value?.let { book ->
                     book.getRemoteUrl()?.let {
@@ -471,34 +473,36 @@ class BookInfoActivity :
     @SuppressLint("InflateParams")
     private fun deleteBook() {
         viewModel.bookData.value?.let {
-            if (it.isLocal) {
+            if (LocalConfig.bookInfoDeleteAlert) {
                 alert(
-                    titleResource = R.string.sure,
+                    titleResource = R.string.draw,
                     messageResource = R.string.sure_del
                 ) {
-                    val checkBox = CheckBox(this@BookInfoActivity).apply {
-                        setText(R.string.delete_book_file)
+                    var checkBox: CheckBox? = null
+                    if (it.isLocal) {
+                        checkBox = CheckBox(this@BookInfoActivity).apply {
+                            setText(R.string.delete_book_file)
+                            isChecked = LocalConfig.deleteBookOriginal
+                        }
+                        val view = LinearLayout(this@BookInfoActivity).apply {
+                            setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
+                            addView(checkBox)
+                        }
+                        customView { view }
                     }
-                    val view = LinearLayout(this@BookInfoActivity).apply {
-                        setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
-                        addView(checkBox)
-                    }
-                    customView { view }
                     yesButton {
-                        viewModel.delBook(checkBox.isChecked) {
+                        if (checkBox != null) {
+                            LocalConfig.deleteBookOriginal = checkBox.isChecked
+                        }
+                        viewModel.delBook(LocalConfig.deleteBookOriginal) {
                             finish()
                         }
                     }
                     noButton()
                 }
             } else {
-                alert(R.string.sure, R.string.sure_del) {
-                    yesButton {
-                        viewModel.delBook {
-                            upTvBookshelf()
-                        }
-                    }
-                    noButton()
+                viewModel.delBook(LocalConfig.deleteBookOriginal) {
+                    finish()
                 }
             }
         }
@@ -534,13 +538,13 @@ class BookInfoActivity :
             } else if (webFile.isSupportDecompress) {
                 /* 解压筛选后再选择导入项 */
                 viewModel.importOrDownloadWebFile<Uri>(webFile) { uri ->
-                    viewModel.deCompress(uri) { files ->
-                        if (files.size == 1) {
-                            viewModel.importBook(files[0]) {
+                    viewModel.getArchiveFilesName(uri) { fileNames ->
+                        if (fileNames.size == 1) {
+                            viewModel.importArchiveBook(uri, fileNames[0]) {
                                 onClick?.invoke(it)
                             }
                         } else {
-                            showDecompressFileImportAlert(files, onClick)
+                            showDecompressFileImportAlert(uri, fileNames, onClick)
                         }
                     }
                 }
@@ -562,19 +566,19 @@ class BookInfoActivity :
     }
 
     private fun showDecompressFileImportAlert(
-        files: List<File>,
+        archiveFileUri: Uri,
+        fileNames: List<String>,
         success: ((Book) -> Unit)? = null
     ) {
-        if (files.isEmpty()) {
+        if (fileNames.isEmpty()) {
             toastOnUi(R.string.unsupport_archivefile_entry)
             return
         }
-        val selectorNames = files.map { it.name }
         selector(
             R.string.import_select_book,
-            selectorNames
-        ) { _, _, index ->
-            viewModel.importBook(files[index]) {
+            fileNames
+        ) { _, name, _ ->
+            viewModel.importArchiveBook(archiveFileUri, name) {
                 success?.invoke(it)
             }
         }

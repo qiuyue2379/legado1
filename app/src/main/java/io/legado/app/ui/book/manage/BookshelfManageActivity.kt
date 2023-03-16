@@ -22,6 +22,7 @@ import io.legado.app.databinding.ActivityArrangeBookBinding
 import io.legado.app.help.book.contains
 import io.legado.app.help.book.isLocal
 import io.legado.app.help.config.AppConfig
+import io.legado.app.help.config.LocalConfig
 import io.legado.app.lib.dialogs.alert
 import io.legado.app.lib.theme.primaryColor
 import io.legado.app.ui.book.group.GroupManageDialog
@@ -59,6 +60,7 @@ class BookshelfManageActivity :
     private val groupRequestCode = 22
     private val addToGroupRequestCode = 34
     private val adapter by lazy { BookAdapter(this, this) }
+    private val itemTouchCallback by lazy { ItemTouchCallback(adapter) }
     private var booksFlowJob: Job? = null
     private var menu: Menu? = null
     private var searchView: SearchView? = null
@@ -159,7 +161,6 @@ class BookshelfManageActivity :
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.addItemDecoration(VerticalDivider(this))
         binding.recyclerView.adapter = adapter
-        val itemTouchCallback = ItemTouchCallback(adapter)
         itemTouchCallback.isCanDrag = AppConfig.bookshelfSort == 3
         val dragSelectTouchHelper: DragSelectTouchHelper =
             DragSelectTouchHelper(adapter.dragSelectCallback).setSlideArea(16, 50)
@@ -281,7 +282,19 @@ class BookshelfManageActivity :
 
     private fun alertDelSelection() {
         alert(titleResource = R.string.draw, messageResource = R.string.sure_del) {
-            okButton { viewModel.deleteBook(adapter.selection) }
+            val checkBox = CheckBox(this@BookshelfManageActivity).apply {
+                setText(R.string.delete_book_file)
+                isChecked = LocalConfig.deleteBookOriginal
+            }
+            val view = LinearLayout(this@BookshelfManageActivity).apply {
+                setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
+                addView(checkBox)
+            }
+            customView { view }
+            okButton {
+                LocalConfig.deleteBookOriginal = checkBox.isChecked
+                viewModel.deleteBook(adapter.selection, checkBox.isChecked)
+            }
             noButton()
         }
     }
@@ -325,18 +338,23 @@ class BookshelfManageActivity :
 
     override fun deleteBook(book: Book) {
         alert(titleResource = R.string.draw, messageResource = R.string.sure_del) {
-            val checkBox = CheckBox(this@BookshelfManageActivity).apply {
-                setText(R.string.delete_book_file)
-            }
-            val view = LinearLayout(this@BookshelfManageActivity).apply {
-                setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
-                addView(checkBox)
-            }
+            var checkBox: CheckBox? = null
             if (book.isLocal) {
+                checkBox = CheckBox(this@BookshelfManageActivity).apply {
+                    setText(R.string.delete_book_file)
+                    isChecked = LocalConfig.deleteBookOriginal
+                }
+                val view = LinearLayout(this@BookshelfManageActivity).apply {
+                    setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
+                    addView(checkBox)
+                }
                 customView { view }
             }
             okButton {
-                viewModel.deleteBook(listOf(book), checkBox.isChecked)
+                if (checkBox != null) {
+                    LocalConfig.deleteBookOriginal = checkBox.isChecked
+                }
+                viewModel.deleteBook(listOf(book), LocalConfig.deleteBookOriginal)
             }
         }
     }

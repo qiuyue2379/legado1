@@ -88,4 +88,17 @@ object LocalConfig :
         return true
     }
 
+    var bookInfoDeleteAlert: Boolean
+        get() = getBoolean("bookInfoDeleteAlert", true)
+        set(value) {
+            putBoolean("bookInfoDeleteAlert", value)
+        }
+
+    var deleteBookOriginal: Boolean
+        get() = getBoolean("deleteBookOriginal")
+        set(value) {
+            putBoolean("deleteBookOriginal", value)
+        }
+
+
 }

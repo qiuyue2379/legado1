@@ -1,11 +1,20 @@
 package io.legado.app.utils
 
+import io.legado.app.constant.AppLog
+import io.legado.app.model.analyzeRule.AnalyzeUrl
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
 object UrlUtil {
+
+    // 有时候文件名在query里，截取path会截到其他内容
+    // https://www.example.com/download.php?filename=文件.txt
+    // https://www.example.com/txt/文件.txt?token=123456
+    private val unExpectFileSuffixs = arrayOf(
+        "php", "html"
+    )
 
     fun replaceReservedChar(text: String): String {
         return text.replace("%", "%25")
@@ -29,43 +38,115 @@ object UrlUtil {
             .replace("|", "%7C")
     }
 
-    /**
-     * 根据网络url获取文件名
-     */
-    fun getFileName(fileUrl: String): String? {
-        return kotlin.runCatching {
-            var fileName: String
-            val url = URL(fileUrl)
-            val conn: HttpURLConnection = url.openConnection() as HttpURLConnection
-            // head方式
-            conn.requestMethod = "HEAD"
-            conn.connect()
 
-            // 方法一
-            val raw: String? = conn.getHeaderField("Content-Disposition")
-            if (raw != null && raw.indexOf("=") > 0) {
-                fileName = raw.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
-                fileName =
-                    String(
-                        fileName.toByteArray(StandardCharsets.ISO_8859_1),
-                        StandardCharsets.UTF_8 //?
-                    )
-            } else {
-                // 方法二 截取
-                var newUrl: String = conn.url.path ?: return null
-                newUrl = URLDecoder.decode(newUrl, "UTF-8")
-                fileName = newUrl.substringAfterLast("/")
+    /* 阅读定义的url,{urlOption} */
+    fun getFileName(analyzeUrl: AnalyzeUrl): String? {
+        return getFileName(analyzeUrl.url, analyzeUrl.headerMap)
+    }
+
+    /**
+     * 根据网络url获取文件信息 文件名
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun getFileName(fileUrl: String, headerMap: Map<String, String>? = null): String? {
+        return kotlin.runCatching {
+            val url = URL(fileUrl)
+            var fileName: String? = getFileNameFromPath(url)
+            if (fileName == null) {
+                fileName = getFileNameFromResponseHeader(url, headerMap)
             }
             fileName
         }.getOrNull()
     }
 
-    fun getSuffix(url: String, default: String): String {
-        val suffix = url.substringAfterLast(".").substringBeforeLast(",")
+    @Suppress("MemberVisibilityCanBePrivate")
+    private fun getFileNameFromResponseHeader(
+        url: URL,
+        headerMap: Map<String, String>? = null
+    ): String? {
+        // HEAD方式获取链接响应头信息
+        val conn: HttpURLConnection = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "HEAD"
+        // 下载链接可能还需要header才能成功访问
+        headerMap?.forEach { (key, value) ->
+            conn.setRequestProperty(key, value)
+        }
+        // 禁止重定向 否则获取不到响应头返回的Location
+        conn.instanceFollowRedirects = false
+        conn.connect()
+
+        // val fileSize = conn.getContentLengthLong() / 1024
+        /** Content-Disposition 存在三种情况
+         * filename="filename"
+         * filename=filename
+         * filename*=charset''filename
+         */
+        val raw: String? = conn.getHeaderField("Content-Disposition")
+        // Location跳转到实际链接
+        val redirectUrl: String? = conn.getHeaderField("Location")
+
+        return if (raw != null) {
+            val fileNames = raw.split(";".toRegex()).filter { it.contains("filename") }
+            val names = hashSetOf<String>()
+            fileNames.forEach {
+                var fileName = it.substringAfter("=")
+                if (it.contains("filename*")) {
+                    val data = fileName.split("''")
+                    names.add(URLDecoder.decode(data[1], data[0]))
+                } else {
+                    fileName = fileName
+                        .replace("^\"".toRegex(), "")
+                        .replace("\"$".toRegex(), "")
+                    names.add(
+                            String(
+                            fileName.toByteArray(StandardCharsets.ISO_8859_1),
+                            StandardCharsets.UTF_8
+                        )
+                    )
+                }
+           }
+           names.firstOrNull()
+        } else if (redirectUrl != null) {
+            val newUrl= URL(URLDecoder.decode(redirectUrl, "UTF-8"))
+            getFileNameFromPath(newUrl)
+        } else {
+            // 其余情况 返回响应头
+            val headers = conn.headerFields
+            val headersString = buildString {
+                headers.forEach { (key, value) ->
+                    value.forEach {
+                        append(key)
+                        append(": ")
+                        append(it)
+                        append("\n")
+                    }
+                }
+            }
+            AppLog.put("Cannot obtain URL file name:\n$headersString")
+            null
+        }
+    }
+    
+    private fun getFileNameFromPath(fileUrl: URL): String? {
+        val path = fileUrl.path ?: return null
+        val suffix = getSuffix(path, "")
+        return if (
+           suffix != "" && !unExpectFileSuffixs.contains(suffix)
+        ) {
+            path.substringAfterLast("/")
+        } else {
+            null
+        }
+    }
+
+    /* 获取合法的文件后缀 */
+    fun getSuffix(str: String, default: String? = null): String {
+        val suffix = str.substringAfterLast(".").substringBeforeLast(",")
         //检查截取的后缀字符是否合法 [a-zA-Z0-9]
         val fileSuffixRegex = Regex("^[a-z\\d]+$", RegexOption.IGNORE_CASE)
         return if (suffix.length > 5 || !suffix.matches(fileSuffixRegex)) {
-            default
+            AppLog.put("Cannot find illegal suffix:\n target: $str\nsuffix: $suffix")
+            default ?: "ext"
         } else {
             suffix
         }

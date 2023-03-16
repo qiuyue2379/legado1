@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.github.junrar.exception.UnsupportedRarV5Exception
 import io.legado.app.R
 import io.legado.app.base.BaseViewModel
 import io.legado.app.constant.AppLog
@@ -23,13 +24,12 @@ import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.webdav.ObjectNotFoundException
 import io.legado.app.model.BookCover
 import io.legado.app.model.ReadBook
+import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.webBook.WebBook
 import io.legado.app.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
-import java.io.File
-import java.io.FileInputStream
 
 class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     val bookData = MutableLiveData<Book>()
@@ -241,7 +241,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             webFiles.clear()
             val fileName = "${book.name} 作者：${book.author}"
             book.downloadUrls!!.map {
-                val mFileName = UrlUtil.getFileName(it) ?: fileName
+                val mFileName = UrlUtil.getFileName(AnalyzeUrl(it, source = bookSource)) ?: fileName
                 WebFile(it, mFileName)
             }
         }.onError {
@@ -287,33 +287,44 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun deCompress(archiveFileUri: Uri, onSuccess: (List<File>) -> Unit) {
+    fun getArchiveFilesName(archiveFileUri: Uri, onSuccess: (List<String>) -> Unit) {
         execute {
-            ArchiveUtils.deCompress(archiveFileUri).filter {
-                AppPattern.bookFileRegex.matches(it.name)
+            ArchiveUtils.getArchiveFilesName(archiveFileUri) {
+                AppPattern.bookFileRegex.matches(it)
             }
         }.onError {
-            AppLog.put("DeCompress Error:\n${it.localizedMessage}", it)
-            context.toastOnUi("DeCompress Error:\n${it.localizedMessage}")
+            when (it) {
+                is UnsupportedRarV5Exception -> context.toastOnUi("暂不支持 rar v5 解压")
+                else -> {
+                    AppLog.put("getArchiveEntriesName Error:\n${it.localizedMessage}", it)
+                    context.toastOnUi("getArchiveEntriesName Error:\n${it.localizedMessage}")
+                }
+            }
         }.onSuccess {
             onSuccess.invoke(it)
         }
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    fun importBook(file: File, success: ((Book) -> Unit)? = null) {
+    fun importArchiveBook(
+        archiveFileUri: Uri,
+        archiveEntryName: String,
+        success: ((Book) -> Unit)? = null
+    ) {
         execute {
-            val suffix = file.name.substringAfterLast(".")
-            LocalBook.saveBookFile(
-                FileInputStream(file),
+            val suffix = archiveEntryName.substringAfterLast(".")
+            LocalBook.importArchiveFile(
+                archiveFileUri,
                 bookData.value!!.getExportFileName(suffix)
-            )
+            ) {
+                it.contains(archiveEntryName)
+            }.first()
         }.onSuccess {
-            val book = changeToLocalBook(LocalBook.importFile(it))
+            val book = changeToLocalBook(it)
             success?.invoke(book)
         }.onError {
-            AppLog.put("ImportBook Error:\n${it.localizedMessage}", it)
-            context.toastOnUi("ImportBook Error:\n${it.localizedMessage}")
+            AppLog.put("importArchiveBook Error:\n${it.localizedMessage}", it)
+            context.toastOnUi("importArchiveBook Error:\n${it.localizedMessage}")
         }
     }
 
@@ -450,13 +461,14 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
         }
 
         // 后缀
-        val suffix: String = name.substringAfterLast(".")
+        val suffix: String = UrlUtil.getSuffix(name)
 
         // txt epub umd pdf等文件
         val isSupported: Boolean = AppPattern.bookFileRegex.matches(name)
 
         // 压缩包形式的txt epub umd pdf文件
         val isSupportDecompress: Boolean = AppPattern.archiveFileRegex.matches(name)
+
     }
 
 }
