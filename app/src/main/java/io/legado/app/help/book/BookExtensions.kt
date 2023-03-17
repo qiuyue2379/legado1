@@ -55,6 +55,17 @@ val Book.isWebFile: Boolean
 val Book.isUpError: Boolean
     get() = isType(BookType.updateError)
 
+val Book.isArchive: Boolean
+    get() = isType(BookType.archive)
+
+val Book.archiveName: String
+    get() {
+        if (!isArchive) throw NoStackTraceException("Book is not deCompressed from archive")
+        // local_book::archive.rar
+        // webDav::https://...../archive.rar
+        return origin.substringAfter("::").substringAfterLast("/")
+    }
+
 fun Book.contains(word: String?): Boolean {
     if (word.isNullOrEmpty()) {
         return true
@@ -129,6 +140,17 @@ fun Book.getLocalUri(): Uri {
     return uri
 }
 
+
+fun Book.getArchiveUri(): Uri? {
+    val defaultBookDir = AppConfig.defaultBookTreeUri
+    return if (isArchive && !defaultBookDir.isNullOrBlank()) {
+        FileDoc.fromUri(Uri.parse(defaultBookDir), true)
+            .find(archiveName)?.uri
+    } else {
+        null
+    }
+}
+
 fun Book.cacheLocalUri(uri: Uri) {
     localUriCache[bookUrl] = uri
 }
@@ -139,7 +161,7 @@ fun Book.removeLocalUriCache() {
 
 fun Book.getRemoteUrl(): String? {
     if (origin.startsWith(BookType.webDavTag)) {
-        return origin.substring(8)
+        return origin.substring(BookType.webDavTag.length)
     }
     return null
 }
@@ -175,7 +197,7 @@ fun Book.upType() {
             BookSourceType.file -> BookType.webFile
             else -> BookType.text
         }
-        if (origin == "loc_book" || origin.startsWith(BookType.webDavTag)) {
+        if (origin == BookType.localTag || origin.startsWith(BookType.webDavTag)) {
             type = type or BookType.local
         }
     }

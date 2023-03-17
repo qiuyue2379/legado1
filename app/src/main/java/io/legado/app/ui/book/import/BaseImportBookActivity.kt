@@ -1,18 +1,23 @@
 package io.legado.app.ui.book.import
 
 import android.os.Bundle
+import android.view.MotionEvent
+import android.widget.EditText
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModel
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.databinding.ActivityImportBookBinding
+import io.legado.app.data.appDb
+import io.legado.app.constant.AppPattern
 import io.legado.app.help.config.AppConfig
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.lib.dialogs.selector
 import io.legado.app.lib.theme.primaryTextColor
+import io.legado.app.model.localBook.LocalBook
 import io.legado.app.ui.book.read.ReadBookActivity
 import io.legado.app.ui.document.HandleFileContract
-import io.legado.app.utils.applyTint
-import io.legado.app.utils.startActivity
+import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 
 import kotlin.coroutines.resume
@@ -37,6 +42,18 @@ abstract class BaseImportBookActivity<VM : ViewModel> : VMBaseActivity<ActivityI
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initSearchView()
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            currentFocus?.let {
+                if (it is EditText) {
+                    it.clearFocus()
+                    it.hideSoftInput()
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     /**
@@ -74,6 +91,63 @@ abstract class BaseImportBookActivity<VM : ViewModel> : VMBaseActivity<ActivityI
     protected fun startReadBook(bookUrl: String) {
         startActivity<ReadBookActivity> {
             putExtra("bookUrl", bookUrl)
+        }
+    }
+
+    protected fun onArchiveFileClick(fileDoc: FileDoc) {
+        val fileNames = ArchiveUtils.getArchiveFilesName(fileDoc) {
+            it.matches(AppPattern.bookFileRegex)
+        }
+        if (fileNames.size == 1) {
+            val name = fileNames[0]
+            appDb.bookDao.getBookByFileName(name)?.let {
+                startReadBook(it.bookUrl)
+            } ?: showImportAlert(fileDoc, name)
+        } else {
+            showSelectBookReadAlert(fileDoc, fileNames)
+        }
+    }
+
+    private fun showSelectBookReadAlert(fileDoc: FileDoc, fileNames: List<String>) {
+        if (fileNames.isEmpty()) {
+            toastOnUi(R.string.unsupport_archivefile_entry)
+            return
+        }
+        selector(
+            R.string.start_read,
+            fileNames
+        ) { _, name, _ ->
+            appDb.bookDao.getBookByFileName(name)?.let {
+                startReadBook(it.bookUrl)
+            } ?: showImportAlert(fileDoc, name)
+        }
+    }
+
+    /* 添加压缩包内指定文件到书架 */
+    private inline fun addArchiveToBookShelf(
+        fileDoc: FileDoc,
+        fileName: String,
+        onSuccess: (String) -> Unit
+    ) {
+        LocalBook.importArchiveFile(fileDoc.uri, fileName) {
+            it.contains(fileName)
+        }.firstOrNull()?.run {
+            onSuccess.invoke(bookUrl)
+        }
+    }
+
+    /* 提示是否重新导入所点击的压缩文件 */
+    private fun showImportAlert(fileDoc: FileDoc, fileName: String) {
+        alert(
+            R.string.draw,
+            R.string.no_book_found_bookshelf
+        ) {
+            okButton {
+                addArchiveToBookShelf(fileDoc, fileName) {
+                    startReadBook(it)
+                }
+            }
+            noButton()
         }
     }
 
