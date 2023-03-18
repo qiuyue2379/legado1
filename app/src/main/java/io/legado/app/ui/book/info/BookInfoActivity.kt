@@ -18,7 +18,6 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
 import io.legado.app.databinding.ActivityBookInfoBinding
-import io.legado.app.databinding.DialogEditTextBinding
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.AppWebDav
 import io.legado.app.help.book.*
@@ -44,6 +43,7 @@ import io.legado.app.ui.book.toc.TocActivityResult
 import io.legado.app.ui.document.HandleFileContract
 import io.legado.app.ui.login.SourceLoginActivity
 import io.legado.app.ui.widget.dialog.PhotoDialog
+import io.legado.app.ui.widget.dialog.VariableDialog
 import io.legado.app.ui.widget.dialog.WaitDialog
 import io.legado.app.utils.*
 import io.legado.app.utils.viewbindingdelegate.viewBinding
@@ -55,7 +55,8 @@ class BookInfoActivity :
     VMBaseActivity<ActivityBookInfoBinding, BookInfoViewModel>(toolBarTheme = Theme.Dark),
     GroupSelectDialog.CallBack,
     ChangeBookSourceDialog.CallBack,
-    ChangeCoverDialog.CallBack {
+    ChangeCoverDialog.CallBack,
+    VariableDialog.Callback {
 
     private val tocActivityResult = registerForActivityResult(TocActivityResult()) {
         it?.let {
@@ -419,22 +420,16 @@ class BookInfoActivity :
                 toastOnUi("书源不存在")
                 return@launch
             }
+            val comment = source.getDisplayVariableComment("源变量可在js中通过source.getVariable()获取")
             val variable = withContext(IO) { source.getVariable() }
-            alert(R.string.set_source_variable) {
-                setMessage(source.getDisplayVariableComment("源变量可在js中通过source.getVariable()获取"))
-                val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                    editView.hint = "source variable"
-                    editView.setText(variable)
-                }
-                customView { alertBinding.root }
-                okButton {
-                    viewModel.bookSource?.setVariable(alertBinding.editView.text?.toString())
-                }
-                cancelButton()
-                neutralButton(R.string.delete) {
-                    viewModel.bookSource?.setVariable(null)
-                }
-            }
+            showDialogFragment(
+                VariableDialog(
+                    getString(R.string.set_source_variable),
+                    source.getKey(),
+                    variable,
+                    comment
+                )
+            )
         }
     }
 
@@ -445,27 +440,28 @@ class BookInfoActivity :
                 toastOnUi("书源不存在")
                 return@launch
             }
-            val variable = withContext(IO) { viewModel.bookData.value?.getVariable("custom") }
-            alert(R.string.set_source_variable) {
-                setMessage(source.getDisplayVariableComment("""书籍变量可在js中通过book.getVariable("custom")获取"""))
-                val alertBinding = DialogEditTextBinding.inflate(layoutInflater).apply {
-                    editView.hint = "book variable"
-                    editView.setText(variable)
-                }
-                customView { alertBinding.root }
-                okButton {
-                    viewModel.bookData.value?.let { book ->
-                        book.putVariable("custom", alertBinding.editView.text?.toString())
-                        viewModel.saveBook(book)
-                    }
-                }
-                cancelButton()
-                neutralButton(R.string.delete) {
-                    viewModel.bookData.value?.let { book ->
-                        book.putVariable("custom", null)
-                        viewModel.saveBook(book)
-                    }
-                }
+            val book = viewModel.bookData.value
+            if (book == null) {
+                toastOnUi("书籍不存在")
+                return@launch
+            }
+            val variable = withContext(IO) { book.getCustomVariable() }
+            val comment = source.getDisplayVariableComment("""书籍变量可在js中通过book.getVariable("custom")获取""")
+            showDialogFragment(VariableDialog(
+                getString(R.string.set_book_variable),
+                book.bookUrl,
+                variable,
+                comment
+            ))
+        }
+    }
+
+    override fun setVariable(key: String, variable: String?) {
+        when(key) {
+            viewModel.bookSource?.getKey() -> viewModel.bookSource?.setVariable(variable)
+            viewModel.bookData.value?.bookUrl -> viewModel.bookData.value?.let {
+                it.putCustomVariable(variable)
+                viewModel.saveBook(it)
             }
         }
     }
