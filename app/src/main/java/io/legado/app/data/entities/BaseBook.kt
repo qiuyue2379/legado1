@@ -27,7 +27,7 @@ interface BaseBook : RuleDataInterface {
         putVariable("custom", value)
     }
 
-    fun getCustomVariable(): String? {
+    fun getCustomVariable(): String {
         return getVariable("custom")
     }
 
