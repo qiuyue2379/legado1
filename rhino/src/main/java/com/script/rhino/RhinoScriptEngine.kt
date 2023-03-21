@@ -47,18 +47,18 @@ import java.security.*
 class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
     var accessContext: AccessControlContext? = null
     private var topLevel: RhinoTopLevel? = null
-    private val indexedProps: MutableMap<Any, Any>
+    private val indexedProps: MutableMap<Any, Any?>
     private val implementor: InterfaceImplementor
 
     @Throws(ScriptException::class)
-    override fun eval(reader: Reader, ctxt: ScriptContext): Any {
+    override fun eval(reader: Reader, ctxt: ScriptContext): Any? {
         val cx = Context.enter()
-        val ret: Any
+        val ret: Any?
         try {
             val scope = getRuntimeScope(ctxt)
             var filename = this["javax.script.filename"] as? String
             filename = filename ?: "<Unknown source>"
-            ret = cx.evaluateReader(scope, reader, filename, 1, null as Any?)
+            ret = cx.evaluateReader(scope, reader, filename, 1, null)
         } catch (re: RhinoException) {
             val line = if (re.lineNumber() == 0) -1 else re.lineNumber()
             val msg: String = if (re is JavaScriptException) {
@@ -74,11 +74,11 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
         } finally {
             Context.exit()
         }
-        return unwrapReturnValue(ret)!!
+        return unwrapReturnValue(ret)
     }
 
     @Throws(ScriptException::class)
-    override fun eval(script: String?, ctxt: ScriptContext): Any {
+    override fun eval(script: String?, ctxt: ScriptContext): Any? {
         return if (script == null) {
             throw NullPointerException("null script")
         } else {
@@ -91,12 +91,12 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
     }
 
     @Throws(ScriptException::class, NoSuchMethodException::class)
-    override fun invokeFunction(name: String, vararg args: Any): Any {
-        return this.invoke(null as Any?, name, *args)
+    override fun invokeFunction(name: String, vararg args: Any): Any? {
+        return this.invoke(null, name, *args)
     }
 
     @Throws(ScriptException::class, NoSuchMethodException::class)
-    override fun invokeMethod(thiz: Any?, name: String, vararg args: Any): Any {
+    override fun invokeMethod(thiz: Any?, name: String, vararg args: Any): Any? {
         return if (thiz == null) {
             throw IllegalArgumentException("脚本对象不能为空")
         } else {
@@ -106,10 +106,10 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
 
     @Suppress("UNCHECKED_CAST")
     @Throws(ScriptException::class, NoSuchMethodException::class)
-    private operator fun invoke(thiz: Any?, name: String?, vararg args: Any?): Any {
+    private operator fun invoke(thiz: Any?, name: String?, vararg args: Any?): Any? {
         var thiz1 = thiz
         val cx = Context.enter()
-        val var11: Any
+        val var11: Any?
         try {
             if (name == null) {
                 throw NullPointerException("方法名为空")
@@ -126,7 +126,7 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                 scope = engineScope
             }
             val result = obj.call(cx, scope, localScope, wrapArguments(args as? Array<Any?>))
-            var11 = unwrapReturnValue(result)!!
+            var11 = unwrapReturnValue(result)
         } catch (re: RhinoException) {
             val line = if (re.lineNumber() == 0) -1 else re.lineNumber()
             val se = ScriptException(re.toString(), re.sourceName(), line)
@@ -140,7 +140,7 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
 
     override fun <T> getInterface(clasz: Class<T>): T? {
         return try {
-            implementor.getInterface(null as Any?, clasz)
+            implementor.getInterface(null, clasz)
         } catch (var3: ScriptException) {
             null
         }
@@ -191,7 +191,7 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                     js,
                     "print",
                     1,
-                    null as Any?
+                    null
                 )
             } finally {
                 Context.exit()
@@ -214,7 +214,7 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
             if (fileName == null) {
                 fileName = "<Unknown Source>"
             }
-            val scr = cx.compileReader(script, fileName, 1, null as Any?)
+            val scr = cx.compileReader(script, fileName, 1, null)
             ret = RhinoCompiledScript(this, scr)
         } catch (var9: Exception) {
             throw ScriptException(var9)
@@ -342,7 +342,7 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                     scope: Scriptable,
                     thisObj: Scriptable,
                     args: Array<Any>
-                ): Any {
+                ): Any? {
                     var accCtxt: AccessControlContext? = null
                     val global = ScriptableObject.getTopLevelScope(scope)
                     val globalProto = global.prototype
@@ -351,14 +351,8 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                     }
                     return if (accCtxt != null) AccessController.doPrivileged(
                         PrivilegedAction {
-                            superDoTopCall(
-                                callable,
-                                cx,
-                                scope,
-                                thisObj,
-                                args
-                            )
-                        } as PrivilegedAction<Any>, accCtxt) else superDoTopCall(
+                            superDoTopCall(callable, cx, scope, thisObj, args)
+                        } as PrivilegedAction<*>, accCtxt) else superDoTopCall(
                         callable,
                         cx,
                         scope,
@@ -373,7 +367,7 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                     scope: Scriptable,
                     thisObj: Scriptable,
                     args: Array<Any>
-                ): Any {
+                ): Any? {
                     return super.doTopCall(callable, cx, scope, thisObj, args)
                 }
             })
