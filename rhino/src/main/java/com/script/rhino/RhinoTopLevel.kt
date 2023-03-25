@@ -40,11 +40,11 @@ import java.security.AccessControlContext
  * @since 1.6
  */
 @Suppress("UNUSED_PARAMETER")
-class RhinoTopLevel internal constructor(cx: Context?, val scriptEngine: RhinoScriptEngine) :
+class RhinoTopLevel(cx: Context, val scriptEngine: RhinoScriptEngine) :
     ImporterTopLevel(cx, System.getSecurityManager() != null) {
 
     init {
-        LazilyLoadedCtor(this, "JSAdapter", "com.sun.script.javascript.JSAdapter", false)
+        LazilyLoadedCtor(this, "JSAdapter", "com.script.rhino.JSAdapter", false)
         JavaAdapter.init(cx, this, false)
         val names = arrayOf("bindings", "scope", "sync")
         defineFunctionProperties(names, RhinoTopLevel::class.java, 2)

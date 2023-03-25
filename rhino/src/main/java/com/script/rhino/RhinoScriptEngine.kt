@@ -25,8 +25,6 @@
 package com.script.rhino
 
 import com.script.*
-import com.script.rhino.RhinoClassShutter.Companion.instance
-import org.intellij.lang.annotations.Language
 import org.mozilla.javascript.*
 import org.mozilla.javascript.Function
 import java.io.IOException
@@ -51,11 +49,10 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
     private val implementor: InterfaceImplementor
 
     @Throws(ScriptException::class)
-    override fun eval(reader: Reader, ctxt: ScriptContext): Any? {
+    override fun eval(reader: Reader, scope: Scriptable): Any? {
         val cx = Context.enter()
         val ret: Any?
         try {
-            val scope = getRuntimeScope(ctxt)
             var filename = this["javax.script.filename"] as? String
             filename = filename ?: "<Unknown source>"
             ret = cx.evaluateReader(scope, reader, filename, 1, null)
@@ -77,15 +74,6 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
         return unwrapReturnValue(ret)
     }
 
-    @Throws(ScriptException::class)
-    override fun eval(script: String?, ctxt: ScriptContext): Any? {
-        return if (script == null) {
-            throw NullPointerException("null script")
-        } else {
-            this.eval(StringReader(script) as Reader, ctxt)
-        }
-    }
-
     override fun createBindings(): Bindings {
         return SimpleBindings()
     }
@@ -96,11 +84,11 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
     }
 
     @Throws(ScriptException::class, NoSuchMethodException::class)
-    override fun invokeMethod(thiz: Any?, name: String, vararg args: Any): Any? {
-        return if (thiz == null) {
+    override fun invokeMethod(obj: Any?, name: String, vararg args: Any): Any? {
+        return if (obj == null) {
             throw IllegalArgumentException("脚本对象不能为空")
         } else {
-            this.invoke(thiz, name, *args)
+            this.invoke(obj, name, *args)
         }
     }
 
@@ -138,66 +126,31 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
         return var11
     }
 
-    override fun <T> getInterface(clasz: Class<T>): T? {
+    override fun <T> getInterface(clazz: Class<T>): T? {
         return try {
-            implementor.getInterface(null, clasz)
+            implementor.getInterface(null, clazz)
         } catch (var3: ScriptException) {
             null
         }
     }
 
-    override fun <T> getInterface(thiz: Any?, clasz: Class<T>): T? {
-        return if (thiz == null) {
+    override fun <T> getInterface(obj: Any?, paramClass: Class<T>): T? {
+        return if (obj == null) {
             throw IllegalArgumentException("脚本对象不能为空")
         } else {
             try {
-                implementor.getInterface(thiz, clasz)
+                implementor.getInterface(obj, paramClass)
             } catch (var4: ScriptException) {
                 null
             }
         }
     }
 
-    fun getRuntimeScope(ctxt: ScriptContext?): Scriptable {
-        return if (ctxt == null) {
-            throw NullPointerException("脚本context为空")
-        } else {
-            val newScope: Scriptable = ExternalScriptable(ctxt, indexedProps)
-            newScope.prototype = topLevel
-            newScope.put("context", newScope, ctxt)
-            val cx = Context.enter()
-            try {
-                @Language("js")
-                val js = """
-                        function print(str, newline) {
-                            if (typeof(str) == 'undefined') {
-                                str = 'undefined';
-                            } else if (str == null) {
-                                str = 'null';
-                            } 
-                            var out = context.getWriter();
-                            if (!(out instanceof java.io.PrintWriter))
-                                out = new java.io.PrintWriter(out);
-                            out.print(String(str));
-                            if (newline) out.print('\\n');
-                                out.flush();
-                        }
-                        function println(str) { 
-                            print(str, true);
-                        }
-                    """.trimIndent()
-                cx.evaluateString(
-                    newScope,
-                    js,
-                    "print",
-                    1,
-                    null
-                )
-            } finally {
-                Context.exit()
-            }
-            newScope
-        }
+    override fun getRuntimeScope(context: ScriptContext): Scriptable {
+        val newScope: Scriptable = ExternalScriptable(context, indexedProps)
+        newScope.prototype = topLevel
+        newScope.put("context", newScope, context)
+        return newScope
     }
 
     @Throws(ScriptException::class)
@@ -260,27 +213,27 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
         }
         indexedProps = HashMap()
         implementor = object : InterfaceImplementor(this) {
-            override fun isImplemented(thiz: Any?, iface: Class<*>): Boolean {
-                var thiz1 = thiz
+
+            override fun isImplemented(obj: Any?, clazz: Class<*>): Boolean {
+                var obj1 = obj
                 return try {
-                    if (thiz1 != null && thiz1 !is Scriptable) {
-                        thiz1 = Context.toObject(
-                            thiz1,
-                            topLevel
-                        )
+                    if (obj1 != null && obj1 !is Scriptable) {
+                        obj1 = Context.toObject(obj1, topLevel)
                     }
-                    val engineScope =
-                        getRuntimeScope(context)
-                    val localScope =
-                        if (thiz1 != null) thiz1 as Scriptable else engineScope
-                    val var5 = iface.methods
-                    val var6 = var5.size
-                    for (var7 in 0 until var6) {
-                        val method = var5[var7]
+                    val engineScope = getRuntimeScope(context)
+                    val localScope = if (obj1 != null) obj1 as Scriptable else engineScope
+                    val methods = clazz.methods
+                    val methodsSize = methods.size
+                    for (index in 0 until methodsSize) {
+                        val method = methods[index]
                         if (method.declaringClass != Any::class.java) {
-                            val obj =
-                                ScriptableObject.getProperty(localScope, method.name) as? Function
-                            obj ?: return false
+                            if (ScriptableObject.getProperty(
+                                    localScope,
+                                    method.name
+                                ) !is Function
+                            ) {
+                                return false
+                            }
                         }
                     }
                     true
@@ -289,40 +242,17 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                 }
             }
 
-            override fun convertResult(method: Method?, res: Any): Any {
-                val desiredType = method!!.returnType
-                return (if (desiredType == Void.TYPE) null else Context.jsToJava(
-                    res,
-                    desiredType
-                ))!!
+            override fun convertResult(method: Method?, res: Any?): Any? {
+                method ?: return null
+                val desiredType = method.returnType
+                if (desiredType == Void.TYPE) return null
+                return Context.jsToJava(res, desiredType)
             }
         }
     }
 
     @Suppress("unused")
     companion object {
-
-        private const val DEBUG = false
-
-        @Language("js")
-        private val printSource = """
-            function print(str, newline) {
-              if (typeof str == "undefined") {
-                str = "undefined";
-              } else if (str == null) {
-                str = "null";
-              }
-              var out = context.getWriter();
-              if (!(out instanceof java.io.PrintWriter))
-                out = new java.io.PrintWriter(out);
-              out.print(String(str));
-              if (newline) out.print("\\n");
-              out.flush();
-            }
-            function println(str) {
-              print(str, true);
-            }
-        """.trimIndent()
 
         init {
             ContextFactory.initGlobal(object : ContextFactory() {
@@ -331,9 +261,16 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                     val cx = super.makeContext()
                     cx.languageVersion = 200
                     cx.optimizationLevel = -1
-                    cx.setClassShutter(instance)
-                    cx.wrapFactory = RhinoWrapFactory.instance
+                    cx.setClassShutter(RhinoClassShutter)
+                    cx.wrapFactory = RhinoWrapFactory
                     return cx
+                }
+
+                override fun hasFeature(cx: Context?, featureIndex: Int): Boolean {
+                    if (featureIndex == Context.FEATURE_ENABLE_JAVA_MAP_ACCESS) {
+                        return true
+                    }
+                    return super.hasFeature(cx, featureIndex)
                 }
 
                 override fun doTopCall(
@@ -343,16 +280,17 @@ class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
                     thisObj: Scriptable,
                     args: Array<Any>
                 ): Any? {
-                    var accCtxt: AccessControlContext? = null
+                    var accContext: AccessControlContext? = null
                     val global = ScriptableObject.getTopLevelScope(scope)
                     val globalProto = global.prototype
                     if (globalProto is RhinoTopLevel) {
-                        accCtxt = globalProto.accessContext
+                        accContext = globalProto.accessContext
                     }
-                    return if (accCtxt != null) AccessController.doPrivileged(
+                    return if (accContext != null) AccessController.doPrivileged(
                         PrivilegedAction {
                             superDoTopCall(callable, cx, scope, thisObj, args)
-                        } as PrivilegedAction<*>, accCtxt) else superDoTopCall(
+                        }, accContext
+                    ) else superDoTopCall(
                         callable,
                         cx,
                         scope,

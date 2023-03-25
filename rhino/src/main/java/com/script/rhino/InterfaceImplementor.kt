@@ -43,17 +43,17 @@ import java.security.PrivilegedExceptionAction
 @Suppress("UNUSED_PARAMETER")
 open class InterfaceImplementor(private val engine: Invocable) {
     @Throws(ScriptException::class)
-    fun <T> getInterface(thiz: Any?, iface: Class<T>?): T? {
-        return if (iface != null && iface.isInterface) {
-            if (!isImplemented(thiz, iface)) {
+    fun <T> getInterface(obj: Any?, clazz: Class<T>?): T? {
+        return if (clazz != null && clazz.isInterface) {
+            if (!isImplemented(obj, clazz)) {
                 null
             } else {
-                val accCtxt = AccessController.getContext()
-                iface.cast(
+                val accContext = AccessController.getContext()
+                clazz.cast(
                     Proxy.newProxyInstance(
-                        iface.classLoader,
-                        arrayOf<Class<*>>(iface),
-                        InterfaceImplementorInvocationHandler(thiz, accCtxt)
+                        clazz.classLoader,
+                        arrayOf<Class<*>>(clazz),
+                        InterfaceImplementorInvocationHandler(obj, accContext)
                     )
                 )
             }
@@ -62,12 +62,12 @@ open class InterfaceImplementor(private val engine: Invocable) {
         }
     }
 
-    protected open fun isImplemented(thiz: Any?, iface: Class<*>): Boolean {
+    protected open fun isImplemented(obj: Any?, clazz: Class<*>): Boolean {
         return true
     }
 
     @Throws(ScriptException::class)
-    protected open fun convertResult(method: Method?, res: Any): Any {
+    protected open fun convertResult(method: Method?, res: Any?): Any? {
         return res
     }
 
@@ -77,21 +77,19 @@ open class InterfaceImplementor(private val engine: Invocable) {
     }
 
     private inner class InterfaceImplementorInvocationHandler(
-        private val thiz: Any?,
-        private val accCtxt: AccessControlContext
+        private val obj: Any?,
+        private val accContext: AccessControlContext
     ) : InvocationHandler {
+
         @Throws(Throwable::class)
-        override fun invoke(proxy: Any, method: Method, args: Array<Any>): Any {
+        override fun invoke(proxy: Any, method: Method, args: Array<Any>): Any? {
             val finalArgs = convertArguments(method, args)
             val result = AccessController.doPrivileged(PrivilegedExceptionAction {
-                if (thiz == null) engine.invokeFunction(
-                    method.name,
-                    *finalArgs
-                ) else engine.invokeMethod(
-                    thiz, method.name, *finalArgs
-                )
-            } as PrivilegedExceptionAction<Any>, accCtxt)
+                if (obj == null) engine.invokeFunction(method.name, *finalArgs)
+                else engine.invokeMethod(obj, method.name, *finalArgs)
+            }, accContext)
             return convertResult(method, result)
         }
+
     }
 }

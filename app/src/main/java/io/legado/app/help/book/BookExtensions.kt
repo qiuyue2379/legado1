@@ -4,10 +4,7 @@ package io.legado.app.help.book
 
 import android.net.Uri
 import com.script.SimpleBindings
-import io.legado.app.constant.AppConst
-import io.legado.app.constant.AppLog
-import io.legado.app.constant.BookSourceType
-import io.legado.app.constant.BookType
+import io.legado.app.constant.*
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.BaseBook
 import io.legado.app.data.entities.Book
@@ -70,8 +67,12 @@ fun Book.contains(word: String?): Boolean {
     if (word.isNullOrEmpty()) {
         return true
     }
-    return name.contains(word) || author.contains(word)
-            || originName.contains(word) || origin.contains(word)
+    return name.contains(word)
+            || author.contains(word)
+            || originName.contains(word)
+            || origin.contains(word)
+            || kind?.contains(word) == true
+            || intro?.contains(word) == true
 }
 
 private val localUriCache by lazy {
@@ -237,7 +238,7 @@ fun Book.getExportFileName(suffix: String): String {
     bindings["name"] = name
     bindings["author"] = getRealAuthor()
     return kotlin.runCatching {
-        AppConst.SCRIPT_ENGINE.eval(jsStr, bindings).toString() + "." + suffix
+        SCRIPT_ENGINE.eval(jsStr, bindings).toString() + "." + suffix
     }.onFailure {
         AppLog.put("导出书名规则错误,使用默认规则\n${it.localizedMessage}", it)
     }.getOrDefault("${name} 作者：${getRealAuthor()}.$suffix")
