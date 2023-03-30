@@ -41,7 +41,7 @@ android {
     }
     defaultConfig {
         applicationId "io.qiuyue.app"
-        minSdk 21
+        minSdk 24
         targetSdk 33
         versionCode 10000 + gitCommits
         versionName version
@@ -104,15 +104,20 @@ android {
         }
         google {
             dimension "mode"
+            minSdk 26
             applicationId "io.legado.play"
             manifestPlaceholders.put("APP_CHANNEL_VALUE", "google")
+        }
+        lollipop {
+            dimension "mode"
+            minSdk 21
+            manifestPlaceholders.put("APP_CHANNEL_VALUE", "lollipop")
         }
     }
 
     compileOptions {
         // Flag to enable support for the new language APIs
-        // 开启后rhino1.4.1会报错,rhino1.4.1已经脱糖处理
-        coreLibraryDesugaringEnabled false
+        coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 11
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -135,8 +140,8 @@ android {
 
 dependencies {
     compileOnly "com.android.tools.build:gradle:$agp_version"
-    //noinspection GradleDependency,GradlePackageUpdate,脱糖库和rhino冲突,rhino1.4.1已经脱糖处理
-    //coreLibraryDesugaring('com.android.tools:desugar_jdk_libs_nio:2.0.2')
+    //noinspection GradleDependency,GradlePackageUpdate
+    coreLibraryDesugaring('com.android.tools:desugar_jdk_libs_nio:2.0.2')
     testImplementation('junit:junit:4.13.2')
     androidTestImplementation('androidx.test:runner:1.5.2')
     androidTestImplementation('androidx.test.ext:junit:1.1.5')
@@ -199,10 +204,12 @@ dependencies {
     implementation('org.jsoup:jsoup:1.15.4')
     implementation('com.jayway.jsonpath:json-path:2.8.0')
     implementation('cn.wanghaomiao:JsoupXpath:2.5.3')
-    implementation(project(path: ':book'))
+    implementation(project(path: ':modules:book'))
 
     //JS rhino
-    implementation(project(path: ':rhino'))
+    appImplementation(project(path: ':modules:rhino1.7.4'))
+    googleImplementation(project(path: ':modules:rhino1.7.4'))
+    lollipopImplementation(project(path: ':modules:rhino1.7.3'))
 
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.10.0')
@@ -232,7 +239,8 @@ dependencies {
 
     //apache
     implementation('org.apache.commons:commons-text:1.10.0')
-    implementation 'org.apache.commons:commons-compress:1.23.0'
+    //noinspection GradleDependency,1.23.0对安卓支持不好
+    implementation 'org.apache.commons:commons-compress:1.22'
     implementation 'org.tukaani:xz:1.9'
 
     //RAR
