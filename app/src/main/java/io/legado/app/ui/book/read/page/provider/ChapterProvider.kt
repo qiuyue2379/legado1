@@ -377,8 +377,8 @@ object ChapterProvider {
                         0f
                     }
                     addCharsToLineNatural(
-                        book, absStartX, textLine, words.toStringArray(),
-                        textPaint, startX, srcList
+                        book, absStartX, textLine, words.toStringArray(), textPaint,
+                        startX, !isTitle && lineIndex == 0, srcList
                     )
                 }
                 else -> {
@@ -390,7 +390,7 @@ object ChapterProvider {
                         val startX = (visibleWidth - layout.getLineWidth(lineIndex)) / 2
                         addCharsToLineNatural(
                             book, absStartX, textLine, words.toStringArray(),
-                            textPaint, startX, srcList
+                            textPaint, startX, false, srcList
                         )
                     } else {
                         //中间行
@@ -430,7 +430,10 @@ object ChapterProvider {
     ) {
         var x = 0f
         if (!ReadBookConfig.textFullJustify) {
-            addCharsToLineNatural(book, absStartX, textLine, words, textPaint, x, srcList)
+            addCharsToLineNatural(
+                book, absStartX, textLine, words, textPaint,
+                x, true, srcList
+            )
             return
         }
         val bodyIndent = ReadBookConfig.paragraphIndent
@@ -445,6 +448,7 @@ object ChapterProvider {
                 )
             )
             x = x1
+            textLine.indentWidth = x
         }
         if (words.size > bodyIndent.length) {
             val words1 = words.copyOfRange(bodyIndent.length, words.size)
@@ -471,7 +475,10 @@ object ChapterProvider {
         srcList: LinkedList<String>?
     ) {
         if (!ReadBookConfig.textFullJustify) {
-            addCharsToLineNatural(book, absStartX, textLine, words, textPaint, startX, srcList)
+            addCharsToLineNatural(
+                book, absStartX, textLine, words, textPaint,
+                startX, false, srcList
+            )
             return
         }
         val residualWidth = visibleWidth - desiredWidth
@@ -519,14 +526,19 @@ object ChapterProvider {
         words: Array<String>,
         textPaint: TextPaint,
         startX: Float,
+        hasIndent: Boolean,
         srcList: LinkedList<String>?
     ) {
+        val indentLength = ReadBookConfig.paragraphIndent.length
         var x = startX
         words.forEachIndexed { index, char ->
             val cw = StaticLayout.getDesiredWidth(char, textPaint)
             val x1 = x + cw
             addCharToLine(book, absStartX, textLine, char, x, x1, index + 1 == words.size, srcList)
             x = x1
+            if (hasIndent && index == indentLength - 1) {
+                textLine.indentWidth = x
+            }
         }
         exceed(absStartX, textLine, words)
     }
@@ -675,12 +687,12 @@ object ChapterProvider {
     }
 
     /**
-     * 更新View尺寸,height减去1dp防止下划线无法画全
+     * 更新View尺寸
      */
     fun upViewSize(width: Int, height: Int) {
         if (width > 0 && height > 0 && (width != viewWidth || height != viewHeight)) {
             viewWidth = width
-            viewHeight = height - 1.dpToPx()
+            viewHeight = height
             upLayout()
             postEvent(EventBus.UP_CONFIG, true)
         }
@@ -713,6 +725,7 @@ object ChapterProvider {
             } else {
                 viewWidth - paddingLeft - paddingRight
             }
+            //留1dp画最后一行下划线
             visibleHeight = viewHeight - paddingTop - paddingBottom
             visibleRight = viewWidth - paddingRight
             visibleBottom = paddingTop + visibleHeight
