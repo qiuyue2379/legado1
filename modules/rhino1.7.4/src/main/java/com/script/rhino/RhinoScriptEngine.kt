@@ -43,20 +43,20 @@ import java.security.*
  */
 @Suppress("MemberVisibilityCanBePrivate")
 class RhinoScriptEngine : AbstractScriptEngine(), Invocable, Compilable {
-    var accessContext: AccessControlContext? = null
-    private var topLevel: RhinoTopLevel? = null
-    private val indexedProps: MutableMap<Any, Any?>
-    private val implementor: InterfaceImplementor
+     var accessContext: AccessControlContext? = null
+     private var topLevel: RhinoTopLevel? = null
+     private val indexedProps: MutableMap<Any, Any?>
+     private val implementor: InterfaceImplementor
 
-    @Throws(ScriptException::class)
-    override fun eval(reader: Reader, scope: Scriptable): Any? {
-        val cx = Context.enter()
-        val ret: Any?
-        try {
-            var filename = this["javax.script.filename"] as? String
-            filename = filename ?: "<Unknown source>"
-            ret = cx.evaluateReader(scope, reader, filename, 1, null)
-        } catch (re: RhinoException) {
+     @Throws(ScriptException::class)
+     override fun eval(reader: Reader, scope: Scriptable): Any? {
+         val cx = Context.enter()
+         val ret: Any?
+         try {
+             var filename = this["javax.script.filename"] as? String
+             filename = filename ?: "<Unknown source>"
+             ret = cx.evaluateReader(scope, reader, filename, 1, null)
+         } catch (re: RhinoException) {
             val line = if (re.lineNumber() == 0) -1 else re.lineNumber()
             val msg: String = if (re is JavaScriptException) {
                 re.value.toString()
