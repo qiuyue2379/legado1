@@ -17,11 +17,10 @@ def gitCommits = Integer.parseInt('git rev-list HEAD --count'.execute().text.tri
 
 android {
     compileSdk = compile_sdk_version
-    buildToolsVersion = build_tool_version
     namespace 'io.legado.app'
     kotlin {
         jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of("11"))
+            languageVersion.set(JavaLanguageVersion.of(17))
         }
     }
 
@@ -77,7 +76,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-
             if (project.hasProperty("RELEASE_STORE_FILE")) {
                 signingConfig signingConfigs.myConfig
             }
@@ -87,16 +85,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
-    android.applicationVariants.all { variant ->
-        variant.outputs.all {
-            def flavor = variant.productFlavors[0].name
-            outputFileName = "${name}_${flavor}_${defaultConfig.versionName}.apk"
-        }
-    }
-
-    flavorDimensions.add("mode")
-
+    //noinspection GrDeprecatedAPIUsage
+    flavorDimensions = ['mode']
     productFlavors {
         app {
             dimension "mode"
@@ -114,14 +104,21 @@ android {
         }
     }
 
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            def flavor = variant.productFlavors[0].name
+            outputFileName = "${name}_${flavor}_${defaultConfig.versionName}.apk"
+        }
+    }
+
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
-        // Sets Java compatibility to Java 11
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        // Sets Java compatibility
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
-    packagingOptions {
+    packaging {
         resources.excludes.add('META-INF/*')
     }
 
@@ -213,7 +210,7 @@ dependencies {
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.10.0')
     appImplementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
-    appImplementation 'com.google.protobuf:protobuf-javalite:3.22.2'
+    appImplementation 'com.google.protobuf:protobuf-javalite:3.22.3'
 
     //Glide
     def glideVersion = "4.15.1"
@@ -231,7 +228,7 @@ dependencies {
     implementation("org.nanohttpd:nanohttpd-websocket:$nanoHttpdVersion")
 
     //二维码
-    implementation('com.github.jenly1314:zxing-lite:2.3.1')
+    implementation('com.github.jenly1314:zxing-lite:2.4.0')
 
     //颜色选择
     implementation('com.jaredrummler:colorpicker:1.1.0')
@@ -257,7 +254,7 @@ dependencies {
 
     //加解密类库,有些书源使用
     //noinspection GradleDependency,GradlePackageUpdate
-    implementation('cn.hutool:hutool-crypto:5.8.16')
+    implementation('cn.hutool:hutool-crypto:5.8.18')
 
     //firebase, 崩溃统计和性能统计, 会导致共存版本崩溃
     //implementation platform('com.google.firebase:firebase-bom:30.0.1')

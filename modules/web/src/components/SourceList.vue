@@ -8,7 +8,7 @@
   <div class="tool">
     <el-button @click="importSourceFile" :icon="Folder"> 打开 </el-button>
     <el-button
-      :disabled="sourceSelect.length === 0"
+      :disabled="sourcesFiltered.length === 0"
       @click="outExport"
       :icon="Download"
     >
@@ -29,35 +29,29 @@
     >
   </div>
   <el-checkbox-group id="source-list" v-model="sourceSelect">
-    <el-checkbox
-      v-for="source in sourcesFiltered"
-      size="large"
-      border
-      :label="source"
-      :class="{ error: errorPushSources.includes(source) }"
-      @click="handleSourceClick(source)"
-      :key="source.bookSourceName"
-    >
-      {{ source.bookSourceName || source.sourceName }}
-    </el-checkbox>
+    <virtual-list
+      style="height: 100%; overflow-y: auto; overflow-x: hidden"
+      :data-key="(source) => source.bookSourceUrl || source.sourceUrl"
+      :data-sources="sourcesFiltered"
+      :data-component="SourceItem"
+      :estimate-size="45"
+    />
   </el-checkbox-group>
 </template>
 
 <script setup>
 import { Folder, Delete, Download, Search } from "@element-plus/icons-vue";
 import { isSourceContains } from "../utils/souce";
+import VirtualList from "vue3-virtual-scroll-list";
+import SourceItem from "./SourceItem.vue";
 
 const store = useSourceStore();
 const sourceSelect = ref([]);
 const searchKey = ref("");
-const { sources, errorPushSources } = storeToRefs(store);
-
+const { sources } = storeToRefs(store);
 const isBookSource = computed(() => {
   return /bookSource/.test(window.location.href);
 });
-const handleSourceClick = (source) => {
-  store.changeCurrentSource(source);
-};
 const deleteSelectSources = () => {
   store.deleteSources(sourceSelect.value);
   sourceSelect.value = [];
@@ -104,7 +98,10 @@ const importSourceFile = () => {
 };
 const outExport = () => {
   const exportFile = document.createElement("a");
-  let sources = store.sources,
+  let sources =
+      sourceSelect.value.length === 0
+        ? sourcesFiltered.value
+        : sourceSelect.value,
     sourceType = isBookSource.value ? "BookSource" : "RssSource";
 
   exportFile.download = `${sourceType}_${Date()
@@ -122,27 +119,17 @@ const outExport = () => {
 <style lang="scss" scoped>
 .tool {
   display: flex;
-  padding: 4px 0;
-  justify-content: space-between;
+  margin: 4px 0;
+  justify-content: center;
 }
 
 #source-list {
-  padding-top: 6px;
-  height: calc(100vh - 112px - 20px);
-  overflow-y: auto;
-  overflow-x: hidden;
+  margin-top: 6px;
+  height: calc(100vh - 112px - 7px);
 
   :deep(.el-checkbox) {
     margin-bottom: 4px;
     width: 100%;
   }
-}
-
-.error {
-  border-color: var(--el-color-error) !important;
-  color: var(--el-color-error) !important;
-  --el-checkbox-checked-text-color: var(--el-color-error);
-  --el-checkbox-checked-bg-color: var(--el-color-error);
-  --el-checkbox-checked-input-border-color: var(--el-color-error);
 }
 </style>

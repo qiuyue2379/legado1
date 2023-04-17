@@ -1,7 +1,7 @@
 <template>
   <el-tabs id="source-edit">
     <el-tab-pane
-      v-for="{ name, children } in tabsData"
+      v-for="{ name, children } in Object.values(config)"
       :label="name"
       :key="name"
     >
@@ -59,17 +59,18 @@
 
 <script setup>
 const store = useSourceStore();
-
-const props = defineProps(["config"]);
-
-const tabsData = Object.values(props.config);
-
+defineProps(["config"]);
 const { currentSource } = storeToRefs(store);
 </script>
 
 <style lang="scss" scoped>
 :deep(.el-tab-pane) {
-  height: calc(100vh - 40px);
+  height: calc(100vh - 55px);
+  padding-top: 15px;
+  padding-right: 5px;
   overflow-y: auto;
+}
+:deep(.el-tabs__header) {
+  margin: 0;
 }
 </style>

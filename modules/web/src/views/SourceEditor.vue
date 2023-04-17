@@ -30,13 +30,9 @@ if (/bookSource/i.test(location.href)) {
     margin-left: 20px;
   }
   .right {
+    flex: 1;
     width: 360px;
     margin-right: 20px;
-  }
-  #loading {
-    position: fixed;
-    top: 100px;
-    left: 90vw;
   }
 }
 </style>
