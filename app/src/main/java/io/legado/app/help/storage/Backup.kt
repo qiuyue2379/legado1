@@ -92,6 +92,7 @@ object Backup {
     suspend fun backup(context: Context, path: String?) {
         LocalConfig.lastBackup = System.currentTimeMillis()
         withContext(IO) {
+            val aes = BackupAES()
             FileUtils.delete(backupPath)
             writeListToJson(appDb.bookDao.all, "bookshelf.json", backupPath)
             writeListToJson(appDb.bookmarkDao.all, "bookmark.json", backupPath)
@@ -108,7 +109,14 @@ object Backup {
             writeListToJson(appDb.httpTTSDao.all, "httpTTS.json", backupPath)
             writeListToJson(appDb.keyboardAssistsDao.all, "keyboardAssists.json", backupPath)
             writeListToJson(appDb.dictRuleDao.all, "dictRule.json", backupPath)
-            writeListToJson(appDb.serverDao.all, "servers.json", backupPath)
+            GSON.toJson(appDb.serverDao.all).let { json ->
+                aes.runCatching {
+                    encryptBase64(json)
+                }.getOrDefault(json).let {
+                    FileUtils.createFileIfNotExist(backupPath + File.separator + "servers.json")
+                        .writeText(it)
+                }
+            }
             ensureActive()
             GSON.toJson(ReadBookConfig.configList).let {
                 FileUtils.createFileIfNotExist(backupPath + File.separator + ReadBookConfig.configFileName)
@@ -131,12 +139,20 @@ object Backup {
                 val edit = sp.edit()
                 appCtx.defaultSharedPreferences.all.forEach { (key, value) ->
                     if (BackupConfig.keyIsNotIgnore(key)) {
-                        when (value) {
-                            is Int -> edit.putInt(key, value)
-                            is Boolean -> edit.putBoolean(key, value)
-                            is Long -> edit.putLong(key, value)
-                            is Float -> edit.putFloat(key, value)
-                            is String -> edit.putString(key, value)
+                        when (key) {
+                            PreferKey.webDavPassword -> {
+                                edit.putString(key, aes.runCatching {
+                                    encryptBase64(value.toString())
+                                }.getOrDefault(value.toString()))
+                            }
+
+                            else -> when (value) {
+                                is Int -> edit.putInt(key, value)
+                                is Boolean -> edit.putBoolean(key, value)
+                                is Long -> edit.putLong(key, value)
+                                is Float -> edit.putFloat(key, value)
+                                is String -> edit.putString(key, value)
+                            }
                         }
                     }
                 }
@@ -149,18 +165,23 @@ object Backup {
                 paths[i] = backupPath + File.separator + paths[i]
             }
             FileUtils.delete(zipFilePath)
+            val backupFileName = if (AppConfig.onlyLatestBackup) {
+                "backup.zip"
+            } else {
+                zipFileName
+            }
             if (ZipUtils.zipFiles(paths, zipFilePath)) {
                 when {
                     path.isNullOrBlank() -> {
-                        copyBackup(context.getExternalFilesDir(null)!!, "backup.zip")
+                        copyBackup(context.getExternalFilesDir(null)!!, backupFileName)
                     }
 
                     path.isContentScheme() -> {
-                        copyBackup(context, Uri.parse(path), "backup.zip")
+                        copyBackup(context, Uri.parse(path), backupFileName)
                     }
 
                     else -> {
-                        copyBackup(File(path), "backup.zip")
+                        copyBackup(File(path), backupFileName)
                     }
                 }
                 AppWebDav.backUpWebDav(zipFileName)

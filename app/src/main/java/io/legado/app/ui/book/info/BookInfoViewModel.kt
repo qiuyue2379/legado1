@@ -63,6 +63,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
             }
             throw NoStackTraceException("未找到书籍")
         }.onError {
+            AppLog.put(it.localizedMessage, it)
             context.toastOnUi(it.localizedMessage)
         }
     }
@@ -132,6 +133,7 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
                 is ObjectNotFoundException -> {
                     book.origin = BookType.localTag
                 }
+
                 else -> {
                     AppLog.put("下载远程书籍<${book.name}>失败", it)
                 }
@@ -239,9 +241,10 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     ) {
         execute(scope) {
             webFiles.clear()
-            val fileName = "${book.name} 作者：${book.author}"
+            val fileNameExcludeExtension = if (book.author.isBlank()) book.name else "${book.name} 作者：${book.author}"
             book.downloadUrls!!.map {
-                val mFileName = UrlUtil.getFileName(AnalyzeUrl(it, source = bookSource)) ?: fileName
+                val analyzeUrl = AnalyzeUrl(it, source = bookSource)
+                val mFileName = UrlUtil.getFileName(analyzeUrl) ?: "${fileNameExcludeExtension}.${analyzeUrl.type}"
                 WebFile(it, mFileName)
             }
         }.onError {

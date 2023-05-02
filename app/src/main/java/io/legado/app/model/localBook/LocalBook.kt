@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Base64
 import androidx.documentfile.provider.DocumentFile
 import com.script.SimpleBindings
+import com.script.rhino.RhinoScriptEngine
 import io.legado.app.R
 import io.legado.app.constant.*
 import io.legado.app.data.appDb
@@ -265,13 +266,15 @@ object LocalBook {
         var author = ""
         if (!AppConfig.bookImportFileName.isNullOrBlank()) {
             try {
+                //在用户脚本后添加捕获author、name的代码，只要脚本中author、name有值就会被捕获
+                val js =
+                    AppConfig.bookImportFileName + "\nJSON.stringify({author:author,name:name})"
                 //在脚本中定义如何分解文件名成书名、作者名
-                val jsonStr = SCRIPT_ENGINE.eval(
-                    //在用户脚本后添加捕获author、name的代码，只要脚本中author、name有值就会被捕获
-                    AppConfig.bookImportFileName + "\nJSON.stringify({author:author,name:name})",
-                    //将文件名注入到脚本的src变量中
-                    SimpleBindings().also { it["src"] = tempFileName }
-                ).toString()
+                val jsonStr = RhinoScriptEngine.run {
+                    val bindings = SimpleBindings()
+                    bindings["src"] = tempFileName
+                    eval(js, bindings)
+                }.toString()
                 val bookMess = GSON.fromJsonObject<HashMap<String, String>>(jsonStr)
                     .getOrThrow()
                 name = bookMess["name"] ?: ""

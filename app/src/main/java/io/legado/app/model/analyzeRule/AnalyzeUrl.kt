@@ -6,11 +6,11 @@ import androidx.annotation.Keep
 import cn.hutool.core.util.HexUtil
 import com.bumptech.glide.load.model.GlideUrl
 import com.script.SimpleBindings
+import com.script.rhino.RhinoScriptEngine
 import io.legado.app.constant.AppConst.UA_NAME
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.AppPattern.JS_PATTERN
 import io.legado.app.constant.AppPattern.dataUriRegex
-import io.legado.app.constant.SCRIPT_ENGINE
 import io.legado.app.data.entities.BaseSource
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
@@ -214,6 +214,7 @@ class AnalyzeUrl(
                     urlNoQuery = url.substring(0, pos)
                 }
             }
+
             RequestMethod.POST -> body?.let {
                 if (!it.isJson() && !it.isXml() && headerMap["Content-Type"].isNullOrEmpty()) {
                     analyzeFields(it)
@@ -265,12 +266,12 @@ class AnalyzeUrl(
         bindings["book"] = ruleData as? Book
         bindings["source"] = source
         bindings["result"] = result
-        val context = SCRIPT_ENGINE.getScriptContext(bindings)
-        val scope = SCRIPT_ENGINE.getRuntimeScope(context)
+        val context = RhinoScriptEngine.getScriptContext(bindings)
+        val scope = RhinoScriptEngine.getRuntimeScope(context)
         source?.getShareScope()?.let {
             scope.prototype = it
         }
-        return SCRIPT_ENGINE.eval(jsStr, scope)
+        return RhinoScriptEngine.eval(jsStr, scope)
     }
 
     fun put(key: String, value: String): String {
@@ -284,6 +285,7 @@ class AnalyzeUrl(
             "bookName" -> (ruleData as? Book)?.let {
                 return it.name
             }
+
             "title" -> chapter?.let {
                 return it.title
             }
@@ -349,7 +351,10 @@ class AnalyzeUrl(
             }
         }
         if (waitTime > 0) {
-            throw ConcurrentException("根据并发率还需等待${waitTime}毫秒才可以访问", waitTime = waitTime)
+            throw ConcurrentException(
+                "根据并发率还需等待${waitTime}毫秒才可以访问",
+                waitTime = waitTime
+            )
         }
         return fetchRecord
     }
@@ -410,6 +415,7 @@ class AnalyzeUrl(
                             headerMap = headerMap
                         ).getStrResponse()
                     }
+
                     else -> BackstageWebView(
                         url = url,
                         tag = source?.getKey(),
@@ -435,6 +441,7 @@ class AnalyzeUrl(
                                 postJson(body)
                             }
                         }
+
                         else -> get(urlNoQuery, fieldMap, true)
                     }
                 }.let {
@@ -496,6 +503,7 @@ class AnalyzeUrl(
                             postJson(body)
                         }
                     }
+
                     else -> get(urlNoQuery, fieldMap, true)
                 }
             }

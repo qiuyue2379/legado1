@@ -1,8 +1,8 @@
 package io.legado.app.utils
 
 import com.script.SimpleBindings
+import com.script.rhino.RhinoScriptEngine
 import io.legado.app.constant.AppPattern.EXP_PATTERN
-import io.legado.app.constant.SCRIPT_ENGINE
 
 object JsUtils {
 
@@ -13,8 +13,8 @@ object JsUtils {
             val sb = StringBuffer()
             val expMatcher = EXP_PATTERN.matcher(js)
             while (expMatcher.find()) {
-                val result = expMatcher.group(1)?.let {
-                    SCRIPT_ENGINE.eval(it, bindings)
+                val result = expMatcher.group(1)?.let { js1 ->
+                    RhinoScriptEngine.eval(js1, bindings)
                 } ?: ""
                 if (result is String) {
                     expMatcher.appendReplacement(sb, result)
@@ -27,7 +27,7 @@ object JsUtils {
             expMatcher.appendTail(sb)
             return sb.toString()
         }
-        return SCRIPT_ENGINE.eval(js, bindings).toString()
+        return RhinoScriptEngine.eval(js, bindings).toString()
     }
 
 

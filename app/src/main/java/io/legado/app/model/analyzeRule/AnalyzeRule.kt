@@ -3,8 +3,8 @@ package io.legado.app.model.analyzeRule
 import android.text.TextUtils
 import androidx.annotation.Keep
 import com.script.SimpleBindings
+import com.script.rhino.RhinoScriptEngine
 import io.legado.app.constant.AppPattern.JS_PATTERN
-import io.legado.app.constant.SCRIPT_ENGINE
 import io.legado.app.data.entities.*
 import io.legado.app.help.CacheManager
 import io.legado.app.help.JsExtensions
@@ -257,6 +257,7 @@ class AnalyzeRule(
                                 } else {
                                     getAnalyzeByJSoup(it).getString(sourceRule.rule)
                                 }
+
                                 else -> sourceRule.rule
                             }
                         }
@@ -306,6 +307,7 @@ class AnalyzeRule(
                             result.toString(),
                             sourceRule.rule.splitNotBlank("&&")
                         )
+
                         Mode.Js -> evalJS(sourceRule.rule, it)
                         Mode.Json -> getAnalyzeByJSonPath(it).getObject(sourceRule.rule)
                         Mode.XPath -> getAnalyzeByXPath(it).getElements(sourceRule.rule)
@@ -338,6 +340,7 @@ class AnalyzeRule(
                             result.toString(),
                             sourceRule.rule.splitNotBlank("&&")
                         )
+
                         Mode.Js -> evalJS(sourceRule.rule, result)
                         Mode.Json -> getAnalyzeByJSonPath(it).getList(sourceRule.rule)
                         Mode.XPath -> getAnalyzeByXPath(it).getElements(sourceRule.rule)
@@ -388,7 +391,7 @@ class AnalyzeRule(
         if (rule.replaceRegex.isEmpty()) return result
         var vResult = result
         vResult = if (rule.replaceFirst) {
-        /* ##match##replace### 获取第一个匹配到的结果并进行替换 */
+            /* ##match##replace### 获取第一个匹配到的结果并进行替换 */
             kotlin.runCatching {
                 val pattern = Pattern.compile(rule.replaceRegex)
                 val matcher = pattern.matcher(vResult)
@@ -401,7 +404,7 @@ class AnalyzeRule(
                 rule.replacement
             }
         } else {
-        /* ##match##replace 替换*/
+            /* ##match##replace 替换*/
             kotlin.runCatching {
                 vResult.replace(rule.replaceRegex.toRegex(), rule.replacement)
             }.getOrElse {
@@ -475,26 +478,32 @@ class AnalyzeRule(
                     mode = Mode.Default
                     ruleStr
                 }
+
                 ruleStr.startsWith("@@") -> {
                     mode = Mode.Default
                     ruleStr.substring(2)
                 }
+
                 ruleStr.startsWith("@XPath:", true) -> {
                     mode = Mode.XPath
                     ruleStr.substring(7)
                 }
+
                 ruleStr.startsWith("@Json:", true) -> {
                     mode = Mode.Json
                     ruleStr.substring(6)
                 }
+
                 isJSON || ruleStr.startsWith("$.") || ruleStr.startsWith("$[") -> {
                     mode = Mode.Json
                     ruleStr
                 }
+
                 ruleStr.startsWith("/") -> {//XPath特征很明显,无需配置单独的识别标头
                     mode = Mode.XPath
                     ruleStr
                 }
+
                 else -> ruleStr
             }
             //分离put
@@ -522,10 +531,12 @@ class AnalyzeRule(
                             ruleType.add(getRuleType)
                             ruleParam.add(tmp.substring(6, tmp.lastIndex))
                         }
+
                         tmp.startsWith("{{") -> {
                             ruleType.add(jsRuleType)
                             ruleParam.add(tmp.substring(2, tmp.length - 2))
                         }
+
                         else -> {
                             splitRegex(tmp)
                         }
@@ -591,6 +602,7 @@ class AnalyzeRule(
                                 }
                             } ?: infoVal.insert(0, ruleParam[index])
                         }
+
                         regType == jsRuleType -> {
                             if (isRule(ruleParam[index])) {
                                 getString(arrayListOf(SourceRule(ruleParam[index]))).let {
@@ -605,13 +617,16 @@ class AnalyzeRule(
                                         0,
                                         String.format("%.0f", jsEval)
                                     )
+
                                     else -> infoVal.insert(0, jsEval.toString())
                                 }
                             }
                         }
+
                         regType == getRuleType -> {
                             infoVal.insert(0, get(ruleParam[index]))
                         }
+
                         else -> infoVal.insert(0, ruleParam[index])
                     }
                 }
@@ -666,6 +681,7 @@ class AnalyzeRule(
             "bookName" -> book?.let {
                 return it.name
             }
+
             "title" -> chapter?.let {
                 return it.title
             }
@@ -693,12 +709,12 @@ class AnalyzeRule(
         bindings["title"] = chapter?.title
         bindings["src"] = content
         bindings["nextChapterUrl"] = nextChapterUrl
-        val context = SCRIPT_ENGINE.getScriptContext(bindings)
-        val scope = SCRIPT_ENGINE.getRuntimeScope(context)
+        val context = RhinoScriptEngine.getScriptContext(bindings)
+        val scope = RhinoScriptEngine.getRuntimeScope(context)
         source?.getShareScope()?.let {
             scope.prototype = it
         }
-        return SCRIPT_ENGINE.eval(jsStr, scope)
+        return RhinoScriptEngine.eval(jsStr, scope)
     }
 
     override fun getSource(): BaseSource? {

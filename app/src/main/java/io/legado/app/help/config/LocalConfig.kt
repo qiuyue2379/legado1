@@ -6,11 +6,27 @@ import androidx.core.content.edit
 import io.legado.app.utils.getBoolean
 import io.legado.app.utils.putBoolean
 import io.legado.app.utils.putLong
+import io.legado.app.utils.putString
+import io.legado.app.utils.remove
 import splitties.init.appCtx
 
-object LocalConfig :
-    SharedPreferences by appCtx.getSharedPreferences("local", Context.MODE_PRIVATE) {
+object LocalConfig : SharedPreferences
+by appCtx.getSharedPreferences("local", Context.MODE_PRIVATE) {
+
     private const val versionCodeKey = "appVersionCode"
+
+    /**
+     * 本地密码,用来对需要备份的敏感信息加密,如 webdav 配置等
+     */
+    var password: String?
+        get() = getString("password", null)
+        set(value) {
+            if (value != null) {
+                putString("password", value)
+            } else {
+                remove("password")
+            }
+        }
 
     var lastBackup: Long
         get() = getLong("lastBackup", 0)

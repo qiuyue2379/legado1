@@ -51,7 +51,7 @@ object RhinoClassShutter : ClassShutter {
             if (i != -1) {
                 try {
                     sm.checkPackageAccess(fullClassName.substring(0, i))
-                } catch (var5: SecurityException) {
+                } catch (e: SecurityException) {
                     return false
                 }
             }
