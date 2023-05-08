@@ -58,9 +58,11 @@ class OnLineImportActivity :
                 "/bookSource" -> showDialogFragment(
                     ImportBookSourceDialog(url, true)
                 )
+
                 "/rssSource" -> showDialogFragment(
                     ImportRssSourceDialog(url, true)
                 )
+
                 "/replaceRule" -> showDialogFragment(
                     ImportReplaceRuleDialog(url, true)
                 )
