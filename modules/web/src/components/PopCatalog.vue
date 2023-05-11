@@ -1,64 +1,68 @@
 <template>
-  <div class="cata-wrapper" :style="popupTheme">
+  <div
+    :class="{ 'cata-wrapper': true, visible: popCataVisible }"
+    :style="popupTheme"
+  >
     <div class="title">目录</div>
-    <div
-      class="data-wrapper"
-      ref="cataData"
+    <virtual-list
+      style="height: 300px; overflow: auto"
       :class="{ night: isNight, day: !isNight }"
-    >
-      <div class="cata">
-        <div
-          class="log"
-          v-for="(note, index) in catalog"
-          :class="{ selected: isSelected(index) }"
-          :key="note.durChapterIndex"
-          @click="gotoChapter(note)"
-          ref="cata"
-        >
-          <div class="log-text">
-            {{ note.title }}
-          </div>
-        </div>
-      </div>
-    </div>
+      ref="virtualListRef"
+      data-key="index"
+      wrap-class="data-wrapper"
+      item-class="cata"
+      :data-sources="virtualListdata"
+      :data-component="CatalogItem"
+      :estimate-size="40"
+      :extra-props="{ gotoChapter }"
+    />
   </div>
 </template>
 
 <script setup>
-import jump from "../plugins/jump";
+import VirtualList from "vue3-virtual-scroll-list";
 import settings from "../plugins/config";
 import "../assets/fonts/popfont.css";
+import CatalogItem from "./CatalogItem.vue";
+
 const store = useBookStore();
 
-const isNight = ref(false);
-const { index } = toRefs(store.readingBook);
-const { catalog, popCataVisible } = storeToRefs(store);
+const isNight = computed(() => theme.value == 6);
+const { catalog, popCataVisible, miniInterface } = storeToRefs(store);
 
 const theme = computed(() => {
   return store.config.theme;
 });
-
 const popupTheme = computed(() => {
   return {
     background: settings.themes[theme.value].popup,
   };
 });
-watchEffect(() => {
-  isNight.value = theme.value == 6;
+
+const index = computed({
+  get: () => store.readingBook.index,
+  set: (value) => (store.readingBook.index = value),
 });
 
-const cata = ref();
-const cataData = ref();
-watch(popCataVisible, () => {
-  nextTick(() => {
-    let wrapper = cataData.value;
-    jump(cata.value[index.value], { container: wrapper, duration: 0 });
-  });
+const virtualListdata = computed(() => {
+  let catalogValue = catalog.value;
+  if (miniInterface.value) return catalogValue;
+
+  // pc端 virtualListIitem有2个章节
+  let length = Math.ceil(catalogValue.length / 2);
+  let virtualListDataSource = new Array(length);
+
+  let i = 0;
+  while (i < length) {
+    virtualListDataSource[i] = {
+      index: i,
+      catas: catalogValue.slice(2 * i, 2 * i + 2),
+    };
+    i++;
+  }
+  return virtualListDataSource;
 });
 
-const isSelected = (idx) => {
-  return idx == index.value;
-};
 const emit = defineEmits(["getContent"]);
 const gotoChapter = (note) => {
   index.value = catalog.value.indexOf(note);
@@ -66,6 +70,17 @@ const gotoChapter = (note) => {
   store.setContentLoading(true);
   emit("getContent", index.value);
 };
+
+const virtualListRef = ref();
+const virtualListIndex = computed(() => {
+  if (miniInterface.value) return index.value;
+  return Math.floor(index.value / 2);
+});
+
+onUpdated(() => {
+  // dom更新触发ResizeObserver，更新虚拟列表内部的sizes Map
+  virtualListRef.value.scrollToIndex(virtualListIndex.value);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -83,55 +98,26 @@ const gotoChapter = (note) => {
     width: fit-content;
     border-bottom: 1px solid #ed4259;
   }
-
-  .data-wrapper {
-    height: 300px;
-    overflow: auto;
-
+  :deep(.data-wrapper) {
     .cata {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: space-between;
-
-      .selected {
-        color: #eb4259;
-      }
-
-      .log {
-        width: 50%;
-        height: 40px;
-        cursor: pointer;
-        float: left;
-        font: 16px / 40px PingFangSC-Regular, HelveticaNeue-Light,
-          "Helvetica Neue Light", "Microsoft YaHei", sans-serif;
-
-        .log-text {
-          margin-right: 26px;
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-        }
-      }
+      //width: 50%;
+      height: 40px;
+      cursor: pointer;
+      font: 16px / 40px PingFangSC-Regular, HelveticaNeue-Light,
+        "Helvetica Neue Light", "Microsoft YaHei", sans-serif;
     }
   }
 
   .night {
-    :deep(.log) {
+    :deep(.cata) {
       border-bottom: 1px solid #666;
     }
   }
 
   .day {
-    :deep(.log) {
+    :deep(.cata) {
       border-bottom: 1px solid #f2f2f2;
     }
-  }
-}
-
-@media screen and (max-width: 500px) {
-  .cata-wrapper .data-wrapper .cata .log {
-    width: 100%;
   }
 }
 </style>

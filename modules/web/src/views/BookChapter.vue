@@ -81,11 +81,20 @@
     <div class="chapter" ref="content" :style="chapterTheme">
       <div class="content">
         <div class="top-bar" ref="top"></div>
-        <div v-for="data in chapterData" :key="data.index" ref="chapter">
-          <div class="title" :index="data.index" v-if="showContent">
-            {{ data.title }}
-          </div>
-          <chapter-content :carray="data.content" v-if="showContent" />
+        <div
+          v-for="data in chapterData"
+          :key="data.index"
+          :chapterIndex="data.index"
+          ref="chapter"
+        >
+          <chapter-content
+            :contents="data.content"
+            :title="data.title"
+            :spacing="store.config.spacing"
+            :fontSize="fontSize"
+            :fontFamily="fontFamily"
+            v-if="showContent"
+          />
         </div>
         <div class="loading" ref="loading"></div>
         <div class="bottom-bar" ref="bottom"></div>
@@ -122,10 +131,9 @@ try {
 } catch {
   localStorage.removeItem("config");
 }
+
 const loading = ref();
-
 const noPoint = ref(true);
-
 const showToolBar = ref(false);
 const chapterData = ref([]);
 const scrollObserve = ref(null);
@@ -137,11 +145,31 @@ const {
   readSettingsVisible,
   miniInterface,
   showContent,
+  config,
+  readingBook,
 } = storeToRefs(store);
+const chapterPos = computed({
+  get: () => readingBook.value.chapterPos,
+  set: (value) => (readingBook.value.chapterPos = value),
+});
+const chapterIndex = computed({
+  get: () => readingBook.value.index,
+  set: (value) => (readingBook.value.index = value),
+});
 
-const { chapterPos, index: chapterIndex } = toRefs(store.readingBook);
+const theme = computed(() => config.value.theme);
+const infiniteLoading = computed(() => config.value.infiniteLoading);
 
-const { theme, infiniteLoading } = toRefs(store.config);
+// 字体
+const fontFamily = computed(() => {
+  if (store.config.font >= 0) {
+    return settings.fonts[store.config.font];
+  }
+  return store.config.customFontName;
+});
+const fontSize = computed(() => {
+  return store.config.fontSize + "px";
+});
 
 // 主题部分
 const bodyColor = computed(() => settings.themes[theme.value].body);
@@ -164,18 +192,18 @@ const popupWidth = computed(() => {
 });
 const bodyTheme = computed(() => {
   return {
-    background: settings.themes[theme.value].body,
+    background: bodyColor.value,
   };
 });
 const chapterTheme = computed(() => {
   return {
-    background: settings.themes[theme.value].content,
+    background: chapterColor.value,
     width: readWidth.value,
   };
 });
 const leftBarTheme = computed(() => {
   return {
-    background: settings.themes[theme.value].popup,
+    background: popupColor.value,
     marginLeft: miniInterface.value
       ? 0
       : -(store.config.readWidth / 2 + 68) + "px",
@@ -184,34 +212,14 @@ const leftBarTheme = computed(() => {
 });
 const rightBarTheme = computed(() => {
   return {
-    background: settings.themes[theme.value].popup,
+    background: popupColor.value,
     marginRight: miniInterface.value
       ? 0
       : -(store.config.readWidth / 2 + 52) + "px",
     display: miniInterface.value && !showToolBar.value ? "none" : "block",
   };
 });
-const isNight = ref(false);
-watchEffect(() => {
-  isNight.value = theme.value == 6;
-});
-watch(bodyColor, (color) => {
-  bodyTheme.value.background = color;
-});
-watch(chapterColor, (color) => {
-  chapterTheme.value.background = color;
-});
-watch(readWidth, (width) => {
-  chapterTheme.value.width = width;
-  let leftToolMargin = -((parseInt(width) + 130) / 2 + 68) + "px";
-  let rightToolMargin = -((parseInt(width) + 130) / 2 + 52) + "px";
-  leftBarTheme.value.marginLeft = leftToolMargin;
-  rightBarTheme.value.marginRight = rightToolMargin;
-});
-watch(popupColor, (color) => {
-  leftBarTheme.value.background = color;
-  rightBarTheme.value.background = color;
-});
+const isNight = computed(() => theme.value == 6);
 
 watchEffect(() => {
   if (chapterData.value.length > 0) {
@@ -254,6 +262,7 @@ const getContent = (index, reloadChapter = true, chapterPos = 0) => {
         let data = res.data.data;
         let content = data.split(/\n+/);
         updateChapterData({ index, content, title }, reloadChapter);
+        if (reloadChapter) toChapterPos(chapterPos);
       } else {
         ElMessage({ message: res.data.errorMsg, type: "error" });
         let content = [res.data.errorMsg];
@@ -278,41 +287,36 @@ const getContent = (index, reloadChapter = true, chapterPos = 0) => {
   );
 };
 const chapter = ref();
-const toChapterPos = (chapterPos) => {
-  if (!chapterPos) return;
+const toChapterPos = (pos) => {
   nextTick(() => {
-    //计算chapterPos对应的段落行数
     let wordCount = 0;
-    let index = chapterData.value[0].content.findIndex((paragraph) => {
-      wordCount += paragraph.length;
-      return wordCount >= chapterPos.value;
-    });
-    if (index == -1) index = chapterData.value[0].content.length - 1;
-    if (index == 0) return; //第一行不跳转
-    //跳转
-    jump(chapter.value[0].children[1].children[index], {
-      duration: 0,
-      callback: () => (chapterPos.value = 0),
-    });
+    if (chapter.value.length != 1) return;
+    for (let element of chapter.value[0].children) {
+      wordCount += parseInt(element.getAttribute("wordCount")) + 1; //计算换行符
+      if (wordCount - 1 >= pos) {
+        //最后一段没有换行符
+        jump(element, {
+          duration: 0,
+        });
+        break;
+      }
+    }
   });
 };
 //计算当前章节阅读的字数
 const computeChapterPos = () => {
-  //dom没渲染时 返回0
-  if (!chapter.value[0]) return;
+  if (chapter.value.length == 0) return;
   //计算当前阅读进度对应的element
-  let index = chapterData.value.findIndex(
-    (chapter) => chapter.index == chapterIndex.value
+  let chapterElement = chapter.value.find(
+    (element) => element.getAttribute("chapterIndex") == chapterIndex.value
   );
-  if (index == -1) return;
-  let element = chapter.value[index].children[1].children;
+  if (!chapterElement) return;
   //计算已读字数
   let mChapterPos = 0;
-  for (let paragraph of element) {
-    let text = paragraph.innerText;
-    mChapterPos += text.length;
+  for (let paragraph of chapterElement.children) {
+    mChapterPos += parseInt(paragraph.getAttribute("wordCount")) + 1; //计算换行符
     if (paragraph.getBoundingClientRect().top >= 0) {
-      chapterPos.value = mChapterPos;
+      chapterPos.value = mChapterPos - 1; //最后一段没有换行符
       break;
     }
   }
@@ -446,9 +450,7 @@ const handleIScrollObserve = (entries) => {
 const handleIReadingObserve = (entries) => {
   nextTick(() => {
     for (let { isIntersecting, target, boundingClientRect } of entries) {
-      let titleElement = target.querySelector(".title");
-      if (!titleElement) return;
-      let chapterTitleIndex = parseInt(titleElement.getAttribute("index"));
+      let chapterTitleIndex = parseInt(target.getAttribute("chapterIndex"));
       if (isIntersecting) {
         chapterIndex.value = chapterTitleIndex;
       } else {
@@ -469,23 +471,20 @@ const addReadingObserve = () => {
     chapterElements.forEach((el) => readingObserve.value.observe(el));
   });
 };
-/*
+
 onBeforeRouteLeave((to, from, next) => {
-  if (
-    store.searchBooks.every((book) => book.bookUrl != store.readingBook.bookUrl)
-  ) {
-    next();
-  } else {
-    alert(111);
-    next(false);
-  }
+  computeChapterPos();
+  saveReadingBookProgressToBrowser(chapterIndex.value);
+  next();
 });
+/*
 window.addEventListener("beforeunload", (e) => {
   e.preventDefault();
   e.returnValue = "";
   alert(111);
 });
 */
+
 onMounted(() => {
   showLoading.value = true;
   //获取书籍数据
@@ -523,7 +522,6 @@ onMounted(() => {
       store.setReadingBook(book);
 
       getContent(chapterIndex, true, chapterPos);
-
       window.addEventListener("keyup", handleKeyPress);
       //监听底部加载
       scrollObserve.value = new IntersectionObserver(handleIScrollObserve, {
@@ -666,12 +664,6 @@ onUnmounted(() => {
       line-height: 1.8;
       font-family: "Microsoft YaHei", PingFangSC-Regular, HelveticaNeue-Light,
         "Helvetica Neue Light", sans-serif;
-
-      .title {
-        margin-bottom: 57px;
-        font: 24px / 32px PingFangSC-Regular, HelveticaNeue-Light,
-          "Helvetica Neue Light", "Microsoft YaHei", sans-serif;
-      }
 
       .bottom-bar,
       .top-bar {

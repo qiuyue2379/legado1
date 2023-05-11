@@ -1,5 +1,10 @@
 <template>
-  <div v-for="(para, index) in carray" :key="index">
+  <div class="title" wordCount="0">{{ title }}</div>
+  <div
+    v-for="(para, index) in contents"
+    :key="index"
+    :wordCount="wordCounts[index]"
+  >
     <img
       class="full"
       v-if="/^\s*<img[^>]*src[^>]+>$/.test(para)"
@@ -7,30 +12,19 @@
       @error.once="proxyImage"
       loading="lazy"
     />
-    <p v-else :style="style" v-html="para" />
+    <p v-else :style="{ fontFamily, fontSize }" v-html="para" />
   </div>
 </template>
 
 <script setup>
-import config from "../plugins/config";
-import { getImageFromLegado, isLegadoUrl } from "../plugins/utils";
+import { getImageFromLegado, isLegadoUrl } from "@/plugins/utils";
 
-const store = useBookStore();
-defineProps(["carray"]);
-
-const fontFamily = computed(() => {
-  if (store.config.font >= 0) {
-    return config.fonts[store.config.font];
-  }
-  return { fontFamily: store.config.customFontName };
-});
-const fontSize = computed(() => {
-  return store.config.fontSize + "px";
-});
-const style = computed(() => {
-  let style = fontFamily.value;
-  style.fontSize = fontSize.value;
-  return style;
+const props = defineProps({
+  contents: { type: Array, required: true },
+  title: { type: String, required: true },
+  spacing: { type: Object, required: true },
+  fontFamily: { type: String, required: true },
+  fontSize: { type: String, required: true },
 });
 
 const getImageSrc = (content) => {
@@ -43,19 +37,32 @@ const proxyImage = (event) => {
   event.target.src = getImageFromLegado(event.target.src);
 };
 
-watch(fontSize, () => {
-  store.setShowContent(false);
-  nextTick(() => {
-    store.setShowContent(true);
-  });
+const calculateWordCount = (paragraph) => {
+  const imgPattern = /<img[^>]*src="[^"]*(?:"[^>]+\})?"[^>]*>/g;
+  //内嵌图片文字为1
+  const imagePlaceHolder = " ";
+  return paragraph.replaceAll(imgPattern, imagePlaceHolder).length;
+};
+const wordCounts = computed(() => {
+  return Array.from(props.contents, (content) => calculateWordCount(content));
 });
 </script>
 
 <style lang="scss" scoped>
+.title {
+  margin-bottom: 57px;
+  font: 24px / 32px PingFangSC-Regular, HelveticaNeue-Light,
+    "Helvetica Neue Light", "Microsoft YaHei", sans-serif;
+}
+
 p {
   display: block;
   word-wrap: break-word;
   word-break: break-all;
+
+  letter-spacing: calc(v-bind("props.spacing.letter") * 1em);
+  line-height: calc(1 + v-bind("props.spacing.line"));
+  margin: calc(v-bind("props.spacing.paragraph") * 1em) 0;
 
   :deep(img) {
     height: 1em;

@@ -10,6 +10,7 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     BookItems: typeof import('./components/BookItems.vue')['default']
+    CatalogItem: typeof import('./components/CatalogItem.vue')['default']
     ChapterContent: typeof import('./components/ChapterContent.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
@@ -21,14 +22,12 @@ declare module '@vue/runtime-core' {
     ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
     ElLink: typeof import('element-plus/es')['ElLink']
     ElOption: typeof import('element-plus/es')['ElOption']
-    ElPopover: typeof import('element-plus/es')['ElPopover']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
-    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     PopCatalog: typeof import('./components/PopCatalog.vue')['default']
     ReadSettings: typeof import('./components/ReadSettings.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
