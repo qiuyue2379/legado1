@@ -43,23 +43,12 @@ object ExoPlayerHelper {
         type
     }
 
-//    fun createMediaSource(
-//        uri: Uri,
-//        defaultRequestProperties: Map<String, String>
-//    ): MediaSource {
-//        val mediaItem = MediaItem.fromUri(uri)
-//        val mediaSourceFactory = ProgressiveMediaSource.Factory(
-//            cacheDataSourceFactory.setDefaultRequestProperties(defaultRequestProperties)
-//        )
-//        return mediaSourceFactory.createMediaSource(mediaItem)
-//    }
-
     fun createMediaItem(url: String, headers: Map<String, String>): MediaItem {
         val formatUrl = url + SPLIT_TAG + gson.toJson(headers, mapType)
         return MediaItem.Builder().setUri(formatUrl).build()
     }
 
-    fun createExoPlayer(context: Context): ExoPlayer {
+    fun createHttpExoPlayer(context: Context): ExoPlayer {
         return ExoPlayer.Builder(context).setLoadControl(
             DefaultLoadControl.Builder().setBufferDurationsMs(
                 DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
@@ -68,12 +57,11 @@ object ExoPlayerHelper {
                 DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS / 10
             ).build()
 
-        )
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(context)
-                    .setDataSourceFactory(resolvingDataSource)
-                    .setLiveTargetOffsetMs(5000)
-            ).build()
+        ).setMediaSourceFactory(
+            DefaultMediaSourceFactory(context)
+                .setDataSourceFactory(resolvingDataSource)
+                .setLiveTargetOffsetMs(5000)
+        ).build()
     }
 
     /**
@@ -107,9 +95,7 @@ object ExoPlayerHelper {
 
 
     private val resolvingDataSource: ResolvingDataSource.Factory by lazy {
-        ResolvingDataSource.Factory(
-            cacheDataSourceFactory
-        ) {
+        ResolvingDataSource.Factory(cacheDataSourceFactory) {
             var res = it
 
             if (it.uri.toString().contains(SPLIT_TAG)) {
@@ -122,8 +108,6 @@ object ExoPlayerHelper {
                 } catch (_: Exception) {
                 }
             }
-
-
 
             res
 

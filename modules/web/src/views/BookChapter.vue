@@ -88,11 +88,14 @@
           ref="chapter"
         >
           <chapter-content
+            ref="chapterRef"
+            :chapterIndex="data.index"
             :contents="data.content"
             :title="data.title"
             :spacing="store.config.spacing"
             :fontSize="fontSize"
             :fontFamily="fontFamily"
+            @readedLengthChange="onReadedLengthChange"
             v-if="showContent"
           />
         </div>
@@ -107,23 +110,13 @@
 import jump from "@/plugins/jump";
 import settings from "@/plugins/config";
 import API from "@api";
-import loadingSvg from "@element-plus/icons-svg/loading.svg?raw";
+import { useLoading } from "@/hooks/loading";
 
-const showLoading = ref(false);
-const loadingSerive = ref(null);
 const content = ref();
-
-watch(showLoading, (loading) => {
-  if (!loading) return loadingSerive.value?.close();
-  loadingSerive.value = ElLoading.service({
-    target: content.value,
-    spinner: loadingSvg,
-    text: "正在获取信息",
-    lock: true,
-  });
-});
-
+// loading spinner
+const { isLoading, loadingWrapper } = useLoading(content, "正在获取信息");
 const store = useBookStore();
+
 // 读取阅读配置
 try {
   const browerConfig = JSON.parse(localStorage.getItem("config"));
@@ -131,13 +124,6 @@ try {
 } catch {
   localStorage.removeItem("config");
 }
-
-const loading = ref();
-const noPoint = ref(true);
-const showToolBar = ref(false);
-const chapterData = ref([]);
-const scrollObserve = ref(null);
-const readingObserve = ref(null);
 
 const {
   catalog,
@@ -147,6 +133,7 @@ const {
   showContent,
   config,
   readingBook,
+  bookProgress,
 } = storeToRefs(store);
 const chapterPos = computed({
   get: () => readingBook.value.chapterPos,
@@ -201,6 +188,7 @@ const chapterTheme = computed(() => {
     width: readWidth.value,
   };
 });
+const showToolBar = ref(false);
 const leftBarTheme = computed(() => {
   return {
     background: popupColor.value,
@@ -221,106 +209,8 @@ const rightBarTheme = computed(() => {
 });
 const isNight = computed(() => theme.value == 6);
 
-watchEffect(() => {
-  if (chapterData.value.length > 0) {
-    store.setContentLoading(false);
-    //添加章节内容到observe
-    addReadingObserve();
-  }
-});
-
-watchEffect(() => {
-  document.title = catalog.value[chapterIndex.value]?.title || document.title;
-  store.saveBookProcess();
-});
-
-watchEffect(() => {
-  if (!infiniteLoading.value) {
-    scrollObserve.value?.disconnect();
-  } else {
-    scrollObserve.value?.observe(loading.value);
-  }
-});
-
+// 顶部底部跳转
 const top = ref();
-const getContent = (index, reloadChapter = true, chapterPos = 0) => {
-  if (reloadChapter) {
-    //展示进度条
-    store.setShowContent(false);
-    showLoading.value = true;
-    //强制滚回顶层
-    jump(top.value, { duration: 0 });
-    //从目录，按钮切换章节时保存进度 预加载时不保存
-    saveReadingBookProgressToBrowser(index, chapterPos);
-  }
-  let bookUrl = sessionStorage.getItem("bookUrl");
-  let { title, index: chapterIndex } = catalog.value[index];
-
-  API.getBookContent(bookUrl, chapterIndex).then(
-    (res) => {
-      if (res.data.isSuccess) {
-        let data = res.data.data;
-        let content = data.split(/\n+/);
-        updateChapterData({ index, content, title }, reloadChapter);
-        if (reloadChapter) toChapterPos(chapterPos);
-      } else {
-        ElMessage({ message: res.data.errorMsg, type: "error" });
-        let content = [res.data.errorMsg];
-        updateChapterData({ index, content, title }, reloadChapter);
-      }
-      store.setContentLoading(true);
-      showLoading.value = false;
-      noPoint.value = false;
-      store.setShowContent(true);
-      if (!res.data.isSuccess) {
-        throw res.data;
-      }
-    },
-    (err) => {
-      ElMessage({ message: "获取章节内容失败", type: "error" });
-      let content = ["获取章节内容失败！"];
-      updateChapterData({ index, content, title }, reloadChapter);
-      showLoading.value = false;
-      store.setShowContent(true);
-      throw err;
-    }
-  );
-};
-const chapter = ref();
-const toChapterPos = (pos) => {
-  nextTick(() => {
-    let wordCount = 0;
-    if (chapter.value.length != 1) return;
-    for (let element of chapter.value[0].children) {
-      wordCount += parseInt(element.getAttribute("wordCount")) + 1; //计算换行符
-      if (wordCount - 1 >= pos) {
-        //最后一段没有换行符
-        jump(element, {
-          duration: 0,
-        });
-        break;
-      }
-    }
-  });
-};
-//计算当前章节阅读的字数
-const computeChapterPos = () => {
-  if (chapter.value.length == 0) return;
-  //计算当前阅读进度对应的element
-  let chapterElement = chapter.value.find(
-    (element) => element.getAttribute("chapterIndex") == chapterIndex.value
-  );
-  if (!chapterElement) return;
-  //计算已读字数
-  let mChapterPos = 0;
-  for (let paragraph of chapterElement.children) {
-    mChapterPos += parseInt(paragraph.getAttribute("wordCount")) + 1; //计算换行符
-    if (paragraph.getBoundingClientRect().top >= 0) {
-      chapterPos.value = mChapterPos - 1; //最后一段没有换行符
-      break;
-    }
-  }
-};
 const bottom = ref();
 const toTop = () => {
   jump(top.value);
@@ -328,6 +218,115 @@ const toTop = () => {
 const toBottom = () => {
   jump(bottom.value);
 };
+
+// 书架路由切换
+const router = useRouter();
+const toShelf = () => {
+  router.push("/");
+};
+
+// 获取章节内容
+const chapterData = ref([]);
+const noPoint = ref(true);
+const getContent = (index, reloadChapter = true, chapterPos = 0) => {
+  if (reloadChapter) {
+    //展示进度条
+    store.setShowContent(false);
+    //强制滚回顶层
+    jump(top.value, { duration: 0 });
+    //从目录，按钮切换章节时保存进度 预加载时不保存
+    saveReadingBookProgressToBrowser(index, chapterPos);
+    chapterData.value = [];
+  }
+  let bookUrl = sessionStorage.getItem("bookUrl");
+  let { title, index: chapterIndex } = catalog.value[index];
+
+  loadingWrapper(
+    API.getBookContent(bookUrl, chapterIndex).then(
+      (res) => {
+        if (res.data.isSuccess) {
+          let data = res.data.data;
+          let content = data.split(/\n+/);
+          chapterData.value.push({ index, content, title });
+          if (reloadChapter) toChapterPos(chapterPos);
+        } else {
+          ElMessage({ message: res.data.errorMsg, type: "error" });
+          let content = [res.data.errorMsg];
+          chapterData.value.push({ index, content, title });
+        }
+        store.setContentLoading(true);
+        noPoint.value = false;
+        store.setShowContent(true);
+        if (!res.data.isSuccess) {
+          throw res.data;
+        }
+      },
+      (err) => {
+        ElMessage({ message: "获取章节内容失败", type: "error" });
+        let content = ["获取章节内容失败！"];
+        chapterData.value.push({ index, content, title });
+        store.setShowContent(true);
+        throw err;
+      }
+    )
+  );
+};
+
+// 章节进度跳转和计算
+const chapter = ref();
+const chapterRef = ref();
+const toChapterPos = (pos) => {
+  nextTick(() => {
+    if (chapterRef.value.length === 1)
+      chapterRef.value[0].scrollToReadedLength(pos);
+  });
+};
+const onReadedLengthChange = (index, pos) => {
+  saveReadingBookProgressToBrowser(index, pos);
+};
+
+// 文档标题
+watchEffect(() => {
+  document.title = catalog.value[chapterIndex.value]?.title || document.title;
+});
+
+// 阅读记录保存浏览器
+const saveReadingBookProgressToBrowser = (index, pos) => {
+  //保存localStorage
+  let bookUrl = sessionStorage.getItem("bookUrl");
+  var book = JSON.parse(localStorage.getItem(bookUrl));
+  book.index = index;
+  book.chapterPos = pos;
+  localStorage.setItem(bookUrl, JSON.stringify(book));
+  //最近阅读
+  book = JSON.parse(localStorage.getItem("readingRecent"));
+  book.chapterIndex = index;
+  book.chapterPos = pos;
+  localStorage.setItem("readingRecent", JSON.stringify(book));
+  //保存vuex
+  chapterIndex.value = index;
+  chapterPos.value = pos;
+  //保存sessionStorage
+  sessionStorage.setItem("chapterIndex", index);
+  sessionStorage.setItem("chapterPos", String(pos));
+};
+
+// 进度同步
+// 返回导航变化 同步请求会在获取书架前完成
+
+/**
+ * VisibilityChange https://developer.mozilla.org/zh-CN/docs/Web/API/Document/visibilitychange_event
+ * 监听关闭页面 切换tab 返回桌面 等操作
+ * 注意不用监听点击链接导航变化 不对Safari<14.5兼容处理
+**/
+const onVisibilityChange = () => {
+  if (document.visibilityState == "hidden") {
+    API.saveBookProgressWithBeacon(bookProgress.value);
+  }
+};
+// 定时同步
+
+// 章节切换
 const toNextChapter = () => {
   store.setContentLoading(true);
   let index = chapterIndex.value + 1;
@@ -360,42 +359,33 @@ const toPreChapter = () => {
     });
   }
 };
-const saveReadingBookProgressToBrowser = (index, pos = chapterPos.value) => {
-  //保存localStorage
-  let bookUrl = sessionStorage.getItem("bookUrl");
-  var book = JSON.parse(localStorage.getItem(bookUrl));
-  book.index = index;
-  book.chapterPos = pos;
-  localStorage.setItem(bookUrl, JSON.stringify(book));
-  //最近阅读
-  book = JSON.parse(localStorage.getItem("readingRecent"));
-  book.chapterIndex = index;
-  book.chapterPos = pos;
-  localStorage.setItem("readingRecent", JSON.stringify(book));
-  //保存vuex
-  chapterIndex.value = index;
-  chapterPos.value = pos;
-  //保存sessionStorage
-  sessionStorage.setItem("chapterIndex", index);
-  sessionStorage.setItem("chapterPos", String(pos));
-};
-const updateChapterData = async (data, reloadChapter) => {
-  if (reloadChapter) {
-    chapterData.value.splice(0);
+
+// 无限滚动
+const scrollObserve = ref(null);
+const loading = ref();
+watchEffect(() => {
+  if (!infiniteLoading.value) {
+    scrollObserve.value?.disconnect();
+  } else {
+    scrollObserve.value?.observe(loading.value);
   }
-  chapterData.value.push(data);
-};
+});
 const loadMore = () => {
   let index = chapterData.value.slice(-1)[0].index;
   if (catalog.value.length - 1 > index) {
     getContent(index + 1, false);
   }
 };
-const router = useRouter();
-const toShelf = () => {
-  router.push("/");
+// IntersectionObserver回调 底部加载
+const handleIScrollObserve = (entries) => {
+  if (isLoading.value) return;
+  for (let { isIntersecting } of entries) {
+    if (!isIntersecting) return;
+    loadMore();
+  }
 };
-//监听方向键
+
+// 监听方向键
 const handleKeyPress = (event) => {
   switch (event.key) {
     case "ArrowLeft":
@@ -438,55 +428,8 @@ const handleKeyPress = (event) => {
       break;
   }
 };
-//IntersectionObserver回调 底部加载
-const handleIScrollObserve = (entries) => {
-  if (showLoading.value) return;
-  for (let { isIntersecting } of entries) {
-    if (!isIntersecting) return;
-    loadMore();
-  }
-};
-//IntersectionObserver回调 当前阅读章节序号
-const handleIReadingObserve = (entries) => {
-  nextTick(() => {
-    for (let { isIntersecting, target, boundingClientRect } of entries) {
-      let chapterTitleIndex = parseInt(target.getAttribute("chapterIndex"));
-      if (isIntersecting) {
-        chapterIndex.value = chapterTitleIndex;
-      } else {
-        if (boundingClientRect.top < 0) {
-          chapterIndex.value = chapterTitleIndex + 1;
-        } else {
-          chapterIndex.value = chapterTitleIndex - 1;
-        }
-      }
-    }
-  });
-};
-//添加所有章节到observe
-const addReadingObserve = () => {
-  nextTick(() => {
-    let chapterElements = chapter.value;
-    if (!chapterElements) return;
-    chapterElements.forEach((el) => readingObserve.value.observe(el));
-  });
-};
-
-onBeforeRouteLeave((to, from, next) => {
-  computeChapterPos();
-  saveReadingBookProgressToBrowser(chapterIndex.value);
-  next();
-});
-/*
-window.addEventListener("beforeunload", (e) => {
-  e.preventDefault();
-  e.returnValue = "";
-  alert(111);
-});
-*/
 
 onMounted(() => {
-  showLoading.value = true;
   //获取书籍数据
   let bookUrl = sessionStorage.getItem("bookUrl");
   let bookName = sessionStorage.getItem("bookName");
@@ -508,46 +451,46 @@ onMounted(() => {
     };
     localStorage.setItem(bookUrl, JSON.stringify(book));
   }
+  loadingWrapper(
+    API.getChapterList(bookUrl).then(
+      (res) => {
+        if (!res.data.isSuccess) {
+          ElMessage({ message: res.data.errorMsg, type: "error" });
+          setTimeout(toShelf, 500);
+          return;
+        }
+        let data = res.data.data;
+        store.setCatalog(data);
+        store.setReadingBook(book);
 
-  API.getChapterList(bookUrl).then(
-    (res) => {
-      showLoading.value = false;
-      if (!res.data.isSuccess) {
-        ElMessage({ message: res.data.errorMsg, type: "error" });
-        setTimeout(toShelf, 500);
-        return;
+        getContent(chapterIndex, true, chapterPos);
+        window.addEventListener("keyup", handleKeyPress);
+        // 兼容Safari < 14
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        //监听底部加载
+        scrollObserve.value = new IntersectionObserver(handleIScrollObserve, {
+          rootMargin: "-100% 0% 20% 0%",
+        });
+        infiniteLoading.value && scrollObserve.value.observe(loading.value);
+        //第二次点击同一本书 页面标题不会变化
+        document.title = null;
+        document.title = bookName + " | " + catalog.value[chapterIndex].title;
+      },
+      (err) => {
+        ElMessage({ message: "获取书籍目录失败", type: "error" });
+        throw err;
       }
-      let data = res.data.data;
-      store.setCatalog(data);
-      store.setReadingBook(book);
-
-      getContent(chapterIndex, true, chapterPos);
-      window.addEventListener("keyup", handleKeyPress);
-      //监听底部加载
-      scrollObserve.value = new IntersectionObserver(handleIScrollObserve, {
-        rootMargin: "-100% 0% 20% 0%",
-      });
-      infiniteLoading.value && scrollObserve.value.observe(loading.value);
-      //监听当前阅读章节
-      readingObserve.value = new IntersectionObserver(handleIReadingObserve);
-      //第二次点击同一本书 页面标题不会变化
-      document.title = null;
-      document.title = bookName + " | " + catalog.value[chapterIndex].title;
-    },
-    (err) => {
-      showLoading.value = false;
-      ElMessage({ message: "获取书籍目录失败", type: "error" });
-      throw err;
-    }
+    )
   );
 });
 
 onUnmounted(() => {
   window.removeEventListener("keyup", handleKeyPress);
+  // 兼容Safari < 14
+  document.removeEventListener("visibilitychange", onVisibilityChange);
   readSettingsVisible.value = false;
   popCataVisible.value = false;
   scrollObserve.value?.disconnect();
-  readingObserve.value?.disconnect();
 });
 </script>
 
@@ -644,19 +587,6 @@ onUnmounted(() => {
     min-height: 100vh;
     width: 670px;
     margin: 0 auto;
-
-    :deep(.el-loading-mask) {
-      background-color: rgba(0, 0, 0, 0);
-    }
-    :deep(.el-loading-spinner) {
-      font-size: 36px;
-      color: #b5b5b5;
-    }
-
-    :deep(.el-loading-text) {
-      font-weight: 500;
-      color: #b5b5b5;
-    }
 
     .content {
       overflow: hidden;
