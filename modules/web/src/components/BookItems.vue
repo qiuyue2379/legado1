@@ -49,7 +49,7 @@
   </div>
 </template>
 <script setup>
-import { dateFormat } from "../plugins/utils";
+import { dateFormat } from "../utils/utils";
 const props = defineProps(["books", "isSearch"]);
 const emit = defineEmits(["bookClick"]);
 const handleClick = (book) => emit("bookClick", book);
@@ -64,7 +64,6 @@ const getCover = (coverUrl) => {
 const subJustify = computed(() =>
   props.isSearch ? "space-between" : "flex-start"
 );
-
 </script>
 
 <style lang="scss" scoped>

@@ -108,7 +108,7 @@
 
 <script setup>
 import jump from "@/plugins/jump";
-import settings from "@/plugins/config";
+import settings from "@/config/themeConfig";
 import API from "@api";
 import { useLoading } from "@/hooks/loading";
 
@@ -209,6 +209,24 @@ const rightBarTheme = computed(() => {
 });
 const isNight = computed(() => theme.value == 6);
 
+/**
+ * pc移动端判断 最大阅读宽度修正
+ * 阅读宽度最小为640px 加上工具栏 68px 52px 取较大值 为 776px
+ */
+const onResize = () => {
+  store.setMiniInterface(window.innerWidth < 776);
+  const width = store.config.readWidth; /**包含padding */
+  checkPageWidth(width);
+};
+/** 判断阅读宽度是否超出页面 */
+const checkPageWidth = (readWidth) => {
+  if (store.miniInterface) return;
+  if (readWidth + 2 * 68 > window.innerWidth) store.config.readWidth -= 160;
+};
+watch(
+  () => store.config.readWidth,
+  (width) => checkPageWidth(width)
+);
 // 顶部底部跳转
 const top = ref();
 const bottom = ref();
@@ -318,7 +336,7 @@ const saveReadingBookProgressToBrowser = (index, pos) => {
  * VisibilityChange https://developer.mozilla.org/zh-CN/docs/Web/API/Document/visibilitychange_event
  * 监听关闭页面 切换tab 返回桌面 等操作
  * 注意不用监听点击链接导航变化 不对Safari<14.5兼容处理
-**/
+ **/
 const onVisibilityChange = () => {
   if (document.visibilityState == "hidden") {
     API.saveBookProgressWithBeacon(bookProgress.value);
@@ -361,13 +379,13 @@ const toPreChapter = () => {
 };
 
 // 无限滚动
-const scrollObserve = ref(null);
+let scrollObserver;
 const loading = ref();
 watchEffect(() => {
   if (!infiniteLoading.value) {
-    scrollObserve.value?.disconnect();
+    scrollObserver?.disconnect();
   } else {
-    scrollObserve.value?.observe(loading.value);
+    scrollObserver?.observe(loading.value);
   }
 });
 const loadMore = () => {
@@ -377,7 +395,7 @@ const loadMore = () => {
   }
 };
 // IntersectionObserver回调 底部加载
-const handleIScrollObserve = (entries) => {
+const onReachBottom = (entries) => {
   if (isLoading.value) return;
   for (let { isIntersecting } of entries) {
     if (!isIntersecting) return;
@@ -428,7 +446,6 @@ const handleKeyPress = (event) => {
       break;
   }
 };
-
 onMounted(() => {
   //获取书籍数据
   let bookUrl = sessionStorage.getItem("bookUrl");
@@ -451,6 +468,8 @@ onMounted(() => {
     };
     localStorage.setItem(bookUrl, JSON.stringify(book));
   }
+  onResize();
+  window.addEventListener("resize", onResize);
   loadingWrapper(
     API.getChapterList(bookUrl).then(
       (res) => {
@@ -468,10 +487,10 @@ onMounted(() => {
         // 兼容Safari < 14
         document.addEventListener("visibilitychange", onVisibilityChange);
         //监听底部加载
-        scrollObserve.value = new IntersectionObserver(handleIScrollObserve, {
+        scrollObserver = new IntersectionObserver(onReachBottom, {
           rootMargin: "-100% 0% 20% 0%",
         });
-        infiniteLoading.value && scrollObserve.value.observe(loading.value);
+        infiniteLoading.value && scrollObserver.observe(loading.value);
         //第二次点击同一本书 页面标题不会变化
         document.title = null;
         document.title = bookName + " | " + catalog.value[chapterIndex].title;
@@ -486,11 +505,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("keyup", handleKeyPress);
+  window.removeEventListener("resize", onResize);
   // 兼容Safari < 14
   document.removeEventListener("visibilitychange", onVisibilityChange);
   readSettingsVisible.value = false;
   popCataVisible.value = false;
-  scrollObserve.value?.disconnect();
+  scrollObserver?.disconnect();
 });
 </script>
 
@@ -506,8 +526,8 @@ onUnmounted(() => {
 
 .chapter-wrapper {
   padding: 0 4%;
-  flex-direction: column;
-  align-items: center;
+
+  overflow-x: hidden;
 
   :deep(.no-point) {
     pointer-events: none;
@@ -589,7 +609,6 @@ onUnmounted(() => {
     margin: 0 auto;
 
     .content {
-      overflow: hidden;
       font-size: 18px;
       line-height: 1.8;
       font-family: "Microsoft YaHei", PingFangSC-Regular, HelveticaNeue-Light,
@@ -649,7 +668,7 @@ onUnmounted(() => {
   }
 }
 
-@media screen and (max-width: 750px) {
+@media screen and (max-width: 776px) {
   .chapter-wrapper {
     padding: 0;
 
