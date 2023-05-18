@@ -14,7 +14,12 @@ import io.legado.app.base.VMBaseActivity
 import io.legado.app.constant.BookSourceType
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.BookSource
-import io.legado.app.data.entities.rule.*
+import io.legado.app.data.entities.rule.BookInfoRule
+import io.legado.app.data.entities.rule.ContentRule
+import io.legado.app.data.entities.rule.ExploreRule
+import io.legado.app.data.entities.rule.ReviewRule
+import io.legado.app.data.entities.rule.SearchRule
+import io.legado.app.data.entities.rule.TocRule
 import io.legado.app.databinding.ActivityBookSourceEditBinding
 import io.legado.app.help.config.LocalConfig
 import io.legado.app.lib.dialogs.SelectItem
@@ -32,7 +37,15 @@ import io.legado.app.ui.widget.dialog.UrlOptionDialog
 import io.legado.app.ui.widget.dialog.VariableDialog
 import io.legado.app.ui.widget.keyboard.KeyboardToolPop
 import io.legado.app.ui.widget.text.EditEntity
-import io.legado.app.utils.*
+import io.legado.app.utils.GSON
+import io.legado.app.utils.isContentScheme
+import io.legado.app.utils.launch
+import io.legado.app.utils.sendToClip
+import io.legado.app.utils.setEdgeEffectColor
+import io.legado.app.utils.share
+import io.legado.app.utils.shareWithQr
+import io.legado.app.utils.showDialogFragment
+import io.legado.app.utils.startActivity
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
@@ -295,6 +308,7 @@ class BookSourceEditActivity :
             add(EditEntity("chapterList", tr.chapterList, R.string.rule_chapter_list))
             add(EditEntity("chapterName", tr.chapterName, R.string.rule_chapter_name))
             add(EditEntity("chapterUrl", tr.chapterUrl, R.string.rule_chapter_url))
+            add(EditEntity("formatJs", tr.formatJs, R.string.format_js_rule))
             add(EditEntity("isVolume", tr.isVolume, R.string.rule_is_volume))
             add(EditEntity("updateTime", tr.updateTime, R.string.rule_update_time))
             add(EditEntity("isVip", tr.isVip, R.string.rule_is_vip))
@@ -306,6 +320,7 @@ class BookSourceEditActivity :
         contentEntities.clear()
         contentEntities.apply {
             add(EditEntity("content", cr.content, R.string.rule_book_content))
+            add(EditEntity("title", cr.title, R.string.rule_chapter_name))
             add(EditEntity("nextContentUrl", cr.nextContentUrl, R.string.rule_next_content))
             add(EditEntity("webJs", cr.webJs, R.string.rule_web_js))
             add(EditEntity("sourceRegex", cr.sourceRegex, R.string.rule_source_regex))
@@ -447,8 +462,11 @@ class BookSourceEditActivity :
                 "chapterList" -> tocRule.chapterList = it.value
                 "chapterName" -> tocRule.chapterName =
                     viewModel.ruleComplete(it.value, tocRule.chapterList)
+
                 "chapterUrl" -> tocRule.chapterUrl =
                     viewModel.ruleComplete(it.value, tocRule.chapterList, 2)
+
+                "formatJs" -> tocRule.formatJs = it.value
                 "isVolume" -> tocRule.isVolume = it.value
                 "updateTime" -> tocRule.updateTime = it.value
                 "isVip" -> tocRule.isVip = it.value
@@ -459,10 +477,11 @@ class BookSourceEditActivity :
         }
         contentEntities.forEach {
             when (it.key) {
-                "content" -> contentRule.content =
-                    viewModel.ruleComplete(it.value)
+                "content" -> contentRule.content = viewModel.ruleComplete(it.value)
+                "title" -> contentRule.title = viewModel.ruleComplete(it.value)
                 "nextContentUrl" -> contentRule.nextContentUrl =
                     viewModel.ruleComplete(it.value, type = 2)
+
                 "webJs" -> contentRule.webJs = it.value
                 "sourceRegex" -> contentRule.sourceRegex = it.value
                 "replaceRegex" -> contentRule.replaceRegex = it.value
