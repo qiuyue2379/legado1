@@ -18,7 +18,7 @@ class UpdateTest {
             .body!!.string()
         val rootDoc = jsonPath.parse(body)
         val downloadUrl =
-            rootDoc.read<List<String>>("\$.assets[?(@.name =~ /qiuyue_app_.*?apk\$/)].browser_download_url")
+            rootDoc.read<List<String>>("\$.assets[?(@.name =~ /legado_app_.*?apk\$/)].browser_download_url")
         print(downloadUrl)
     }
 
@@ -28,7 +28,7 @@ class UpdateTest {
             .body!!.string()
         val rootDoc = jsonPath.parse(body)
         val downloadUrl =
-            rootDoc.read<List<String>>("\$.assets[?(@.name =~ /qiuyue_lollipop_.*?apk\$/)].browser_download_url")
+            rootDoc.read<List<String>>("\$.assets[?(@.name =~ /legado_lollipop_.*?apk\$/)].browser_download_url")
         print(downloadUrl)
     }
 

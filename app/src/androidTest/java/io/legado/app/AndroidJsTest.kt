@@ -1,11 +1,12 @@
 package io.legado.app
 
-import io.legado.app.constant.SCRIPT_ENGINE
+import com.script.SimpleBindings
+import com.script.rhino.RhinoScriptEngine
 import org.intellij.lang.annotations.Language
 import org.junit.Assert
 import org.junit.Test
 
-class JsTest {
+class AndroidJsTest {
 
     @Test
     fun testPackages() {
@@ -35,14 +36,31 @@ class JsTest {
             var queryStringWithSign = "Signature=" + signStr + "&" + query;
             queryStringWithSign
         """.trimIndent()
-        SCRIPT_ENGINE.eval(js)
+        RhinoScriptEngine.eval(js)
         @Language("js")
         val js1 = """
             var returnData = new Packages.io.legado.app.api.ReturnData()
             returnData.getErrorMsg()
         """.trimIndent()
-        val result1 = SCRIPT_ENGINE.eval(js1)
-        Assert.assertEquals(result1, "未知错误,请联系开发者!")
+        val result1 = RhinoScriptEngine.eval(js1)
+        Assert.assertEquals(result1, "未知错误,请联系开发者!").let {
+
+        }
+    }
+
+    @Test
+    fun testMap() {
+        val map = hashMapOf("id" to "3242532321")
+        val bindings = SimpleBindings()
+        bindings["result"] = map
+        @Language("js")
+        val jsMap = "$=result;id=$.id;id"
+        val result = RhinoScriptEngine.eval(jsMap, bindings)
+        Assert.assertEquals("3242532321", result)
+        @Language("js")
+        val jsMap1 = """result.get("id")"""
+        val result1 = RhinoScriptEngine.eval(jsMap1, bindings)
+        Assert.assertEquals("3242532321", result1)
     }
 
 }
