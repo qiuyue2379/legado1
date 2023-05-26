@@ -1,17 +1,20 @@
 package io.legado.app.help
 
 import androidx.annotation.Keep
+import io.legado.app.constant.AppConst
 import io.legado.app.exception.NoStackTraceException
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.help.http.newCallStrResponse
 import io.legado.app.help.http.okHttpClient
+import io.legado.app.utils.channel
 import io.legado.app.utils.jsonPath
 import io.legado.app.utils.readString
 import kotlinx.coroutines.CoroutineScope
+import splitties.init.appCtx
 
 @Keep
 @Suppress("unused")
-object AppUpdateGitHub: AppUpdate.AppUpdateInterface {
+object AppUpdateGitHub : AppUpdate.AppUpdateInterface {
 
     override fun check(
         scope: CoroutineScope,
