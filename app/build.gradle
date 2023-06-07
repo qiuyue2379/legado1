@@ -159,13 +159,13 @@ dependencies {
     //androidX
     implementation('androidx.core:core-ktx:1.10.1')
     implementation('androidx.appcompat:appcompat:1.6.1')
-    implementation('androidx.activity:activity-ktx:1.7.1')
+    implementation('androidx.activity:activity-ktx:1.7.2')
     implementation('androidx.fragment:fragment-ktx:1.5.7')
     implementation('androidx.preference:preference-ktx:1.2.0')
     implementation('androidx.constraintlayout:constraintlayout:2.1.4')
     implementation('androidx.swiperefreshlayout:swiperefreshlayout:1.1.0')
     implementation('androidx.viewpager2:viewpager2:1.0.0')
-    implementation('androidx.webkit:webkit:1.6.1')
+    implementation('androidx.webkit:webkit:1.7.0')
 
     //google
     implementation('com.google.android.material:material:1.9.0')
@@ -214,7 +214,7 @@ dependencies {
     //网络
     implementation('com.squareup.okhttp3:okhttp:4.11.0')
     appImplementation(fileTree(dir: 'cronetlib', include: ['*.jar', '*.aar']))
-    appImplementation 'com.google.protobuf:protobuf-javalite:3.23.1'
+    appImplementation 'com.google.protobuf:protobuf-javalite:3.23.2'
 
     //Glide
     def glideVersion = "4.15.1"
@@ -258,7 +258,7 @@ dependencies {
 
     //加解密类库,有些书源使用
     //noinspection GradleDependency,GradlePackageUpdate
-    implementation('cn.hutool:hutool-crypto:5.8.18')
+    implementation('cn.hutool:hutool-crypto:5.8.19')
 
     //firebase, 崩溃统计和性能统计, 会导致共存版本崩溃
     //implementation platform('com.google.firebase:firebase-bom:30.0.1')
