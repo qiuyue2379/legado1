@@ -48,7 +48,7 @@ object BookContent {
         } else {
             nextChapterUrl
         }
-        val content = StringBuilder()
+        val contentList = arrayListOf<String>()
         val nextUrlList = arrayListOf(redirectUrl)
         val contentRule = bookSource.getContentRule()
         val analyzeRule = AnalyzeRule(book, bookSource)
@@ -72,7 +72,7 @@ object BookContent {
         var contentData = analyzeContent(
             book, baseUrl, redirectUrl, body, contentRule, bookChapter, bookSource, mNextChapterUrl
         )
-        content.append(contentData.first)
+        contentList.add(contentData.first)
         if (contentData.second.size == 1) {
             var nextUrl = contentData.second[0]
             while (nextUrl.isNotEmpty() && !nextUrlList.contains(nextUrl)) {
@@ -91,11 +91,13 @@ object BookContent {
                 res.body?.let { nextBody ->
                     contentData = analyzeContent(
                         book, nextUrl, res.url, nextBody, contentRule,
-                        bookChapter, bookSource, mNextChapterUrl, false
+                        bookChapter, bookSource, mNextChapterUrl,
+                        printLog = false
                     )
                     nextUrl =
                         if (contentData.second.isNotEmpty()) contentData.second[0] else ""
-                    content.append("\n").append(contentData.first)
+                    contentList.add(contentData.first)
+                    Debug.log(bookSource.bookSourceUrl, "第${contentList.size}页完成")
                 }
             }
             Debug.log(bookSource.bookSourceUrl, "◇本章总页数:${nextUrlList.size}")
@@ -113,17 +115,19 @@ object BookContent {
                         ).getStrResponseAwait() //控制并发访问
                         analyzeContent(
                             book, urlStr, res.url, res.body!!, contentRule,
-                            bookChapter, bookSource, mNextChapterUrl, false
+                            bookChapter, bookSource, mNextChapterUrl,
+                            getNextPageUrl = false,
+                            printLog = false
                         ).first
                     }
                 }
                 asyncArray.forEach { coroutine ->
                     coroutineContext.ensureActive()
-                    content.append("\n").append(coroutine.await())
+                    contentList.add(coroutine.await())
                 }
             }
         }
-        var contentStr = content.toString()
+        var contentStr = contentList.joinToString("\n")
         //全文替换
         val replaceRegex = contentRule.replaceRegex
         if (!replaceRegex.isNullOrEmpty()) {
@@ -152,6 +156,7 @@ object BookContent {
         chapter: BookChapter,
         bookSource: BookSource,
         nextChapterUrl: String?,
+        getNextPageUrl: Boolean = true,
         printLog: Boolean = true
     ): Pair<String, List<String>> {
         val analyzeRule = AnalyzeRule(book, bookSource)
@@ -164,13 +169,15 @@ object BookContent {
         var content = analyzeRule.getString(contentRule.content, unescape = false)
         content = HtmlFormatter.formatKeepImg(content, rUrl)
         //获取下一页链接
-        val nextUrlRule = contentRule.nextContentUrl
-        if (!nextUrlRule.isNullOrEmpty()) {
-            Debug.log(bookSource.bookSourceUrl, "┌获取正文下一页链接", printLog)
-            analyzeRule.getStringList(nextUrlRule, isUrl = true)?.let {
-                nextUrlList.addAll(it)
+        if (getNextPageUrl) {
+            val nextUrlRule = contentRule.nextContentUrl
+            if (!nextUrlRule.isNullOrEmpty()) {
+                Debug.log(bookSource.bookSourceUrl, "┌获取正文下一页链接", printLog)
+                analyzeRule.getStringList(nextUrlRule, isUrl = true)?.let {
+                    nextUrlList.addAll(it)
+                }
+                Debug.log(bookSource.bookSourceUrl, "└" + nextUrlList.joinToString("，"), printLog)
             }
-            Debug.log(bookSource.bookSourceUrl, "└" + nextUrlList.joinToString("，"), printLog)
         }
         return Pair(content, nextUrlList)
     }

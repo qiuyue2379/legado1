@@ -80,8 +80,12 @@ object BookChapterList {
                 }
                 Debug.log(bookSource.bookSourceUrl, "◇目录总页数:${nextUrlList.size}")
             }
+
             else -> {
-                Debug.log(bookSource.bookSourceUrl, "◇并发解析目录,总页数:${chapterData.second.size}")
+                Debug.log(
+                    bookSource.bookSourceUrl,
+                    "◇并发解析目录,总页数:${chapterData.second.size}"
+                )
                 withContext(IO) {
                     val asyncArray = Array(chapterData.second.size) {
                         async(IO) {
@@ -212,10 +216,16 @@ object BookChapterList {
                 if (bookChapter.url.isEmpty()) {
                     if (bookChapter.isVolume) {
                         bookChapter.url = bookChapter.title + index
-                        Debug.log(bookSource.bookSourceUrl, "⇒一级目录${index}未获取到url,使用标题替代")
+                        Debug.log(
+                            bookSource.bookSourceUrl,
+                            "⇒一级目录${index}未获取到url,使用标题替代"
+                        )
                     } else {
                         bookChapter.url = baseUrl
-                        Debug.log(bookSource.bookSourceUrl, "⇒目录${index}未获取到url,使用baseUrl替代")
+                        Debug.log(
+                            bookSource.bookSourceUrl,
+                            "⇒目录${index}未获取到url,使用baseUrl替代"
+                        )
                     }
                 }
                 if (bookChapter.title.isNotEmpty()) {

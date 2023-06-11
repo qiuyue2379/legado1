@@ -131,3 +131,4 @@ fun CharSequence.toStringArray(): Array<String> {
 fun String.escapeRegex(): String {
     return replace(AppPattern.regexCharRegex, "\\\\$0")
 }
+
