@@ -1,7 +1,9 @@
 package io.legado.app.utils
 
 import cn.hutool.crypto.digest.DigestUtil
+import cn.hutool.crypto.digest.Digester
 import java.io.InputStream
+import kotlin.concurrent.getOrSet
 
 /**
  * 将字符串转化为MD5
@@ -9,9 +11,12 @@ import java.io.InputStream
 @Suppress("unused")
 object MD5Utils {
 
-    private val MD5Digester by lazy {
-        DigestUtil.digester("MD5")
-    }
+    private val threadLocal = ThreadLocal<Digester>()
+
+    private val MD5Digester
+        get() = threadLocal.getOrSet {
+            DigestUtil.digester("MD5")
+        }
 
     fun md5Encode(str: String?): String {
         return MD5Digester.digestHex(str)
