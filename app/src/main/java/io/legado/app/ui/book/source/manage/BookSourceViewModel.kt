@@ -14,7 +14,6 @@ import splitties.init.appCtx
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import io.legado.app.ui.book.source.manage.BookSourceActivity.Sort
 
 /**
  * 书源管理数据修改
@@ -60,11 +59,7 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
     fun upOrder(items: List<BookSourcePart>) {
         if (items.isEmpty()) return
         execute {
-            val firstSortNumber = items[0].customOrder
-            val array = items.mapIndexed { index, bookSource ->
-                bookSource.copy(customOrder = firstSortNumber + index)
-            }
-            appDb.bookSourceDao.upOrder(array)
+            appDb.bookSourceDao.upOrder(items)
         }
     }
 
@@ -149,7 +144,7 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
         adapter: BookSourceAdapter,
         searchKey: String?,
         sortAscending: Boolean,
-        sort: Sort,
+        sort: BookSourceSort,
         success: (file: File) -> Unit
     ) {
         execute {
@@ -173,7 +168,7 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
     private fun getBookSources(
         searchKey: String?,
         sortAscending: Boolean,
-        sort: Sort
+        sort: BookSourceSort
     ): List<BookSource> {
         return when {
             searchKey.isNullOrEmpty() -> {
@@ -206,15 +201,15 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
             }
         }.let { data ->
             if (sortAscending) when (sort) {
-                Sort.Weight -> data.sortedBy { it.weight }
-                Sort.Name -> data.sortedWith { o1, o2 ->
+                BookSourceSort.Weight -> data.sortedBy { it.weight }
+                BookSourceSort.Name -> data.sortedWith { o1, o2 ->
                     o1.bookSourceName.cnCompare(o2.bookSourceName)
                 }
 
-                Sort.Url -> data.sortedBy { it.bookSourceUrl }
-                Sort.Update -> data.sortedByDescending { it.lastUpdateTime }
-                Sort.Respond -> data.sortedBy { it.respondTime }
-                Sort.Enable -> data.sortedWith { o1, o2 ->
+                BookSourceSort.Url -> data.sortedBy { it.bookSourceUrl }
+                BookSourceSort.Update -> data.sortedByDescending { it.lastUpdateTime }
+                BookSourceSort.Respond -> data.sortedBy { it.respondTime }
+                BookSourceSort.Enable -> data.sortedWith { o1, o2 ->
                     var sortNum = -o1.enabled.compareTo(o2.enabled)
                     if (sortNum == 0) {
                         sortNum = o1.bookSourceName.cnCompare(o2.bookSourceName)
@@ -225,15 +220,15 @@ class BookSourceViewModel(application: Application) : BaseViewModel(application)
                 else -> data
             }
             else when (sort) {
-                Sort.Weight -> data.sortedByDescending { it.weight }
-                Sort.Name -> data.sortedWith { o1, o2 ->
+                BookSourceSort.Weight -> data.sortedByDescending { it.weight }
+                BookSourceSort.Name -> data.sortedWith { o1, o2 ->
                     o2.bookSourceName.cnCompare(o1.bookSourceName)
                 }
 
-                Sort.Url -> data.sortedByDescending { it.bookSourceUrl }
-                Sort.Update -> data.sortedBy { it.lastUpdateTime }
-                Sort.Respond -> data.sortedByDescending { it.respondTime }
-                Sort.Enable -> data.sortedWith { o1, o2 ->
+                BookSourceSort.Url -> data.sortedByDescending { it.bookSourceUrl }
+                BookSourceSort.Update -> data.sortedBy { it.lastUpdateTime }
+                BookSourceSort.Respond -> data.sortedByDescending { it.respondTime }
+                BookSourceSort.Enable -> data.sortedWith { o1, o2 ->
                     var sortNum = o1.enabled.compareTo(o2.enabled)
                     if (sortNum == 0) {
                         sortNum = o1.bookSourceName.cnCompare(o2.bookSourceName)

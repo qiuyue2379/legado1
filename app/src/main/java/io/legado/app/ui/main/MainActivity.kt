@@ -71,13 +71,19 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     private val fragmentMap = hashMapOf<Int, Fragment>()
     private var bottomMenuCount = 4
     private val realPositions = arrayOf(idBookshelf, idExplore, idRss, idMy)
+    private val adapter by lazy {
+        TabFragmentPageAdapter(supportFragmentManager)
+    }
+    private val onUpBooksBadgeView by lazy {
+        binding.bottomNavigationView.addBadgeView(0)
+    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         upBottomMenu()
         binding.run {
             viewPagerMain.setEdgeEffectColor(primaryColor)
             viewPagerMain.offscreenPageLimit = 3
-            viewPagerMain.adapter = TabFragmentPageAdapter(supportFragmentManager)
+            viewPagerMain.adapter = adapter
             viewPagerMain.addOnPageChangeListener(PageChangeCallback())
             bottomNavigationView.elevation = elevation
             bottomNavigationView.setOnNavigationItemSelectedListener(this@MainActivity)
@@ -125,10 +131,13 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         when (item.itemId) {
             R.id.menu_bookshelf ->
                 viewPagerMain.setCurrentItem(0, false)
+
             R.id.menu_discovery ->
                 viewPagerMain.setCurrentItem(realPositions.indexOf(idExplore), false)
+
             R.id.menu_rss ->
                 viewPagerMain.setCurrentItem(realPositions.indexOf(idRss), false)
+
             R.id.menu_my_config ->
                 viewPagerMain.setCurrentItem(realPositions.indexOf(idMy), false)
         }
@@ -144,6 +153,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                     (fragmentMap[getFragmentId(0)] as? BaseBookshelfFragment)?.gotoTop()
                 }
             }
+
             R.id.menu_discovery -> {
                 if (System.currentTimeMillis() - exploreReselected > 300) {
                     exploreReselected = System.currentTimeMillis()
@@ -301,6 +311,9 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     }
 
     override fun observeLiveBus() {
+        viewModel.onUpBooksLiveData.observe(this) {
+            onUpBooksBadgeView.setBadgeCount(it)
+        }
         observeEvent<String>(EventBus.RECREATE) {
             recreate()
         }
@@ -350,9 +363,14 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     private inner class PageChangeCallback : ViewPager.SimpleOnPageChangeListener() {
 
         override fun onPageSelected(position: Int) {
+            val oldPosition = pagePosition
             pagePosition = position
             binding.bottomNavigationView.menu
                 .getItem(realPositions[position]).isChecked = true
+            val callback1 = fragmentMap[getFragmentId(position)] as? Callback
+            val callback2 = fragmentMap[getFragmentId(oldPosition)] as? Callback
+            callback1?.onActive()
+            callback2?.onInactive()
         }
 
     }
@@ -388,6 +406,14 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             fragmentMap[getId(position)] = fragment
             return fragment
         }
+
+    }
+
+    interface Callback {
+
+        fun onActive()
+
+        fun onInactive()
 
     }
 

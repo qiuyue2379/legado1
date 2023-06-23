@@ -24,7 +24,7 @@ import io.legado.app.utils.ColorUtils
 import io.legado.app.utils.invisible
 import io.legado.app.utils.startActivity
 import io.legado.app.utils.visible
-import java.util.*
+import java.util.Collections
 
 
 class BookSourceAdapter(context: Context, val callBack: CallBack) :
@@ -152,6 +152,9 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
         val source = getItem(position) ?: return
         val popupMenu = PopupMenu(context, view)
         popupMenu.inflate(R.menu.book_source_item)
+        popupMenu.menu.findItem(R.id.menu_top).isVisible = callBack.sort == BookSourceSort.Default
+        popupMenu.menu.findItem(R.id.menu_bottom).isVisible =
+            callBack.sort == BookSourceSort.Default
         val qyMenu = popupMenu.menu.findItem(R.id.menu_enable_explore)
         if (!source.hasExploreUrl) {
             qyMenu.isVisible = false
@@ -290,7 +293,10 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
                 sortNumberSet.add(it.customOrder)
             }
             if (movedItems.size > sortNumberSet.size) {
-                callBack.upOrder(getItems())
+                callBack.upOrder(getItems().mapIndexed { index, bookSourcePart ->
+                    bookSourcePart.customOrder = if (callBack.sortAscending) index else -index
+                    bookSourcePart
+                })
             } else {
                 callBack.upOrder(movedItems.toList())
             }
@@ -324,6 +330,8 @@ class BookSourceAdapter(context: Context, val callBack: CallBack) :
         }
 
     interface CallBack {
+        val sort: BookSourceSort
+        val sortAscending: Boolean
         fun del(bookSource: BookSourcePart)
         fun edit(bookSource: BookSourcePart)
         fun toTop(bookSource: BookSourcePart)

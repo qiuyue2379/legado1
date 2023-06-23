@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "UnusedReceiverParameter")
 
 package io.legado.app.utils
 
@@ -43,7 +43,7 @@ inline fun <reified A : Activity> Context.startActivity(configIntent: Intent.() 
 }
 
 inline fun <reified T : Service> Context.startService(configIntent: Intent.() -> Unit = {}) {
-    startService(Intent(this, T::class.java).apply(configIntent))
+    ContextCompat.startForegroundService(this, Intent(this, T::class.java).apply(configIntent))
 }
 
 inline fun <reified T : Service> Context.stopService() {
@@ -317,6 +317,7 @@ fun Context.openUrl(uri: Uri) {
     }
 }
 
+@SuppressLint("ObsoleteSdkInt")
 fun Context.openFileUri(uri: Uri, type: String? = null) {
     val intent = Intent()
     intent.action = Intent.ACTION_VIEW

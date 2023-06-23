@@ -10,6 +10,7 @@ import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.data.entities.BookSource
+import io.legado.app.exception.NoStackTraceException
 import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.utils.*
@@ -91,6 +92,10 @@ object BookHelp {
                     }
                 }
             FileUtils.delete(ArchiveUtils.TEMP_PATH)
+            val filesDir = appCtx.filesDir
+            FileUtils.delete("$filesDir/shareBookSource.json")
+            FileUtils.delete("$filesDir/shareRssSource.json")
+            FileUtils.delete("$filesDir/books.json")
         }
     }
 
@@ -162,7 +167,7 @@ object BookHelp {
                 src, bytes, isCover = false, bookSource, book
             )?.let {
                 if (!checkImage(bytes)) {
-                    AppLog.put("图片 $src 下载错误，数据异常")
+                    throw NoStackTraceException("数据异常")
                 }
                 FileUtils.createFileIfNotExist(
                     downloadDir,
