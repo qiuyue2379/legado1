@@ -24,6 +24,7 @@ import io.legado.app.lib.theme.primaryTextColor
 import io.legado.app.ui.book.explore.ExploreShowActivity
 import io.legado.app.ui.book.source.edit.BookSourceEditActivity
 import io.legado.app.ui.main.MainActivity
+import io.legado.app.ui.main.MainFragmentInterface
 import io.legado.app.utils.applyTint
 import io.legado.app.utils.cnCompare
 import io.legado.app.utils.setEdgeEffectColor
@@ -42,8 +43,18 @@ import kotlinx.coroutines.launch
 /**
  * 发现界面
  */
-class ExploreFragment : VMBaseFragment<ExploreViewModel>(R.layout.fragment_explore),
-    ExploreAdapter.CallBack, MainActivity.Callback {
+class ExploreFragment() : VMBaseFragment<ExploreViewModel>(R.layout.fragment_explore),
+    MainFragmentInterface,
+    ExploreAdapter.CallBack,
+    MainActivity.Callback {
+
+    constructor(position: Int) : this() {
+        val bundle = Bundle()
+        bundle.putInt("position", position)
+        arguments = bundle
+    }
+
+    override val position: Int? get() = arguments?.getInt("position")
 
     override val viewModel by viewModels<ExploreViewModel>()
     private val binding by viewBinding(FragmentExploreBinding::bind)
@@ -57,6 +68,7 @@ class ExploreFragment : VMBaseFragment<ExploreViewModel>(R.layout.fragment_explo
     private var exploreFlowJob: Job? = null
     private var groupsMenu: SubMenu? = null
     private var isActive = false
+    private var searchKey: String? = null
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
         setSupportToolbar(binding.titleBar.toolbar)
@@ -123,6 +135,7 @@ class ExploreFragment : VMBaseFragment<ExploreViewModel>(R.layout.fragment_explo
     }
 
     private fun upExploreData(searchKey: String? = null, once: Boolean = false) {
+        this.searchKey = searchKey
         exploreFlowJob?.cancel()
         exploreFlowJob = launch {
             when {
@@ -213,7 +226,7 @@ class ExploreFragment : VMBaseFragment<ExploreViewModel>(R.layout.fragment_explo
 
     override fun onActive() {
         isActive = true
-        upExploreData()
+        upExploreData(searchKey)
     }
 
     override fun onInactive() {
@@ -223,7 +236,7 @@ class ExploreFragment : VMBaseFragment<ExploreViewModel>(R.layout.fragment_explo
 
     override fun onResume() {
         super.onResume()
-        if (isActive) upExploreData()
+        if (isActive) upExploreData(searchKey)
     }
 
 }
