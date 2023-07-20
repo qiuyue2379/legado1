@@ -258,7 +258,7 @@ object Restore {
             if (!BuildConfig.DEBUG) {
                 LauncherIconHelp.changeIcon(appCtx.getPrefString(PreferKey.launcherIcon))
             }
-            postEvent(EventBus.RECREATE, "")
+            ThemeConfig.applyDayNight(appCtx)
         }
     }
 

@@ -129,6 +129,9 @@ class BooksFragment() : BaseFragment(R.layout.fragment_books),
         binding.refreshLayout.isEnabled = enableRefresh
     }
 
+    /**
+     * 更新书籍列表信息
+     */
     private fun upRecyclerData() {
         booksFlowJob?.cancel()
         booksFlowJob = launch {
@@ -140,13 +143,22 @@ class BooksFragment() : BaseFragment(R.layout.fragment_books),
                 AppConst.bookGroupLocalNoneId -> appDb.bookDao.flowLocalNoGroup()
                 AppConst.bookGroupErrorId -> appDb.bookDao.flowUpdateError()
                 else -> appDb.bookDao.flowByGroup(groupId)
+                // 书籍排序
             }.conflate().map { list ->
                 when (bookSort) {
                     1 -> list.sortedByDescending { it.latestChapterTime }
                     2 -> list.sortedWith { o1, o2 ->
                         o1.name.cnCompare(o2.name)
                     }
+
                     3 -> list.sortedBy { it.order }
+
+                    // 综合排序 issue #3192
+                    4 -> {
+                        list.sortedByDescending {
+                            if(it.latestChapterTime>it.durChapterTime) it.latestChapterTime else it.durChapterTime
+                        }
+                    }
                     else -> list.sortedByDescending { it.durChapterTime }
                 }
             }.flowOn(Dispatchers.Default).catch {
@@ -244,6 +256,7 @@ class BooksFragment() : BaseFragment(R.layout.fragment_books),
                 startActivity<AudioPlayActivity> {
                     putExtra("bookUrl", book.bookUrl)
                 }
+
             else -> startActivity<ReadBookActivity> {
                 putExtra("bookUrl", book.bookUrl)
             }

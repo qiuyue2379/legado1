@@ -308,7 +308,9 @@ class HttpReadAloudService : BaseReadAloudService(),
             for (i in start..contentList[nowSpeak].length) {
                 if (readAloudNumber + i > textChapter.getReadLength(pageIndex + 1)) {
                     pageIndex++
-                    ReadBook.moveToNextPage()
+                    if (pageIndex < textChapter.pageSize) {
+                        ReadBook.moveToNextPage()
+                    }
                     postEvent(EventBus.TTS_PROGRESS, readAloudNumber + i)
                 }
                 delay(sleep)
@@ -354,8 +356,8 @@ class HttpReadAloudService : BaseReadAloudService(),
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
-        upPlayPos()
         playNext()
+        upPlayPos()
     }
 
     override fun onPlayerError(error: PlaybackException) {
