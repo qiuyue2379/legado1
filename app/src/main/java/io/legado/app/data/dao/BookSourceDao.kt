@@ -286,15 +286,9 @@ interface BookSourceDao {
         }
     }
 
-    val allGroups: List<String>
-        get() {
-            return dealGroups(allGroupsUnProcessed)
-        }
+    fun allGroups(): List<String> = dealGroups(allGroupsUnProcessed)
 
-    val allEnabledGroups: List<String>
-        get() {
-            return dealGroups(allEnabledGroupsUnProcessed)
-        }
+    fun allEnabledGroups(): List<String> = dealGroups(allEnabledGroupsUnProcessed)
 
     fun flowGroups(): Flow<List<String>> {
         return flowGroupsUnProcessed().map { list ->
