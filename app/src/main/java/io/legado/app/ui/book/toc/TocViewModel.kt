@@ -2,11 +2,20 @@ package io.legado.app.ui.book.toc
 
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.MutableLiveData
+import io.legado.app.R
 import io.legado.app.base.BaseViewModel
+import io.legado.app.constant.AppLog
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
+import io.legado.app.exception.NoStackTraceException
 import io.legado.app.model.localBook.LocalBook
+import io.legado.app.utils.FileDoc
+import io.legado.app.utils.GSON
+import io.legado.app.utils.createFileIfNotExist
+import io.legado.app.utils.toastOnUi
+import io.legado.app.utils.writeText
 
 class TocViewModel(application: Application) : BaseViewModel(application) {
     var bookUrl: String = ""
@@ -61,6 +70,24 @@ class TocViewModel(application: Application) : BaseViewModel(application) {
 
     fun startBookmarkSearch(newText: String?) {
         bookMarkCallBack?.upBookmark(newText)
+    }
+
+    fun saveBookmark(treeUri: Uri) {
+        execute {
+            val book = bookData.value
+                ?: throw NoStackTraceException(context.getString(R.string.no_book))
+            val fileName = "bookmark-${book.name} ${book.author}"
+            val doc = FileDoc.fromUri(treeUri, true)
+            doc.createFileIfNotExist(fileName).writeText(
+                GSON.toJson(
+                    appDb.bookmarkDao.getByBook(book.name, book.author)
+                )
+            )
+        }.onError {
+            AppLog.put("导出失败\n${it.localizedMessage}", it, true)
+        }.onSuccess {
+            context.toastOnUi("导出成功")
+        }
     }
 
     interface ChapterListCallBack {

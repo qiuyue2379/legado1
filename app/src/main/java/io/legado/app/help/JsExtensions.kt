@@ -539,9 +539,9 @@ interface JsExtensions : JsEncodeUtils {
     /**
      * 删除本地文件
      */
-    fun deleteFile(path: String) {
+    fun deleteFile(path: String): Boolean {
         val file = getFile(path)
-        FileUtils.delete(file, true)
+        return FileUtils.delete(file, true)
     }
 
     /**
@@ -825,6 +825,15 @@ interface JsExtensions : JsEncodeUtils {
         return s
     }
 
+
+    fun toURL(urlStr: String): JsURL {
+        return JsURL(urlStr)
+    }
+
+    fun toURL(url: String, baseUrl: String? = null): JsURL {
+        return JsURL(url, baseUrl)
+    }
+
     /**
      * 弹窗提示
      */
@@ -846,7 +855,7 @@ interface JsExtensions : JsEncodeUtils {
         getSource()?.let {
             Debug.log(it.getKey(), msg.toString())
         } ?: Debug.log(msg.toString())
-        AppLog.putDebug("书源调试输出：$msg")
+        AppLog.putDebug("源调试输出：$msg")
         return msg
     }
 

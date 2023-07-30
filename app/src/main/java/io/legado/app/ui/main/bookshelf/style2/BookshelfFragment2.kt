@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.legado.app.R
-import io.legado.app.constant.AppConst
 import io.legado.app.constant.AppLog
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.PreferKey
@@ -65,7 +64,7 @@ class BookshelfFragment2() : BaseBookshelfFragment(R.layout.fragment_bookshelf2)
     }
     private var bookGroups: List<BookGroup> = emptyList()
     private var booksFlowJob: Job? = null
-    override var groupId = AppConst.rootGroupId
+    override var groupId = BookGroup.IdRoot
     override var books: List<Book> = emptyList()
 
     override fun onFragmentCreated(view: View, savedInstanceState: Bundle?) {
@@ -135,23 +134,17 @@ class BookshelfFragment2() : BaseBookshelfFragment(R.layout.fragment_bookshelf2)
         }
         booksFlowJob?.cancel()
         booksFlowJob = launch {
-            when (groupId) {
-                AppConst.rootGroupId -> appDb.bookDao.flowRoot()
-                AppConst.bookGroupAllId -> appDb.bookDao.flowAll()
-                AppConst.bookGroupLocalId -> appDb.bookDao.flowLocal()
-                AppConst.bookGroupAudioId -> appDb.bookDao.flowAudio()
-                AppConst.bookGroupNetNoneId -> appDb.bookDao.flowNetNoGroup()
-                AppConst.bookGroupLocalNoneId -> appDb.bookDao.flowLocalNoGroup()
-                AppConst.bookGroupErrorId -> appDb.bookDao.flowUpdateError()
-                else -> appDb.bookDao.flowByGroup(groupId)
-            }.conflate().map { list ->
+            appDb.bookDao.flowByGroup(groupId).conflate().map { list ->
+                //排序
                 when (AppConfig.getBookSortByGroupId(groupId)) {
                     1 -> list.sortedByDescending {
                         it.latestChapterTime
                     }
+
                     2 -> list.sortedWith { o1, o2 ->
                         o1.name.cnCompare(o2.name)
                     }
+
                     3 -> list.sortedBy {
                         it.order
                     }
@@ -229,7 +222,7 @@ class BookshelfFragment2() : BaseBookshelfFragment(R.layout.fragment_bookshelf2)
     }
 
     override fun getItemCount(): Int {
-        return if (groupId == AppConst.rootGroupId) {
+        return if (groupId == BookGroup.IdRoot) {
             bookGroups.size + books.size
         } else {
             books.size
@@ -237,7 +230,7 @@ class BookshelfFragment2() : BaseBookshelfFragment(R.layout.fragment_bookshelf2)
     }
 
     override fun getItemType(position: Int): Int {
-        if (groupId != AppConst.rootGroupId) {
+        if (groupId != BookGroup.IdRoot) {
             return 0
         }
         if (position < bookGroups.size) {
@@ -247,7 +240,7 @@ class BookshelfFragment2() : BaseBookshelfFragment(R.layout.fragment_bookshelf2)
     }
 
     override fun getItem(position: Int): Any? {
-        if (groupId != AppConst.rootGroupId) {
+        if (groupId != BookGroup.IdRoot) {
             return books.getOrNull(position)
         }
         if (position < bookGroups.size) {

@@ -1,9 +1,11 @@
 package io.legado.app.service
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.util.ArraySet
 import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
@@ -17,6 +19,7 @@ import io.legado.app.constant.AppLog
 import io.legado.app.constant.AppPattern
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.IntentAction
+import io.legado.app.constant.NotificationId
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
@@ -61,6 +64,7 @@ import me.ag2s.epublib.epub.EpubWriter
 import me.ag2s.epublib.epub.EpubWriterProcessor
 import me.ag2s.epublib.util.ResourceUtil
 import splitties.init.appCtx
+import splitties.systemservices.notificationManager
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -85,11 +89,11 @@ class ExportBookService : BaseService() {
         val epubScope: String? = null
     )
 
+    private val groupKey = "${appCtx.packageName}.exportBook"
     private val handler = buildMainHandler()
     private val waitExportBooks = linkedMapOf<String, ExportConfig>()
     private var exportJob: Job? = null
-
-    private var notificationContent = appCtx.getString(R.string.service_starting)
+    private var notificationContentText = appCtx.getString(R.string.service_starting)
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -121,11 +125,26 @@ class ExportBookService : BaseService() {
         exportMsg.clear()
     }
 
+    @SuppressLint("MissingPermission")
     override fun upNotification() {
         val notification = NotificationCompat.Builder(this, AppConst.channelIdDownload)
             .setSmallIcon(R.drawable.ic_export)
-            .setContentTitle(getString(R.string.export_book))
+            .setSubText(getString(R.string.export_book))
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setGroup(groupKey)
+            .setGroupSummary(true)
+        startForeground(NotificationId.ExportBookService, notification.build())
+    }
+
+    private fun upExportNotification() {
+        val notification = NotificationCompat.Builder(this, AppConst.channelIdDownload)
+            .setSmallIcon(R.drawable.ic_export)
+            .setSubText(getString(R.string.export_book))
             .setContentIntent(activityPendingIntent<CacheActivity>("cacheActivity"))
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentText(notificationContentText)
+            .setDeleteIntent(servicePendingIntent<ExportBookService>(IntentAction.stop))
+            .setGroup(groupKey)
         if (exportJob?.isActive == true) {
             notification.setOngoing(true)
             notification.addAction(
@@ -133,15 +152,8 @@ class ExportBookService : BaseService() {
                 getString(R.string.cancel),
                 servicePendingIntent<ExportBookService>(IntentAction.stop)
             )
-        } else {
-            notification.setOngoing(false)
-            notification.setDeleteIntent(
-                servicePendingIntent<ExportBookService>(IntentAction.stop)
-            )
         }
-        notification.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-        notification.setContentText(notificationContent)
-        startForeground(AppConst.notificationIdCache, notification.build())
+        notificationManager.notify(NotificationId.ExportBook, notification.build())
     }
 
     private fun export() {
@@ -150,8 +162,8 @@ class ExportBookService : BaseService() {
         }
         val entry = waitExportBooks.firstNotNullOfOrNull { it }
         if (entry == null) {
-            notificationContent = "导出完成"
-            upNotification()
+            notificationContentText = "导出完成"
+            upExportNotification()
             return
         }
         val bookUrl = entry.key
@@ -163,7 +175,12 @@ class ExportBookService : BaseService() {
             val book = appDb.bookDao.getBook(bookUrl)
             try {
                 book ?: throw NoStackTraceException("获取${bookUrl}书籍出错")
-                notificationContent = "正在导出(${book.name}),还有${waitExportBooks.size}本待导出"
+                notificationContentText = getString(
+                    R.string.export_book_notification_content,
+                    book.name,
+                    waitExportBooks.size
+                )
+                upExportNotification()
                 if (exportConfig.type == "epub") {
                     if (exportConfig.epubScope.isNullOrBlank()) {
                         exportEPUB(exportConfig.path, book)
@@ -337,7 +354,13 @@ class ExportBookService : BaseService() {
      */
     private fun paresScope(scope: String): IntArray {
         val split = scope.split(",")
-        val result = ArraySet<Int>()
+
+        @Suppress("RemoveExplicitTypeArguments")
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ArraySet<Int>()
+        } else {
+            HashSet<Int>()
+        }
         for (s in split) {
             val v = s.split("-")
             if (v.size != 2) {
