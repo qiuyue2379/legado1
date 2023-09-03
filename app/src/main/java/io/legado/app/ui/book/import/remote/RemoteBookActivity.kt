@@ -6,8 +6,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.SubMenu
+import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.core.view.isGone
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
 import io.legado.app.data.appDb
@@ -43,7 +45,12 @@ class RemoteBookActivity : BaseImportBookActivity<RemoteBookViewModel>(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         searchView.queryHint = getString(R.string.screen) + " • " + getString(R.string.remote_book)
-        launch {
+        onBackPressedDispatcher.addCallback(this) {
+            if (!goBackDir()) {
+                finish()
+            }
+        }
+        lifecycleScope.launch {
             if (!setBookStorage()) {
                 finish()
                 return@launch
@@ -152,14 +159,6 @@ class RemoteBookActivity : BaseImportBookActivity<RemoteBookViewModel>(),
         }
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (!goBackDir()) {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
-        }
-    }
-
     private fun goBackDir(): Boolean {
         if (viewModel.dirList.isEmpty()) {
             return false
@@ -245,6 +244,18 @@ class RemoteBookActivity : BaseImportBookActivity<RemoteBookViewModel>(),
             } else {
                 onArchiveFileClick(downloadArchiveFileDoc)
             }
+        }
+    }
+
+    override fun addToBookShelfAgain(remoteBook: RemoteBook) {
+        alert(getString(R.string.sure), "是否重新加入书架？") {
+            yesButton {
+                binding.refreshProgressBar.isAutoLoading = true
+                viewModel.addToBookshelf(hashSetOf(remoteBook)) {
+                    binding.refreshProgressBar.isAutoLoading = false
+                }
+            }
+            noButton()
         }
     }
 

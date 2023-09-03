@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.legado.app.R
@@ -72,7 +73,7 @@ class BookshelfManageActivity :
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         viewModel.groupId = intent.getLongExtra("groupId", -1)
-        launch {
+        lifecycleScope.launch {
             viewModel.groupName = withContext(IO) {
                 appDb.bookGroupDao.getByID(viewModel.groupId)?.groupName
                     ?: getString(R.string.no_group)
@@ -119,6 +120,8 @@ class BookshelfManageActivity :
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         this.menu = menu
+        menu.findItem(R.id.menu_open_book_info_by_click_title)?.isChecked =
+            AppConfig.openBookInfoByClickTitle
         upMenu()
         return super.onPrepareOptionsMenu(menu)
     }
@@ -184,7 +187,7 @@ class BookshelfManageActivity :
 
     @SuppressLint("NotifyDataSetChanged")
     private fun initGroupData() {
-        launch {
+        lifecycleScope.launch {
             appDb.bookGroupDao.flowAll().conflate().collect {
                 groupList.clear()
                 groupList.addAll(it)
@@ -196,9 +199,9 @@ class BookshelfManageActivity :
 
     private fun upBookDataByGroupId() {
         booksFlowJob?.cancel()
-        booksFlowJob = launch {
+        booksFlowJob = lifecycleScope.launch {
             val bookSort = AppConfig.getBookSortByGroupId(viewModel.groupId)
-            appDb.bookDao.flowByGroup(viewModel.groupId).conflate().map { list ->
+            appDb.bookDao.flowByGroup(viewModel.groupId).map { list ->
                 when (bookSort) {
                     1 -> list.sortedByDescending {
                         it.latestChapterTime
@@ -247,6 +250,11 @@ class BookshelfManageActivity :
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_group_manage -> showDialogFragment<GroupManageDialog>()
+            R.id.menu_open_book_info_by_click_title -> {
+                AppConfig.openBookInfoByClickTitle = !item.isChecked
+                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+            }
+
             else -> if (item.groupId == R.id.menu_group) {
                 viewModel.groupName = item.title.toString()
                 upTitle()

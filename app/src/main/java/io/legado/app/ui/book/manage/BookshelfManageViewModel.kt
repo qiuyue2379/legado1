@@ -3,16 +3,18 @@ package io.legado.app.ui.book.manage
 import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import io.legado.app.base.BaseViewModel
+import io.legado.app.constant.AppLog
 import io.legado.app.constant.BookType
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookSource
 import io.legado.app.help.book.isLocal
 import io.legado.app.help.book.removeType
+import io.legado.app.help.config.AppConfig
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.model.localBook.LocalBook
 import io.legado.app.model.webBook.WebBook
-import io.legado.app.utils.toastOnUi
+import kotlinx.coroutines.delay
 
 
 class BookshelfManageViewModel(application: Application) : BaseViewModel(application) {
@@ -51,24 +53,25 @@ class BookshelfManageViewModel(application: Application) : BaseViewModel(applica
     fun changeSource(books: List<Book>, source: BookSource) {
         batchChangeSourceCoroutine?.cancel()
         batchChangeSourceCoroutine = execute {
+            val changeSourceDelay = AppConfig.batchChangeSourceDelay * 1000L
             books.forEachIndexed { index, book ->
-                batchChangeSourceProcessLiveData.postValue("${index + 1}/${books.size}")
+                batchChangeSourceProcessLiveData.postValue("${index + 1} / ${books.size}")
                 if (book.isLocal) return@forEachIndexed
                 if (book.origin == source.bookSourceUrl) return@forEachIndexed
-                WebBook.preciseSearchAwait(this, source, book.name, book.author)
+                val newBook = WebBook.preciseSearchAwait(this, source, book.name, book.author)
                     .onFailure {
-                        context.toastOnUi("获取书籍出错\n${it.localizedMessage}")
-                    }.getOrNull()?.let { newBook ->
-                        WebBook.getChapterListAwait(source, newBook)
-                            .onFailure {
-                                context.toastOnUi("获取目录出错\n${it.localizedMessage}")
-                            }.getOrNull()?.let { toc ->
-                                book.migrateTo(newBook, toc)
-                                book.removeType(BookType.updateError)
-                                appDb.bookDao.insert(newBook)
-                                appDb.bookChapterDao.insert(*toc.toTypedArray())
-                            }
+                        AppLog.put("获取书籍出错\n${it.localizedMessage}", it, true)
+                    }.getOrNull() ?: return@forEachIndexed
+                WebBook.getChapterListAwait(source, newBook)
+                    .onFailure {
+                        AppLog.put("获取目录出错\n${it.localizedMessage}", it, true)
+                    }.getOrNull()?.let { toc ->
+                        book.migrateTo(newBook, toc)
+                        book.removeType(BookType.updateError)
+                        appDb.bookDao.insert(newBook)
+                        appDb.bookChapterDao.insert(*toc.toTypedArray())
                     }
+                delay(changeSourceDelay)
             }
         }.onStart {
             batchChangeSourceState.postValue(true)

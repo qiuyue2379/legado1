@@ -2,26 +2,26 @@ package io.legado.app.base
 
 import android.content.DialogInterface
 import android.content.DialogInterface.OnDismissListener
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
 import io.legado.app.constant.AppLog
 import io.legado.app.help.coroutine.Coroutine
 import io.legado.app.lib.theme.ThemeStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlin.coroutines.CoroutineContext
 
 
 abstract class BaseDialogFragment(
     @LayoutRes layoutID: Int,
     private val adaptationSoftKeyboard: Boolean = false
-) : DialogFragment(layoutID), CoroutineScope by MainScope() {
+) : DialogFragment(layoutID) {
 
     private var onDismissListener: OnDismissListener? = null
 
@@ -33,6 +33,14 @@ abstract class BaseDialogFragment(
         super.onStart()
         if (adaptationSoftKeyboard) {
             dialog?.window?.setBackgroundDrawableResource(R.color.transparent)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            //不加这个android 5.0对话框顶部会有空白
+            setStyle(STYLE_NO_TITLE, 0)
         }
     }
 
@@ -65,13 +73,8 @@ abstract class BaseDialogFragment(
         onDismissListener?.onDismiss(dialog)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        cancel()
-    }
-
     fun <T> execute(
-        scope: CoroutineScope = this,
+        scope: CoroutineScope = lifecycleScope,
         context: CoroutineContext = Dispatchers.IO,
         block: suspend CoroutineScope.() -> T
     ) = Coroutine.async(scope, context) { block() }

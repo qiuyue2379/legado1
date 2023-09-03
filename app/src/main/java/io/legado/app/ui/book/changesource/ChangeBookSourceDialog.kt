@@ -44,7 +44,6 @@ import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 /**
@@ -75,7 +74,7 @@ class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_book_change_
         if (it) {
             val searchGroup = AppConfig.searchGroup
             if (searchGroup.isNotEmpty()) {
-                launch {
+                lifecycleScope.launch {
                     alert("搜索结果为空") {
                         setMessage("${searchGroup}分组搜索结果为空,是否切换到全部分组")
                         cancelButton()
@@ -204,8 +203,8 @@ class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_book_change_
                 }
             }
         }
-        launch {
-            appDb.bookSourceDao.flowEnabledGroups().flowOn(IO).conflate().collect {
+        lifecycleScope.launch {
+            appDb.bookSourceDao.flowEnabledGroups().conflate().collect {
                 groups.clear()
                 groups.addAll(it)
                 upGroupMenu()
@@ -251,7 +250,7 @@ class ChangeBookSourceDialog() : BaseDialogFragment(R.layout.dialog_book_change_
                     AppConfig.searchGroup = item.title.toString()
                 }
                 upGroupMenuName()
-                launch(IO) {
+                lifecycleScope.launch(IO) {
                     if (viewModel.refresh()) {
                         viewModel.startOrStopSearch()
                     }
