@@ -83,7 +83,11 @@ class ReadBookViewModel(application: Application) : BaseViewModel(application) {
 
     private fun initBook(book: Book) {
         val isSameBook = ReadBook.book?.bookUrl == book.bookUrl
-        if (isSameBook) ReadBook.upData(book) else ReadBook.resetData(book)
+        if (isSameBook) {
+            ReadBook.upData(book)
+        } else {
+            ReadBook.resetData(book)
+        }
         isInitFinish = true
         if (ReadBook.chapterSize == 0) {
             if (book.tocUrl.isEmpty()) {

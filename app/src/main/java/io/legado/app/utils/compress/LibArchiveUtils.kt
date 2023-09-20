@@ -10,9 +10,11 @@ import io.legado.app.lib.icu4j.CharsetDetector
 import me.zhanghai.android.libarchive.Archive
 import me.zhanghai.android.libarchive.ArchiveEntry
 import me.zhanghai.android.libarchive.ArchiveException
+import splitties.init.appCtx
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
+import java.io.InputStream
 import java.io.InterruptedIOException
 import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
@@ -22,53 +24,51 @@ import java.nio.charset.StandardCharsets
 
 object LibArchiveUtils {
 
+    val cachePath = File(appCtx.cacheDir, "archive")
 
-//    @Throws(ArchiveException::class)
-//    fun openArchive(
-//        inputStream: InputStream,
-//    ): Long {
-//        val archive: Long = Archive.readNew()
-//        var successful = false
-//        try {
-//            Archive.setCharset(archive, StandardCharsets.UTF_8.name().toByteArray())
-//            Archive.readSupportFilterAll(archive)
-//            Archive.readSupportFormatAll(archive)
-//            Archive.readSetCallbackData(archive, null)
-//            val buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
-//            Archive.readSetReadCallback<Any?>(archive) { _, _ ->
-//                buffer.clear()
-//                val bytesRead = try {
-//                    inputStream.read(buffer.array())
-//                } catch (e: IOException) {
-//                    throw ArchiveException(Archive.ERRNO_FATAL, "InputStream.read", e)
-//                }
-//                if (bytesRead != -1) {
-//                    buffer.limit(bytesRead)
-//                    buffer
-//                } else {
-//                    null
-//                }
-//            }
-//            Archive.readSetSkipCallback<Any?>(archive) { _, _, request ->
-//                try {
-//                    inputStream.skip(request)
-//                } catch (e: IOException) {
-//                    throw ArchiveException(Archive.ERRNO_FATAL, "InputStream.skip", e)
-//                }
-//            }
-//            Archive.readOpen1(archive)
-//            successful = true
-//            return archive
-//
-//
-//        } finally {
-//            if (!successful) {
-//                Archive.free(archive)
-//            }
-//        }
-//
-//
-//    }
+    @Throws(ArchiveException::class)
+    fun openArchive(
+        inputStream: InputStream,
+    ): Long {
+        val archive: Long = Archive.readNew()
+        var successful = false
+        try {
+            Archive.setCharset(archive, StandardCharsets.UTF_8.name().toByteArray())
+            Archive.readSupportFilterAll(archive)
+            Archive.readSupportFormatAll(archive)
+            Archive.readSetCallbackData(archive, null)
+            val buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
+            Archive.readSetReadCallback<Any?>(archive) { _, _ ->
+                buffer.clear()
+                val bytesRead = try {
+                    inputStream.read(buffer.array())
+                } catch (e: IOException) {
+                    throw ArchiveException(Archive.ERRNO_FATAL, "InputStream.read", e)
+                }
+                if (bytesRead != -1) {
+                    buffer.limit(bytesRead)
+                    buffer
+                } else {
+                    null
+                }
+            }
+            Archive.readSetSkipCallback<Any?>(archive) { _, _, request ->
+                try {
+                    inputStream.skip(request)
+                } catch (e: IOException) {
+                    throw ArchiveException(Archive.ERRNO_FATAL, "InputStream.skip", e)
+                }
+            }
+            Archive.readOpen1(archive)
+            successful = true
+            return archive
+        } finally {
+            if (!successful) {
+                Archive.free(archive)
+            }
+        }
+
+    }
 
 
     @Throws(ArchiveException::class)
@@ -133,7 +133,6 @@ object LibArchiveUtils {
                 Archive.free(archive)
             }
         }
-
 
     }
 
@@ -208,24 +207,28 @@ object LibArchiveUtils {
 
     }
 
-
+    /**
+     * 解压文件
+     */
     @Throws(NullPointerException::class, SecurityException::class)
     fun unArchive(
         pfd: ParcelFileDescriptor,
         destDir: File,
-        filter: ((String) -> Boolean)?
+        filter: ((String) -> Boolean)? = null
     ): List<File> {
         return unArchive(openArchive(pfd), destDir, filter)
     }
 
-
+    /**
+     * 解压
+     */
     @Throws(NullPointerException::class, SecurityException::class)
     private fun unArchive(
         archive: Long,
         destDir: File?,
         filter: ((String) -> Boolean)? = null
     ): List<File> {
-        destDir ?: throw NullPointerException("解决路径不能为空")
+        destDir ?: throw NullPointerException("解压路径不能为空")
         val files = arrayListOf<File>()
 
 
@@ -275,12 +278,7 @@ object LibArchiveUtils {
             Archive.free(archive)
         }
 
-
-
-
-
         return files
-
 
     }
 
@@ -288,6 +286,46 @@ object LibArchiveUtils {
         return getFilesName(openArchive(pfd), filter)
     }
 
+    fun getByteArrayContent(inputStream: InputStream, path: String): ByteArray? {
+        val archive = openArchive(inputStream)
+        try {
+            var entry = Archive.readNextHeader(archive)
+            while (entry != 0L) {
+                val entryName =
+                    getEntryString(ArchiveEntry.pathnameUtf8(entry), ArchiveEntry.pathname(entry))
+                        ?: continue
+
+                val entryStat = ArchiveEntry.stat(entry)
+
+                //判断是否是文件夹
+                if (S_ISDIR(entryStat.stMode)) {
+                    entry = Archive.readNextHeader(archive)
+                    continue
+                }
+
+                if (entryName == path) {
+                    cachePath.mkdirs()
+                    val entryFile = File(cachePath, entry.toString())
+                    entryFile.delete()
+                    entryFile.createNewFile()
+                    entryFile.setReadable(true)
+                    entryFile.setExecutable(true)
+                    ParcelFileDescriptor.open(entryFile, ParcelFileDescriptor.MODE_WRITE_ONLY).use {
+                        Archive.readDataIntoFd(archive, it.fd)
+                    }
+                    val bytes = entryFile.readBytes()
+                    entryFile.delete()
+                    return bytes
+                }
+
+                entry = Archive.readNextHeader(archive)
+
+            }
+        } finally {
+            Archive.free(archive)
+        }
+        return null
+    }
 
     @Throws(SecurityException::class)
     private fun getFilesName(
@@ -320,12 +358,10 @@ object LibArchiveUtils {
 
                 entry = Archive.readNextHeader(archive)
 
-
             }
         } finally {
             Archive.free(archive)
         }
-
 
         return fileNames
     }
@@ -343,6 +379,5 @@ object LibArchiveUtils {
         return String(bytes, Charset.forName(c))
 
     }
-
 
 }
