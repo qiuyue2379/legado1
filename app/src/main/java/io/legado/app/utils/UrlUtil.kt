@@ -82,13 +82,13 @@ object UrlUtil {
             val headers = conn.headerFields
             val headersString = buildString {
                 headers.forEach { (key, value) ->
-                   value.forEach {
-                       append(key)
-                       append(": ")
-                       append(it)
-                       append("\n")
-                   }
-               }
+                    value.forEach {
+                        append(key)
+                        append(": ")
+                        append(it)
+                        append("\n")
+                    }
+                }
             }
             AppLog.put("$url response header:\n$headersString")
         }
@@ -124,8 +124,8 @@ object UrlUtil {
                     )
                     */
                 }
-           }
-           names.firstOrNull()
+            }
+            names.firstOrNull()
         } else if (redirectUrl != null) {
             val newUrl= URL(URLDecoder.decode(redirectUrl, "UTF-8"))
             getFileNameFromPath(newUrl)
@@ -134,12 +134,12 @@ object UrlUtil {
             null
         }
     }
-    
+
     private fun getFileNameFromPath(fileUrl: URL): String? {
         val path = fileUrl.path ?: return null
         val suffix = getSuffix(path, "")
         return if (
-           suffix != "" && !unExpectFileSuffixs.contains(suffix)
+            suffix != "" && !unExpectFileSuffixs.contains(suffix)
         ) {
             path.substringAfterLast("/")
         } else {
@@ -148,13 +148,14 @@ object UrlUtil {
         }
     }
 
+    private val fileSuffixRegex = Regex("^[a-z\\d]+$", RegexOption.IGNORE_CASE)
+
     /* 获取合法的文件后缀 */
     fun getSuffix(str: String, default: String? = null): String {
         val suffix = CustomUrl(str).getUrl()
             .substringAfterLast(".", "")
             .substringBefore("?")
         //检查截取的后缀字符是否合法 [a-zA-Z0-9]
-        val fileSuffixRegex = Regex("^[a-z\\d]+$", RegexOption.IGNORE_CASE)
         return if (suffix.length > 5 || !suffix.matches(fileSuffixRegex)) {
             AppLog.put("Cannot find legal suffix:\n target: $str\n suffix: $suffix")
             default ?: "ext"

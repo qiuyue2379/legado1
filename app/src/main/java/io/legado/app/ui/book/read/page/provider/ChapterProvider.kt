@@ -350,13 +350,13 @@ object ChapterProvider {
         srcList: LinkedList<String>? = null
     ): Pair<Int, Float> {
         var absStartX = x
+        val widthsArray = FloatArray(text.length)
         val layout = if (ReadBookConfig.useZhLayout) {
-            ZhLayout(text, textPaint, visibleWidth)
+            ZhLayout(text, textPaint, visibleWidth, widthsArray)
         } else {
+            textPaint.getTextWidths(text, widthsArray)
             StaticLayout(text, textPaint, visibleWidth, Layout.Alignment.ALIGN_NORMAL, 0f, 0f, true)
         }
-        val widthsArray = FloatArray(text.length)
-        textPaint.getTextWidths(text, widthsArray)
         val widthsList = widthsArray.asList()
         var durY = when {
             //标题y轴居中
@@ -475,7 +475,7 @@ object ChapterProvider {
             }
             textLine.paragraphNum = paragraphNum
             textLine.chapterPosition =
-                (textPages.getOrNull(textPages.lastIndex - 1)?.lines?.last()?.run {
+                (textPages.getOrNull(textPages.lastIndex - 1)?.lines?.lastOrNull()?.run {
                     chapterPosition + charSize + if (isParagraphEnd) 1 else 0
                 } ?: 0) + sbLength
             textLine.pagePosition = sbLength
@@ -621,7 +621,7 @@ object ChapterProvider {
         exceed(absStartX, textLine)
     }
 
-    private fun getStringArrayAndTextWidths(
+    fun getStringArrayAndTextWidths(
         text: String,
         textWidths: List<Float>
     ): Pair<List<String>, List<Float>> {
