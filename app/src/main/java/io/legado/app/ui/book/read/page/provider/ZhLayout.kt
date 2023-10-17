@@ -1,8 +1,10 @@
 package io.legado.app.ui.book.read.page.provider
 
+import android.graphics.Paint
 import android.graphics.Rect
 import android.text.Layout
 import android.text.TextPaint
+import java.util.WeakHashMap
 import kotlin.math.max
 
 /**
@@ -22,6 +24,7 @@ class ZhLayout(
             "】", ")", ">", "]", "}", ",", ".", "?", "!", ":", "」", "；", ";"
         )
         private val prePanc = hashSetOf("“", "（", "《", "【", "‘", "‘", "(", "<", "[", "{", "「")
+        private val cnCharWidthCache = WeakHashMap<Paint, Float>()
     }
 
     private val defaultCapacity = 10
@@ -29,7 +32,10 @@ class ZhLayout(
     var lineWidth = FloatArray(defaultCapacity)
     private var lineCount = 0
     private val curPaint = textPaint
-    private val cnCharWitch = getDesiredWidth("我", textPaint)
+    private val cnCharWidth = cnCharWidthCache[textPaint]
+        ?: getDesiredWidth("我", textPaint).also {
+            cnCharWidthCache[textPaint] = it
+        }
 
     enum class BreakMod { NORMAL, BREAK_ONE_CHAR, BREAK_MORE_CHAR, CPS_1, CPS_2, CPS_3, }
     class Locate {
@@ -47,7 +53,8 @@ class ZhLayout(
         curPaint.getTextWidths(text as String, widthsArray)
         val (words, widths) = ChapterProvider.getStringArrayAndTextWidths(
             text,
-            widthsArray.asList()
+            widthsArray.asList(),
+            curPaint
         )
         var lineW = 0f
         var cwPre = 0f
@@ -197,10 +204,10 @@ class ZhLayout(
     }
 
     private fun inCompressible(width: Float): Boolean {
-        return width < cnCharWitch
+        return width < cnCharWidth
     }
 
-    private val gap = (cnCharWitch / 12.75).toFloat()
+    private val gap = (cnCharWidth / 12.75).toFloat()
     private fun getPostPancOffset(string: String): Float {
         val textRect = Rect()
         curPaint.getTextBounds(string, 0, 1, textRect)
@@ -210,8 +217,8 @@ class ZhLayout(
     private fun getPrePancOffset(string: String): Float {
         val textRect = Rect()
         curPaint.getTextBounds(string, 0, 1, textRect)
-        val d = max(cnCharWitch - textRect.right.toFloat() - gap, 0f)
-        return cnCharWitch / 2 - d
+        val d = max(cnCharWidth - textRect.right.toFloat() - gap, 0f)
+        return cnCharWidth / 2 - d
     }
 
     fun getDesiredWidth(sting: String, paint: TextPaint) = paint.measureText(sting)

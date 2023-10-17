@@ -267,7 +267,7 @@ object ReadBook : CoroutineScope by MainScope() {
         callBack?.pageChanged()
         if (BaseReadAloudService.isRun) {
             val scrollPageAnim = pageAnim() == 3
-            if (scrollPageAnim) {
+            if (scrollPageAnim && pauseReadAloud) {
                 ReadAloud.pause(appCtx)
             } else {
                 readAloud(!BaseReadAloudService.pause)

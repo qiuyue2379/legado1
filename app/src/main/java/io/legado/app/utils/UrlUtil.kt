@@ -82,13 +82,13 @@ object UrlUtil {
             val headers = conn.headerFields
             val headersString = buildString {
                 headers.forEach { (key, value) ->
-                    value.forEach {
-                        append(key)
-                        append(": ")
-                        append(it)
-                        append("\n")
-                    }
-                }
+                   value.forEach {
+                       append(key)
+                       append(": ")
+                       append(it)
+                       append("\n")
+                   }
+               }
             }
             AppLog.put("$url response header:\n$headersString")
         }
@@ -124,8 +124,8 @@ object UrlUtil {
                     )
                     */
                 }
-            }
-            names.firstOrNull()
+           }
+           names.firstOrNull()
         } else if (redirectUrl != null) {
             val newUrl= URL(URLDecoder.decode(redirectUrl, "UTF-8"))
             getFileNameFromPath(newUrl)
@@ -134,12 +134,12 @@ object UrlUtil {
             null
         }
     }
-
+    
     private fun getFileNameFromPath(fileUrl: URL): String? {
         val path = fileUrl.path ?: return null
         val suffix = getSuffix(path, "")
         return if (
-            suffix != "" && !unExpectFileSuffixs.contains(suffix)
+           suffix != "" && !unExpectFileSuffixs.contains(suffix)
         ) {
             path.substringAfterLast("/")
         } else {
