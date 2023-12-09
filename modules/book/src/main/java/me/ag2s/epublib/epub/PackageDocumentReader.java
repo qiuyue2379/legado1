@@ -48,6 +48,12 @@ public class PackageDocumentReader extends PackageDocumentBase {
             Resource packageResource, EpubReader epubReader, EpubBook book,
             Resources resources)
             throws SAXException, IOException {
+        /*掌上书苑有很多自制书OPF的nameSpace格式不标准，强制修复成正确的格式*/
+        String string = new String(packageResource.getData())
+                .replace(" smlns=\"", " xmlns=\"")
+                .replace(" mlns=\"", " xmlns=\"");
+        packageResource.setData(string.getBytes());
+
         Document packageDocument = ResourceUtil.getAsDocument(packageResource);
         String packageHref = packageResource.getHref();
         resources = fixHrefs(packageHref, resources);
@@ -101,12 +107,12 @@ public class PackageDocumentReader extends PackageDocumentBase {
         //如果有图片资源未定义在 originItemElements ，则加入该图片信息得到 fixedElements 中
         for (Resource resource : resources.getAll()) {
             MediaType currentMediaType = resource.getMediaType();
-            if (currentMediaType == MediaTypes.JPG || currentMediaType == MediaTypes.PNG) {
+            if (MediaTypes.isImage(currentMediaType)) {
                 String imageHref = resource.getHref();
                 //确保该图片信息 resource 在原 originItemHrefSet 集合中没有出现过
                 if (!originItemHrefSet.contains(imageHref)) {
                     Element tempElement = packageDocument.createElement("item");
-                    tempElement.setAttribute("id", imageHref.replace("/", ""));
+                    tempElement.setAttribute("id", resource.getId());
                     tempElement.setAttribute("href", imageHref);
                     tempElement.setAttribute("media-type", currentMediaType.getName());
                     fixedElements.add(tempElement);
