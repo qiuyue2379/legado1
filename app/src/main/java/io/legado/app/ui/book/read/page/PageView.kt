@@ -22,6 +22,7 @@ import io.legado.app.ui.widget.BatteryView
 import io.legado.app.utils.activity
 import io.legado.app.utils.dpToPx
 import io.legado.app.utils.gone
+import io.legado.app.utils.setTextIfNotEqual
 import io.legado.app.utils.statusBarHeight
 import splitties.views.backgroundColor
 import java.util.Date
@@ -287,6 +288,10 @@ class PageView(context: Context) : FrameLayout(context) {
         binding.contentTextView.setContent(textPage)
     }
 
+    fun invalidateContentView() {
+        binding.contentTextView.invalidate()
+    }
+
     /**
      * 设置无障碍文本
      */
@@ -306,38 +311,33 @@ class PageView(context: Context) : FrameLayout(context) {
      */
     @SuppressLint("SetTextI18n")
     fun setProgress(textPage: TextPage) = textPage.apply {
-        tvBookName?.apply {
-            if (text != ReadBook.book?.name) {
-                text = ReadBook.book?.name
-            }
-        }
-        tvTitle?.apply {
-            if (text != textPage.title) {
-                text = textPage.title
-            }
-        }
-        tvPage?.text = "${index.plus(1)}/$pageSize"
+        tvBookName?.setTextIfNotEqual(ReadBook.book?.name)
+        tvTitle?.setTextIfNotEqual(textPage.title)
         val readProgress = readProgress
-        tvTotalProgress?.apply {
-            if (text != readProgress) {
-                text = readProgress
-            }
+        tvTotalProgress?.setTextIfNotEqual(readProgress)
+        tvTotalProgress1?.setTextIfNotEqual("${chapterIndex.plus(1)}/${chapterSize}")
+        if (textChapter.isCompleted) {
+            tvPageAndTotal?.setTextIfNotEqual("${index.plus(1)}/$pageSize  $readProgress")
+            tvPage?.setTextIfNotEqual("${index.plus(1)}/$pageSize")
+        } else {
+            val pageSizeInt = pageSize - 1
+            val pageSize = if (pageSizeInt <= 0) "-" else "~$pageSizeInt"
+            tvPageAndTotal?.setTextIfNotEqual("${index.plus(1)}/$pageSize  $readProgress")
+            tvPage?.setTextIfNotEqual("${index.plus(1)}/$pageSize")
         }
-        tvTotalProgress1?.apply {
-            val progress = "${chapterIndex.plus(1)}/${chapterSize}"
-            if (text != progress) {
-                text = progress
-            }
-        }
-        tvPageAndTotal?.text = "${index.plus(1)}/$pageSize  $readProgress"
     }
 
     fun setAutoPager(autoPager: AutoPager?) {
         binding.contentTextView.setAutoPager(autoPager)
     }
 
-    fun submitPreRenderTask() {
-        binding.contentTextView.submitPreRenderTask()
+    fun submitRenderTask() {
+        binding.contentTextView.submitRenderTask()
+    }
+
+    fun setIsScroll(value: Boolean) {
+        isScroll = value
+        binding.contentTextView.setIsScroll(value)
     }
 
     /**

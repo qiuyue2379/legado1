@@ -10,7 +10,8 @@ import io.legado.app.ui.book.read.page.ContentTextView
 import io.legado.app.ui.book.read.page.entities.TextPage.Companion.emptyTextPage
 import io.legado.app.ui.book.read.page.entities.column.BaseColumn
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
-import io.legado.app.utils.PictureMirror
+import io.legado.app.utils.canvasrecorder.CanvasRecorderFactory
+import io.legado.app.utils.canvasrecorder.recordIfNeededThenDraw
 import io.legado.app.utils.dpToPx
 
 /**
@@ -39,7 +40,7 @@ data class TextLine(
     val lineEnd: Float get() = textColumns.lastOrNull()?.end ?: 0f
     val chapterIndices: IntRange get() = chapterPosition..chapterPosition + charSize
     val height: Float inline get() = lineBottom - lineTop
-    val pictureMirror: PictureMirror = PictureMirror()
+    val canvasRecorder = CanvasRecorderFactory.create()
     var isReadAloud: Boolean = false
         set(value) {
             if (field != value) {
@@ -121,8 +122,8 @@ data class TextLine(
         return visible
     }
 
-    fun draw(view: ContentTextView, canvas: Canvas?) {
-        pictureMirror.draw(canvas, view.width, height.toInt()) {
+    fun draw(view: ContentTextView, canvas: Canvas) {
+        canvasRecorder.recordIfNeededThenDraw(canvas, view.width, height.toInt()) {
             drawTextLine(view, this)
         }
     }
@@ -156,11 +157,11 @@ data class TextLine(
     }
 
     fun invalidateSelf() {
-        pictureMirror.invalidate()
+        canvasRecorder.invalidate()
     }
 
-    fun recyclePicture() {
-        pictureMirror.recycle()
+    fun recycleRecorder() {
+        canvasRecorder.recycle()
     }
 
     companion object {
