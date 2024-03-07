@@ -15,15 +15,18 @@ class CanvasRecorderImpl : BaseCanvasRecorder() {
     override val height get() = bitmap?.height ?: -1
 
     private fun init(width: Int, height: Int) {
+        if (width <= 0 || height <= 0) {
+            return
+        }
         if (bitmap == null) {
-            bitmap = bitmapPool.obtain(width, height)
+            bitmap = BitmapPool.obtain(width, height)
         }
         if (bitmap!!.width != width || bitmap!!.height != height) {
             if (canReconfigure(width, height)) {
                 bitmap!!.reconfigure(width, height, Bitmap.Config.ARGB_8888)
             } else {
-                bitmapPool.recycle(bitmap!!)
-                bitmap = bitmapPool.obtain(width, height)
+                BitmapPool.recycle(bitmap!!)
+                bitmap = BitmapPool.obtain(width, height)
             }
         }
     }
@@ -34,13 +37,13 @@ class CanvasRecorderImpl : BaseCanvasRecorder() {
 
     override fun beginRecording(width: Int, height: Int): Canvas {
         init(width, height)
-        bitmap!!.eraseColor(Color.TRANSPARENT)
-        canvas = canvasPool.obtain().apply { setBitmap(bitmap!!) }
+        bitmap?.eraseColor(Color.TRANSPARENT)
+        canvas = canvasPool.obtain().apply { setBitmap(bitmap) }
         return canvas!!
     }
 
     override fun endRecording() {
-        bitmap!!.prepareToDraw()
+        bitmap?.prepareToDraw()
         super.endRecording()
         canvasPool.recycle(canvas!!)
         canvas = null
@@ -54,13 +57,12 @@ class CanvasRecorderImpl : BaseCanvasRecorder() {
     override fun recycle() {
         super.recycle()
         val bitmap = bitmap ?: return
-        bitmapPool.recycle(bitmap)
+        BitmapPool.recycle(bitmap)
         this.bitmap = null
     }
 
     companion object {
         private val canvasPool = CanvasPool(2)
-        private val bitmapPool = BitmapPool()
     }
 
 }

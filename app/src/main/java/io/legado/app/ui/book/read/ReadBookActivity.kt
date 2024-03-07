@@ -77,7 +77,6 @@ import io.legado.app.ui.book.read.config.TipConfigDialog.Companion.TIP_DIVIDER_C
 import io.legado.app.ui.book.read.page.ContentTextView
 import io.legado.app.ui.book.read.page.ReadView
 import io.legado.app.ui.book.read.page.entities.PageDirection
-import io.legado.app.ui.book.read.page.entities.TextChapter
 import io.legado.app.ui.book.read.page.entities.TextPage
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.ui.book.read.page.provider.LayoutProgressListener
@@ -115,7 +114,6 @@ import io.legado.app.utils.observeEvent
 import io.legado.app.utils.observeEventSticky
 import io.legado.app.utils.postEvent
 import io.legado.app.utils.showDialogFragment
-import io.legado.app.utils.stackTraceStr
 import io.legado.app.utils.startActivity
 import io.legado.app.utils.sysScreenOffTime
 import io.legado.app.utils.throttle
@@ -126,7 +124,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.max
 
 /**
  * 阅读界面
@@ -1309,24 +1306,24 @@ class ReadBookActivity : BaseReadBookActivity(),
         when (dialogId) {
             TEXT_COLOR -> {
                 setCurTextColor(color)
-                postEvent(EventBus.UP_CONFIG, arrayOf(2, 9, 11))
+                postEvent(EventBus.UP_CONFIG, arrayListOf(2, 9, 11))
             }
 
             BG_COLOR -> {
                 setCurBg(0, "#${color.hexString}")
-                postEvent(EventBus.UP_CONFIG, arrayOf(1))
+                postEvent(EventBus.UP_CONFIG, arrayListOf(1))
             }
 
             TIP_COLOR -> {
                 ReadTipConfig.tipColor = color
                 postEvent(EventBus.TIP_COLOR, "")
-                postEvent(EventBus.UP_CONFIG, arrayOf(2))
+                postEvent(EventBus.UP_CONFIG, arrayListOf(2))
             }
 
             TIP_DIVIDER_COLOR -> {
                 ReadTipConfig.tipDividerColor = color
                 postEvent(EventBus.TIP_COLOR, "")
-                postEvent(EventBus.UP_CONFIG, arrayOf(2))
+                postEvent(EventBus.UP_CONFIG, arrayListOf(2))
             }
         }
     }
@@ -1373,87 +1370,45 @@ class ReadBookActivity : BaseReadBookActivity(),
         binding.readView.autoPager.resume()
     }
 
-    override fun onCurrentTextChapterChanged(textChapter: TextChapter, upContent: Boolean) {
-        this.upContent = upContent
-        textChapter.setProgressListener(this)
-    }
-
     override fun onLayoutPageCompleted(index: Int, page: TextPage) {
         upSeekBarThrottle.invoke()
-        if (upContent) {
-            val durChapterPos = ReadBook.durChapterPos
-            if (page.containPos(durChapterPos)) {
-                runOnUiThread {
-                    binding.readView.upContent(0, resetPageOffset = false)
-                }
-            }
-            if (isScroll) {
-                val pageIndex = ReadBook.durPageIndex
-                if (max(index - 3, 0) < pageIndex) {
-                    runOnUiThread {
-                        binding.readView.upContent(0, resetPageOffset = false)
-                    }
-                }
-            }
-        }
         binding.readView.onLayoutPageCompleted(index, page)
-    }
-
-    override fun onLayoutCompleted() {
-        if (upContent) {
-            runOnUiThread {
-                binding.readView.upContent(0, resetPageOffset = false)
-            }
-        }
-        binding.readView.onLayoutCompleted()
-    }
-
-    override fun onLayoutException(e: Throwable) {
-        AppLog.put("ChapterProvider ERROR", e)
-        toastOnUi("ChapterProvider ERROR:\n${e.stackTraceStr}")
-        binding.readView.onLayoutException(e)
-    }
-
-    override fun resetPageOffset() {
-        binding.readView.resetPageOffset()
     }
 
     /* 全文搜索跳转 */
     private fun skipToSearch(searchResult: SearchResult) {
-        val previousResult = binding.searchMenu.previousSearchResult
-
-        fun jumpToPosition() {
-            val curTextChapter = ReadBook.curTextChapter ?: return
-            binding.searchMenu.updateSearchInfo()
-            val (pageIndex, lineIndex, charIndex, addLine, charIndex2) =
-                viewModel.searchResultPositions(curTextChapter, searchResult)
-            ReadBook.skipToPage(pageIndex) {
-                isSelectingSearchResult = true
-                binding.readView.curPage.selectStartMoveIndex(0, lineIndex, charIndex)
-                when (addLine) {
-                    0 -> binding.readView.curPage.selectEndMoveIndex(
-                        0,
-                        lineIndex,
-                        charIndex + viewModel.searchContentQuery.length - 1
-                    )
-
-                    1 -> binding.readView.curPage.selectEndMoveIndex(
-                        0, lineIndex + 1, charIndex2
-                    )
-                    //consider change page, jump to scroll position
-                    -1 -> binding.readView.curPage.selectEndMoveIndex(1, 0, charIndex2)
-                }
-                binding.readView.isTextSelected = true
-                isSelectingSearchResult = false
-            }
-        }
-
-        if (searchResult.chapterIndex != previousResult?.chapterIndex) {
+        if (searchResult.chapterIndex != ReadBook.durChapterIndex) {
             viewModel.openChapter(searchResult.chapterIndex) {
-                jumpToPosition()
+                jumpToPosition(searchResult)
             }
         } else {
-            jumpToPosition()
+            jumpToPosition(searchResult)
+        }
+    }
+
+    private fun jumpToPosition(searchResult: SearchResult) {
+        val curTextChapter = ReadBook.curTextChapter ?: return
+        binding.searchMenu.updateSearchInfo()
+        val (pageIndex, lineIndex, charIndex, addLine, charIndex2) =
+            viewModel.searchResultPositions(curTextChapter, searchResult)
+        ReadBook.skipToPage(pageIndex) {
+            isSelectingSearchResult = true
+            binding.readView.curPage.selectStartMoveIndex(0, lineIndex, charIndex)
+            when (addLine) {
+                0 -> binding.readView.curPage.selectEndMoveIndex(
+                    0,
+                    lineIndex,
+                    charIndex + viewModel.searchContentQuery.length - 1
+                )
+
+                1 -> binding.readView.curPage.selectEndMoveIndex(
+                    0, lineIndex + 1, charIndex2
+                )
+                //consider change page, jump to scroll position
+                -1 -> binding.readView.curPage.selectEndMoveIndex(1, 0, charIndex2)
+            }
+            binding.readView.isTextSelected = true
+            isSelectingSearchResult = false
         }
     }
 
@@ -1535,7 +1490,7 @@ class ReadBookActivity : BaseReadBookActivity(),
                 ReadBook.readAloud(!BaseReadAloudService.pause)
             }
         }
-        observeEvent<Array<Int>>(EventBus.UP_CONFIG) {
+        observeEvent<ArrayList<Int>>(EventBus.UP_CONFIG) {
             it.forEach { value ->
                 when (value) {
                     0 -> upSystemUiVisibility()

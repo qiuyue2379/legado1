@@ -32,6 +32,7 @@ import io.legado.app.utils.postEvent
 import io.legado.app.utils.spToPx
 import io.legado.app.utils.splitNotBlank
 import io.legado.app.utils.textHeight
+import kotlinx.coroutines.CoroutineScope
 import splitties.init.appCtx
 import java.util.LinkedList
 import java.util.Locale
@@ -306,6 +307,8 @@ object ChapterProvider {
     }
 
     fun getTextChapterAsync(
+        scope: CoroutineScope,
+        book: Book,
         bookChapter: BookChapter,
         displayTitle: String,
         bookContent: BookContent,
@@ -320,7 +323,9 @@ object ChapterProvider {
             bookChapter.isVip,
             bookChapter.isPay,
             bookContent.effectiveReplaceRules
-        )
+        ).apply {
+            createLayout(scope, book, bookContent)
+        }
 
         return textChapter
     }
@@ -432,7 +437,7 @@ object ChapterProvider {
     ): Pair<Int, Float> {
         var absStartX = x
         val layout = if (ReadBookConfig.useZhLayout) {
-            ZhLayout(text, textPaint, visibleWidth)
+            ZhLayout(text, textPaint, visibleWidth, emptyList(), emptyList())
         } else {
             StaticLayout(text, textPaint, visibleWidth, Layout.Alignment.ALIGN_NORMAL, 0f, 0f, true)
         }
@@ -809,11 +814,8 @@ object ChapterProvider {
         paragraphSpacing = ReadBookConfig.paragraphSpacing
         titleTopSpacing = ReadBookConfig.titleTopSpacing.dpToPx()
         titleBottomSpacing = ReadBookConfig.titleBottomSpacing.dpToPx()
-        var bodyIndent = ReadBookConfig.paragraphIndent
-        val indentLength = bodyIndent.length
-        // 有些字体的中文空格宽度不对
-        bodyIndent = "一".repeat(indentLength)
-        indentCharWidth = StaticLayout.getDesiredWidth(bodyIndent, contentPaint) / indentLength
+        val bodyIndent = ReadBookConfig.paragraphIndent
+        indentCharWidth = StaticLayout.getDesiredWidth(bodyIndent, contentPaint) / bodyIndent.length
         titlePaintTextHeight = titlePaint.textHeight
         contentPaintTextHeight = contentPaint.textHeight
         titlePaintFontMetrics = titlePaint.fontMetrics
@@ -879,6 +881,7 @@ object ChapterProvider {
         tPaint.typeface = titleFont
         tPaint.textSize = with(ReadBookConfig) { textSize + titleSize }.toFloat().spToPx()
         tPaint.isAntiAlias = true
+        tPaint.isLinearText = true
         //正文
         val cPaint = TextPaint()
         cPaint.color = ReadBookConfig.textColor
@@ -886,6 +889,7 @@ object ChapterProvider {
         cPaint.typeface = textFont
         cPaint.textSize = ReadBookConfig.textSize.toFloat().spToPx()
         cPaint.isAntiAlias = true
+        cPaint.isLinearText = true
         return Pair(tPaint, cPaint)
     }
 
@@ -897,7 +901,7 @@ object ChapterProvider {
             viewWidth = width
             viewHeight = height
             upLayout()
-            postEvent(EventBus.UP_CONFIG, arrayOf(5))
+            postEvent(EventBus.UP_CONFIG, arrayListOf(5))
         }
     }
 

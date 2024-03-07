@@ -31,6 +31,7 @@ import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.ui.book.read.page.provider.LayoutProgressListener
 import io.legado.app.ui.book.read.page.provider.TextPageFactory
 import io.legado.app.utils.activity
+import io.legado.app.utils.canvasrecorder.pools.BitmapPool
 import io.legado.app.utils.invisible
 import io.legado.app.utils.showDialogFragment
 import io.legado.app.utils.throttle
@@ -460,6 +461,8 @@ class ReadView(context: Context, attrs: AttributeSet) :
     fun onDestroy() {
         pageDelegate?.onDestroy()
         curPage.cancelSelect()
+        invalidateTextPage()
+        BitmapPool.clear()
     }
 
     /**
@@ -621,7 +624,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
             pagePos--
         }
         val startPos = curPage.textPage.getPosByLineColumn(line, column)
-        ReadAloud.play(context, startPos = startPos)
+        ReadBook.readAloud(startPos = startPos)
     }
 
     /**
@@ -667,10 +670,6 @@ class ReadView(context: Context, attrs: AttributeSet) :
 
     override fun onLayoutPageCompleted(index: Int, page: TextPage) {
         upProgressThrottle.invoke()
-    }
-
-    fun resetPageOffset() {
-        curPage.resetPageOffset()
     }
 
     override val currentChapter: TextChapter?
