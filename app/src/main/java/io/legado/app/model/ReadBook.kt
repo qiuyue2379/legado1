@@ -26,10 +26,12 @@ import io.legado.app.utils.stackTraceStr
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -64,7 +66,7 @@ object ReadBook : CoroutineScope by MainScope() {
     /* web端阅读进度记录 */
     var webBookProgress: BookProgress? = null
 
-    var preDownloadTask: Coroutine<*>? = null
+    var preDownloadTask: Job? = null
     val downloadedChapters = hashSetOf<Int>()
     val downloadFailChapters = hashMapOf<Int, Int>()
     var contentProcessor: ContentProcessor? = null
@@ -169,9 +171,10 @@ object ReadBook : CoroutineScope by MainScope() {
 
     fun uploadProgress() {
         book?.let {
-            Coroutine.async {
+            launch(IO) {
                 AppWebDav.uploadBookProgress(it)
-                it.save()
+                ensureActive()
+                it.update()
             }
         }
     }
@@ -201,6 +204,7 @@ object ReadBook : CoroutineScope by MainScope() {
             val nextPagePos = it.getNextPageLength(durChapterPos)
             if (nextPagePos >= 0) {
                 hasNextPage = true
+                it.getPage(durPageIndex)?.removePageAloudSpan()
                 durChapterPos = nextPagePos
                 callBack?.upContent()
                 saveRead(true)
@@ -325,12 +329,14 @@ object ReadBook : CoroutineScope by MainScope() {
      */
     private fun curPageChanged(pageChanged: Boolean = false) {
         callBack?.pageChanged()
-        if (BaseReadAloudService.isRun && isLayoutAvailable) {
-            val scrollPageAnim = pageAnim() == 3
-            if (scrollPageAnim && pageChanged) {
-                ReadAloud.pause(appCtx)
-            } else {
-                readAloud(!BaseReadAloudService.pause)
+        curTextChapter?.let {
+            if (BaseReadAloudService.isRun && it.isCompleted) {
+                val scrollPageAnim = pageAnim() == 3
+                if (scrollPageAnim && pageChanged) {
+                    ReadAloud.pause(appCtx)
+                } else {
+                    readAloud(!BaseReadAloudService.pause)
+                }
             }
         }
         upReadTime()
@@ -342,7 +348,8 @@ object ReadBook : CoroutineScope by MainScope() {
      */
     fun readAloud(play: Boolean = true, startPos: Int = 0) {
         book ?: return
-        if (isLayoutAvailable) {
+        val textChapter = curTextChapter ?: return
+        if (textChapter.isCompleted) {
             ReadAloud.play(appCtx, play, startPos = startPos)
         }
     }
@@ -547,8 +554,6 @@ object ReadBook : CoroutineScope by MainScope() {
                             if (upContent) {
                                 callBack?.upContent(offset, resetPageOffset)
                             }
-                            curPageChanged()
-                            callBack?.contentLoadFinish()
                             available = true
                         }
                         if (upContent && isScroll) {
@@ -559,10 +564,8 @@ object ReadBook : CoroutineScope by MainScope() {
                         callBack?.onLayoutPageCompleted(index, page)
                     }
                     if (upContent) callBack?.upContent(offset, !available && resetPageOffset)
-                    if (!available) {
-                        curPageChanged()
-                        callBack?.contentLoadFinish()
-                    }
+                    curPageChanged()
+                    callBack?.contentLoadFinish()
                 }
 
                 -1 -> {
@@ -651,7 +654,7 @@ object ReadBook : CoroutineScope by MainScope() {
                 return@execute
             }
             preDownloadTask?.cancel()
-            preDownloadTask = Coroutine.async(executeContext = IO) {
+            preDownloadTask = launch(IO) {
                 //预下载
                 launch {
                     val maxChapterIndex =

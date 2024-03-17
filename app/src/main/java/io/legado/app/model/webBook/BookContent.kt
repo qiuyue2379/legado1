@@ -17,7 +17,6 @@ import io.legado.app.model.analyzeRule.AnalyzeUrl
 import io.legado.app.utils.HtmlFormatter
 import io.legado.app.utils.NetworkUtils
 import io.legado.app.utils.mapAsync
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.flow
 import org.apache.commons.text.StringEscapeUtils
@@ -57,6 +56,7 @@ object BookContent {
         val analyzeRule = AnalyzeRule(book, bookSource)
         analyzeRule.setContent(body, baseUrl)
         analyzeRule.setRedirectUrl(redirectUrl)
+        analyzeRule.setCoroutineContext(coroutineContext)
         analyzeRule.chapter = bookChapter
         analyzeRule.nextChapterUrl = mNextChapterUrl
         coroutineContext.ensureActive()
@@ -124,7 +124,7 @@ object BookContent {
                     printLog = false
                 ).first
             }.collect {
-                currentCoroutineContext().ensureActive()
+                coroutineContext.ensureActive()
                 contentList.add(it)
             }
         }
@@ -150,7 +150,7 @@ object BookContent {
     }
 
     @Throws(Exception::class)
-    private fun analyzeContent(
+    private suspend fun analyzeContent(
         book: Book,
         baseUrl: String,
         redirectUrl: String,
@@ -164,6 +164,7 @@ object BookContent {
     ): Pair<String, List<String>> {
         val analyzeRule = AnalyzeRule(book, bookSource)
         analyzeRule.setContent(body, baseUrl)
+        analyzeRule.setCoroutineContext(coroutineContext)
         val rUrl = analyzeRule.setRedirectUrl(redirectUrl)
         analyzeRule.nextChapterUrl = nextChapterUrl
         val nextUrlList = arrayListOf<String>()

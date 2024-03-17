@@ -122,6 +122,7 @@ import io.legado.app.utils.visible
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -276,7 +277,7 @@ class ReadBookActivity : BaseReadBookActivity(),
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
         Looper.myQueue().addIdleHandler {
-            viewModel.initData(intent) { upMenu() }
+            viewModel.initData(intent)
             false
         }
     }
@@ -902,6 +903,7 @@ class ReadBookActivity : BaseReadBookActivity(),
 
     override fun upMenuView() {
         handler.post {
+            upMenu()
             binding.readMenu.upBookView()
         }
     }
@@ -918,9 +920,6 @@ class ReadBookActivity : BaseReadBookActivity(),
         if (intent.getBooleanExtra("readAloud", false)) {
             intent.removeExtra("readAloud")
             ReadBook.readAloud()
-        }
-        if (BaseReadAloudService.isRun) {
-            ReadAloud.upTtsProgress(this)
         }
         loadStates = true
     }
@@ -1441,7 +1440,8 @@ class ReadBookActivity : BaseReadBookActivity(),
             delay(300000)
             ReadBook.book?.let {
                 AppWebDav.uploadBookProgress(it)
-                it.save()
+                ensureActive()
+                it.update()
                 Backup.autoBack(this@ReadBookActivity)
             }
         }
