@@ -7,6 +7,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import io.legado.app.R
 import io.legado.app.base.BaseService
 import io.legado.app.constant.AppConst
@@ -15,7 +16,16 @@ import io.legado.app.constant.IntentAction
 import io.legado.app.constant.NotificationId
 import io.legado.app.constant.PreferKey
 import io.legado.app.receiver.NetworkChangedListener
-import io.legado.app.utils.*
+import io.legado.app.utils.NetworkUtils
+import io.legado.app.utils.getPrefBoolean
+import io.legado.app.utils.getPrefInt
+import io.legado.app.utils.postEvent
+import io.legado.app.utils.printOnDebug
+import io.legado.app.utils.sendToClip
+import io.legado.app.utils.servicePendingIntent
+import io.legado.app.utils.startService
+import io.legado.app.utils.stopService
+import io.legado.app.utils.toastOnUi
 import io.legado.app.web.HttpServer
 import io.legado.app.web.WebSocketServer
 import splitties.init.appCtx
@@ -31,6 +41,11 @@ class WebService : BaseService() {
 
         fun start(context: Context) {
             context.startService<WebService>()
+        }
+
+        fun startForeground(context: Context) {
+            val intent = Intent(context, WebService::class.java)
+            ContextCompat.startForegroundService(context, intent)
         }
 
         fun stop(context: Context) {
@@ -60,7 +75,7 @@ class WebService : BaseService() {
     }
     private var httpServer: HttpServer? = null
     private var webSocketServer: WebSocketServer? = null
-    private var notificationContent = appCtx.getString(R.string.service_starting)
+    private var notificationList = mutableListOf(appCtx.getString(R.string.service_starting))
     private val networkChangedListener by lazy {
         NetworkChangedListener(this)
     }
@@ -76,14 +91,15 @@ class WebService : BaseService() {
         upTile(true)
         networkChangedListener.register()
         networkChangedListener.onNetworkChanged = {
-            val address = NetworkUtils.getLocalIPAddress()
-            if (address == null) {
-                hostAddress = getString(R.string.network_connection_unavailable)
-                notificationContent = hostAddress
+            val addressList = NetworkUtils.getLocalIPAddress()
+            notificationList.clear()
+            if (addressList.any()) {
+                notificationList.addAll(addressList.map { address -> getString(R.string.http_ip, address.hostAddress, getPort()) })
+                hostAddress = notificationList.first()
                 startForegroundNotification()
             } else {
-                hostAddress = getString(R.string.http_ip, address.hostAddress, getPort())
-                notificationContent = hostAddress
+                hostAddress = getString(R.string.network_connection_unavailable)
+                notificationList.add(hostAddress)
                 startForegroundNotification()
             }
             postEvent(EventBus.WEB_SERVICE, hostAddress)
@@ -130,18 +146,19 @@ class WebService : BaseService() {
         if (webSocketServer?.isAlive == true) {
             webSocketServer?.stop()
         }
-        val address = NetworkUtils.getLocalIPAddress()
-        if (address != null) {
+        val addressList = NetworkUtils.getLocalIPAddress()
+        if (addressList.any()) {
             val port = getPort()
             httpServer = HttpServer(port)
             webSocketServer = WebSocketServer(port + 1)
             try {
                 httpServer?.start()
                 webSocketServer?.start(1000 * 30) // 通信超时设置
-                hostAddress = getString(R.string.http_ip, address.hostAddress, port)
+                notificationList.clear()
+                notificationList.addAll(addressList.map { address -> getString(R.string.http_ip, address.hostAddress, getPort()) })
+                hostAddress = notificationList.first()
                 isRun = true
                 postEvent(EventBus.WEB_SERVICE, hostAddress)
-                notificationContent = hostAddress
                 startForegroundNotification()
             } catch (e: IOException) {
                 toastOnUi(e.localizedMessage ?: "")
@@ -170,7 +187,7 @@ class WebService : BaseService() {
             .setSmallIcon(R.drawable.ic_web_service_noti)
             .setOngoing(true)
             .setContentTitle(getString(R.string.web_service))
-            .setContentText(notificationContent)
+            .setContentText(notificationList.joinToString("\n"))
             .setContentIntent(
                 servicePendingIntent<WebService>("copyHostAddress")
             )

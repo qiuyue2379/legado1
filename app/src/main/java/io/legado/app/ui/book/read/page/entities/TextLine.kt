@@ -8,6 +8,7 @@ import androidx.annotation.Keep
 import androidx.core.graphics.withTranslation
 import io.legado.app.help.PaintPool
 import io.legado.app.help.book.isImage
+import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.lib.theme.ThemeStore
 import io.legado.app.model.ReadBook
@@ -143,8 +144,12 @@ data class TextLine(
     }
 
     fun draw(view: ContentTextView, canvas: Canvas) {
-        canvasRecorder.recordIfNeededThenDraw(canvas, view.width, height.toInt()) {
-            drawTextLine(view, this)
+        if (AppConfig.optimizeRender) {
+            canvasRecorder.recordIfNeededThenDraw(canvas, view.width, height.toInt()) {
+                drawTextLine(view, this)
+            }
+        } else {
+            drawTextLine(view, canvas)
         }
     }
 
@@ -173,6 +178,9 @@ data class TextLine(
         } else {
             ReadBookConfig.textColor
         }
+        if (textPaint.color != textColor) {
+            textPaint.color = textColor
+        }
         val paint = PaintPool.obtain()
         paint.set(textPaint)
         if (extraLetterSpacing != 0f) {
@@ -180,9 +188,6 @@ data class TextLine(
         }
         if (wordSpacing != 0f) {
             paint.wordSpacing = wordSpacing
-        }
-        if (paint.color != textColor) {
-            paint.color = textColor
         }
         if (extraLetterSpacingOffsetX != 0f) {
             canvas.withTranslation(extraLetterSpacingOffsetX) {
@@ -215,13 +220,11 @@ data class TextLine(
     }
 
     fun checkFastDraw(): Boolean {
-        if (exceed || !onlyTextColumn || textPage.isMsgPage) {
+        if (!AppConfig.optimizeRender || exceed || !onlyTextColumn || textPage.isMsgPage) {
             return false
         }
-        if (wordSpacing != 0f) {
-            if (!atLeastApi26 || !wordSpacingWorking) {
-                return false
-            }
+        if (wordSpacing != 0f && (!atLeastApi26 || !wordSpacingWorking)) {
+            return false
         }
         return searchResultColumnCount == 0
     }
@@ -244,14 +247,19 @@ data class TextLine(
         val emptyTextLine = TextLine()
         private val atLeastApi26 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
         private val wordSpacingWorking by lazy {
-            // issue 3785
+            // issue 3785 3846
             val paint = PaintPool.obtain()
             val text = "一二 三"
             val width1 = paint.measureText(text)
-            paint.wordSpacing = 10f
-            val width2 = paint.measureText(text)
-            PaintPool.recycle(paint)
-            width2 - width1 == 10f
+            try {
+                paint.wordSpacing = 10f
+                val width2 = paint.measureText(text)
+                width2 - width1 == 10f
+            } catch (e: NoSuchMethodError) {
+                false
+            } finally {
+                PaintPool.recycle(paint)
+            }
         }
     }
 

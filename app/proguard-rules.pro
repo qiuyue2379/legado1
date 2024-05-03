@@ -223,6 +223,9 @@
 -keep class com.sun.script.javascript.** { *; }
 -keep class org.mozilla.** { *; }
 -dontwarn org.mozilla.javascript.engine.RhinoScriptEngineFactory
+### 以下内容是更新rhino1.7.14.jar后IDE提示添加的
+-dontwarn java.beans.**
+-dontwarn javax.script.**
 
 ## EPUB
 -dontwarn nl.siegmann.epublib.**
@@ -255,6 +258,12 @@
 # 繁简转换
 -keep class com.github.liuyueyi.quick.transfer.** {*;}
 
+# Cronet
+-keepclassmembers class org.chromium.net.X509Util {
+    *** sDefaultTrustManager;
+    *** sTestTrustManager;
+}
+
 # Class.forName调用
 -keep class io.legado.app.lib.cronet.CronetInterceptor{*;}
 -keep class io.legado.app.lib.cronet.CronetLoader{*;}
@@ -264,4 +273,3 @@
 -keep class * extends java.lang.Exception
 -keep class * extends java.lang.Error
 -keep class **Exception
-

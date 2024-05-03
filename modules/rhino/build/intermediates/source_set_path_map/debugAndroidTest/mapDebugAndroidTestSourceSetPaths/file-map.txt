@@ -1,0 +1,4 @@
+com.script.test.rhino-mergeDebugAndroidTestResources-0 K:\legado\modules\rhino\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.script.test.rhino-mergeDebugAndroidTestResources-1 K:\legado\modules\rhino\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.script.test.rhino-debugAndroidTest-2 K:\legado\modules\rhino\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
+com.script.test.rhino-debug-3 K:\legado\modules\rhino\build\intermediates\packaged_res\debug\packageDebugResources
