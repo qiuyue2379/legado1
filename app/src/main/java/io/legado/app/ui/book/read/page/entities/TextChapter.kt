@@ -112,7 +112,7 @@ data class TextChapter(
      */
     fun getReadLength(pageIndex: Int): Int {
         if (pageIndex < 0) return 0
-        return pages[min(pageIndex, lastIndex)].lines.first().chapterPosition
+        return pages[min(pageIndex, lastIndex)].chapterPosition
         /*
         var length = 0
         val maxIndex = min(pageIndex, pages.size)
@@ -177,10 +177,15 @@ data class TextChapter(
      * @param pageSplit 是否分页
      * @param startPos 从当前页什么地方开始朗读
      */
-    fun getNeedReadAloud(pageIndex: Int, pageSplit: Boolean, startPos: Int): String {
+    fun getNeedReadAloud(
+        pageIndex: Int,
+        pageSplit: Boolean,
+        startPos: Int,
+        pageEndIndex: Int = pages.lastIndex
+    ): String {
         val stringBuilder = StringBuilder()
         if (pages.isNotEmpty()) {
-            for (index in pageIndex..pages.lastIndex) {
+            for (index in pageIndex..min(pageEndIndex, pages.lastIndex)) {
                 stringBuilder.append(pages[index].text)
                 if (pageSplit && !stringBuilder.endsWith("\n")) {
                     stringBuilder.append("\n")
@@ -224,14 +229,13 @@ data class TextChapter(
             return -1
         }
         val bIndex = pages.fastBinarySearchBy(charIndex, 0, pageSize) {
-            it.lines.first().chapterPosition
+            it.chapterPosition
         }
         val index = abs(bIndex + 1) - 1
         // 判断是否已经排版到 charIndex ，没有则返回 -1
         if (!isCompleted && index == pageSize - 1) {
             val page = pages[index]
-            val line = page.lines.first()
-            val pageEndPos = line.chapterPosition + page.charSize
+            val pageEndPos = page.chapterPosition + page.charSize
             if (charIndex > pageEndPos) {
                 return -1
             }

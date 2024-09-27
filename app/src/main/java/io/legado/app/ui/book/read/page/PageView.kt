@@ -21,10 +21,10 @@ import io.legado.app.ui.book.read.page.entities.TextPos
 import io.legado.app.ui.book.read.page.provider.ChapterProvider
 import io.legado.app.ui.widget.BatteryView
 import io.legado.app.utils.activity
+import io.legado.app.utils.applyStatusBarPadding
 import io.legado.app.utils.dpToPx
 import io.legado.app.utils.gone
 import io.legado.app.utils.setTextIfNotEqual
-import io.legado.app.utils.statusBarHeight
 import splitties.views.backgroundColor
 import java.util.Date
 
@@ -52,7 +52,7 @@ class PageView(context: Context) : FrameLayout(context) {
 
     val headerHeight: Int
         get() {
-            val h1 = if (ReadBookConfig.hideStatusBar) 0 else context.statusBarHeight
+            val h1 = if (binding.vwStatusBar.isGone) 0 else binding.vwStatusBar.height
             val h2 = if (binding.llHeader.isGone) 0 else binding.llHeader.height
             return h1 + h2
         }
@@ -60,6 +60,7 @@ class PageView(context: Context) : FrameLayout(context) {
     init {
         if (!isInEditMode) {
             upStyle()
+            binding.vwStatusBar.applyStatusBarPadding()
         }
     }
 
@@ -114,7 +115,7 @@ class PageView(context: Context) : FrameLayout(context) {
      * 显示状态栏时隐藏header
      */
     fun upStatusBar() = with(binding.vwStatusBar) {
-        setPadding(paddingLeft, context.statusBarHeight, paddingRight, paddingBottom)
+//        setPadding(paddingLeft, context.statusBarHeight, paddingRight, paddingBottom)
         isGone = ReadBookConfig.hideStatusBar || readBookActivity?.isInMultiWindow == true
     }
 
@@ -404,17 +405,9 @@ class PageView(context: Context) : FrameLayout(context) {
     fun selectStartMoveIndex(
         relativePagePos: Int,
         lineIndex: Int,
-        charIndex: Int,
-        isTouch: Boolean = true,
-        isLast: Boolean = false
+        charIndex: Int
     ) {
-        binding.contentTextView.selectStartMoveIndex(
-            relativePagePos,
-            lineIndex,
-            charIndex,
-            isTouch,
-            isLast
-        )
+        binding.contentTextView.selectStartMoveIndex(relativePagePos, lineIndex, charIndex)
     }
 
     fun selectStartMoveIndex(textPos: TextPos) {
@@ -428,17 +421,9 @@ class PageView(context: Context) : FrameLayout(context) {
     fun selectEndMoveIndex(
         relativePagePos: Int,
         lineIndex: Int,
-        charIndex: Int,
-        isTouch: Boolean = true,
-        isLast: Boolean = false
+        charIndex: Int
     ) {
-        binding.contentTextView.selectEndMoveIndex(
-            relativePagePos,
-            lineIndex,
-            charIndex,
-            isTouch,
-            isLast
-        )
+        binding.contentTextView.selectEndMoveIndex(relativePagePos, lineIndex, charIndex)
     }
 
     fun selectEndMoveIndex(textPos: TextPos) {

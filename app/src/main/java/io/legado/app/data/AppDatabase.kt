@@ -7,12 +7,51 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import io.legado.app.data.dao.*
-import io.legado.app.data.entities.*
+import io.legado.app.data.dao.BookChapterDao
+import io.legado.app.data.dao.BookDao
+import io.legado.app.data.dao.BookGroupDao
+import io.legado.app.data.dao.BookSourceDao
+import io.legado.app.data.dao.BookmarkDao
+import io.legado.app.data.dao.CacheDao
+import io.legado.app.data.dao.CookieDao
+import io.legado.app.data.dao.DictRuleDao
+import io.legado.app.data.dao.HttpTTSDao
+import io.legado.app.data.dao.KeyboardAssistsDao
+import io.legado.app.data.dao.ReadRecordDao
+import io.legado.app.data.dao.ReplaceRuleDao
+import io.legado.app.data.dao.RssArticleDao
+import io.legado.app.data.dao.RssSourceDao
+import io.legado.app.data.dao.RssStarDao
+import io.legado.app.data.dao.RuleSubDao
+import io.legado.app.data.dao.SearchBookDao
+import io.legado.app.data.dao.SearchKeywordDao
+import io.legado.app.data.dao.ServerDao
+import io.legado.app.data.dao.TxtTocRuleDao
+import io.legado.app.data.entities.Book
+import io.legado.app.data.entities.BookChapter
+import io.legado.app.data.entities.BookGroup
+import io.legado.app.data.entities.BookSource
+import io.legado.app.data.entities.Bookmark
+import io.legado.app.data.entities.Cache
+import io.legado.app.data.entities.Cookie
+import io.legado.app.data.entities.DictRule
+import io.legado.app.data.entities.HttpTTS
+import io.legado.app.data.entities.KeyboardAssist
+import io.legado.app.data.entities.ReadRecord
+import io.legado.app.data.entities.ReplaceRule
+import io.legado.app.data.entities.RssArticle
+import io.legado.app.data.entities.RssReadRecord
+import io.legado.app.data.entities.RssSource
+import io.legado.app.data.entities.RssStar
+import io.legado.app.data.entities.RuleSub
+import io.legado.app.data.entities.SearchBook
+import io.legado.app.data.entities.SearchKeyword
+import io.legado.app.data.entities.Server
+import io.legado.app.data.entities.TxtTocRule
 import io.legado.app.help.DefaultData
 import org.intellij.lang.annotations.Language
 import splitties.init.appCtx
-import java.util.*
+import java.util.Locale
 
 val appDb by lazy {
     Room.databaseBuilder(appCtx, AppDatabase::class.java, AppDatabase.DATABASE_NAME)
@@ -24,7 +63,7 @@ val appDb by lazy {
 }
 
 @Database(
-    version = 71,
+    version = 72,
     exportSchema = true,
     entities = [Book::class, BookGroup::class, BookSource::class, BookChapter::class,
         ReplaceRule::class, SearchBook::class, SearchKeyword::class, Cookie::class,
@@ -60,6 +99,7 @@ val appDb by lazy {
         AutoMigration(from = 68, to = 69),
         AutoMigration(from = 69, to = 70),
         AutoMigration(from = 70, to = 71),
+        AutoMigration(from = 71, to = 72),
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -88,6 +128,10 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
 
         const val DATABASE_NAME = "legado.db"
+
+        const val BOOK_TABLE_NAME = "books"
+        const val BOOK_SOURCE_TABLE_NAME = "book_sources"
+        const val RSS_SOURCE_TABLE_NAME = "rssSources"
 
         val dbCallback = object : Callback() {
 

@@ -10,6 +10,7 @@ import io.legado.app.data.entities.Book
 import io.legado.app.data.entities.BookChapter
 import io.legado.app.help.book.BookContent
 import io.legado.app.help.book.BookHelp
+import io.legado.app.help.book.getBookSource
 import io.legado.app.help.config.AppConfig
 import io.legado.app.help.config.ReadBookConfig
 import io.legado.app.help.coroutine.Coroutine
@@ -26,6 +27,8 @@ import io.legado.app.utils.fastSum
 import io.legado.app.utils.splitNotBlank
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -82,7 +85,11 @@ class TextChapterLayout(
     var channel = Channel<TextPage>(Int.MAX_VALUE)
 
     init {
-        job = Coroutine.async(scope) {
+        job = Coroutine.async(
+            scope,
+            start = CoroutineStart.LAZY,
+            executeContext = IO
+        ) {
             launch {
                 val bookSource = book.getBookSource() ?: return@launch
                 BookHelp.saveImages(bookSource, book, bookChapter, bookContent.toString())
@@ -94,6 +101,7 @@ class TextChapterLayout(
         }.onFinally {
             isCompleted = true
         }
+        job.start()
     }
 
     fun setProgressListener(l: LayoutProgressListener?) {
@@ -176,7 +184,7 @@ class TextChapterLayout(
         val contents = bookContent.textList
         var absStartX = paddingLeft
         var durY = 0f
-        if (ReadBookConfig.titleMode != 2 || bookChapter.isVolume) {
+        if (ReadBookConfig.titleMode != 2 || bookChapter.isVolume || contents.isEmpty()) {
             //标题非隐藏
             displayTitle.splitNotBlank("\n").forEach { text ->
                 setTypeText(

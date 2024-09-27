@@ -66,7 +66,7 @@ object NetworkUtils {
         for (i in '0'.code..'9'.code) {
             bitSet.set(i)
         }
-        for (char in "+-_.$:()!*@&#,[]") {
+        for (char in "+-_.~$:()!*@&#,[]") {
             bitSet.set(char.code)
         }
         return@lazy bitSet
@@ -194,10 +194,10 @@ object NetworkUtils {
             enumeration = NetworkInterface.getNetworkInterfaces()
         } catch (e: SocketException) {
             e.printOnDebug()
-            return mutableListOf()
+            return emptyList()
         }
 
-        var fallbackAddress: MutableList<InetAddress> = mutableListOf()
+        val addressList = mutableListOf<InetAddress>()
 
         while (enumeration.hasMoreElements()) {
             val nif = enumeration.nextElement()
@@ -205,13 +205,11 @@ object NetworkUtils {
             while (addresses.hasMoreElements()) {
                 val address = addresses.nextElement()
                 if (!address.isLoopbackAddress && isIPv4Address(address.hostAddress)) {
-                    if (nif.name?.startsWith("wlan") == true) {
-                        fallbackAddress.add(address)
-                    }
+                    addressList.add(address)
                 }
             }
         }
-        return fallbackAddress
+        return addressList
     }
 
     /**

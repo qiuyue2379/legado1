@@ -170,7 +170,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
                 this.rootWindowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.mandatorySystemGestures())
             val height = activity?.windowManager?.currentWindowMetrics?.bounds?.height()
             if (height != null) {
-                if (event.y > height.minus(insets.bottom)) {
+                if (event.y > height.minus(insets.bottom) && event.action != MotionEvent.ACTION_UP && event.action != MotionEvent.ACTION_CANCEL) {
                     return true
                 }
             }
@@ -200,6 +200,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
             }
 
             MotionEvent.ACTION_MOVE -> {
+                if (!pressDown) return true
                 val absX = abs(startX - event.x)
                 val absY = abs(startY - event.y)
                 if (!isMove) {
@@ -253,9 +254,9 @@ class ReadView(context: Context, attrs: AttributeSet) :
         return true
     }
 
-    fun cancelSelect() {
+    fun cancelSelect(clearSearchResult: Boolean = false) {
         if (isTextSelected) {
-            curPage.cancelSelect()
+            curPage.cancelSelect(clearSearchResult)
             isTextSelected = false
         }
     }
@@ -443,9 +444,13 @@ class ReadView(context: Context, attrs: AttributeSet) :
         curPage.selectText(x, y) { textPos ->
             val compare = initialTextPos.compare(textPos)
             when {
-                compare >= 0 -> {
+                compare > 0 -> {
                     curPage.selectStartMoveIndex(textPos)
-                    curPage.selectEndMoveIndex(initialTextPos)
+                    curPage.selectEndMoveIndex(
+                        initialTextPos.relativePagePos,
+                        initialTextPos.lineIndex,
+                        initialTextPos.columnIndex - 1
+                    )
                 }
 
                 else -> {
@@ -617,14 +622,14 @@ class ReadView(context: Context, attrs: AttributeSet) :
     /**
      * 从选择位置开始朗读
      */
-    fun aloudStartSelect() {
+    suspend fun aloudStartSelect() {
         val selectStartPos = curPage.selectStartPos
         var pagePos = selectStartPos.relativePagePos
         val line = selectStartPos.lineIndex
         val column = selectStartPos.columnIndex
         while (pagePos > 0) {
             if (!ReadBook.moveToNextPage()) {
-                ReadBook.moveToNextChapter(false)
+                ReadBook.moveToNextChapterAwait(false)
             }
             pagePos--
         }
@@ -703,7 +708,7 @@ class ReadView(context: Context, attrs: AttributeSet) :
         }
 
     override fun hasNextChapter(): Boolean {
-        return ReadBook.durChapterIndex < ReadBook.chapterSize - 1
+        return ReadBook.durChapterIndex < ReadBook.simulatedChapterSize - 1
     }
 
     override fun hasPrevChapter(): Boolean {

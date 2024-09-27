@@ -1,6 +1,8 @@
 package io.legado.app.lib.permission
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -9,10 +11,13 @@ import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
+import io.legado.app.constant.AppLog
 import io.legado.app.exception.NoStackTraceException
+import io.legado.app.utils.registerForActivityResult
 import io.legado.app.utils.toastOnUi
+import kotlinx.coroutines.launch
 
 class PermissionActivity : AppCompatActivity() {
 
@@ -20,10 +25,16 @@ class PermissionActivity : AppCompatActivity() {
 
     private val settingActivityResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            RequestPlugins.sRequestCallback?.onSettingActivityResult()
-            finish()
+            onRequestPermissionFinish()
         }
+    private val settingActivityResultAwait =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+    private val requestPermissionResult =
+        registerForActivityResult(ActivityResultContracts.RequestPermission())
+    private val requestPermissionsResult =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions())
 
+    @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val rationale = intent.getStringExtra(KEY_RATIONALE)
@@ -32,7 +43,20 @@ class PermissionActivity : AppCompatActivity() {
         when (intent.getIntExtra(KEY_INPUT_REQUEST_TYPE, Request.TYPE_REQUEST_PERMISSION)) {
             //权限请求
             Request.TYPE_REQUEST_PERMISSION -> showSettingDialog(permissions, rationale) {
-                ActivityCompat.requestPermissions(this, permissions, requestCode)
+                lifecycleScope.launch {
+                    try {
+                        val result = requestPermissionsResult.launch(permissions)
+                        if (result.values.all { it }) {
+                            onRequestPermissionFinish()
+                        } else {
+                            openSettingsActivity()
+                        }
+                    } catch (e: Exception) {
+                        AppLog.put("请求权限出错\n$e", e, true)
+                        RequestPlugins.sRequestCallback?.onError(e)
+                        finish()
+                    }
+                }
             }
             //跳转到设置界面
             Request.TYPE_REQUEST_SETTING -> showSettingDialog(permissions, rationale) {
@@ -52,23 +76,66 @@ class PermissionActivity : AppCompatActivity() {
                         throw NoStackTraceException("no MANAGE_ALL_FILES_ACCESS_PERMISSION")
                     }
                 } catch (e: Exception) {
-                    toastOnUi(e.localizedMessage)
+                    AppLog.put("请求所有文件的管理权限出错\n$e", e, true)
                     RequestPlugins.sRequestCallback?.onError(e)
                     finish()
                 }
             }
 
             Request.TYPE_REQUEST_NOTIFICATIONS -> showSettingDialog(permissions, rationale) {
-                kotlin.runCatching {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        //这种方案适用于 API 26, 即8.0（含8.0）以上可以用
-                        val intent = Intent()
-                        intent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                        intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                        intent.putExtra(Settings.EXTRA_CHANNEL_ID, applicationInfo.uid)
+                lifecycleScope.launch {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                            && requestPermissionResult.launch(Permissions.POST_NOTIFICATIONS)
+                        ) {
+                            onRequestPermissionFinish()
+                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            //这种方案适用于 API 26, 即8.0（含8.0）以上可以用
+                            val intent = Intent()
+                            intent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            intent.putExtra(Settings.EXTRA_CHANNEL_ID, applicationInfo.uid)
+                            settingActivityResult.launch(intent)
+                        } else {
+                            openSettingsActivity()
+                        }
+                    } catch (e: Exception) {
+                        AppLog.put("请求通知权限出错\n$e", e, true)
+                        RequestPlugins.sRequestCallback?.onError(e)
+                        finish()
+                    }
+                }
+            }
+
+            Request.TYPE_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS -> showSettingDialog(
+                permissions, rationale
+            ) {
+                lifecycleScope.launch {
+                    try {
+                        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        intent.setData(Uri.parse("package:$packageName"))
+                        val className =
+                            "com.android.settings.fuelgauge.RequestIgnoreBatteryOptimizations"
+                        val activities = packageManager.queryIntentActivities(
+                            intent,
+                            PackageManager.MATCH_DEFAULT_ONLY
+                        )
+                        if (activities.indexOfFirst { it.activityInfo.name == className } > -1) {
+                            val component = intent.resolveActivity(packageManager)
+                            if (component.className != className) {
+                                intent.setClassName(
+                                    "com.android.settings",
+                                    className
+                                )
+                                settingActivityResultAwait.launch(intent)
+                            }
+                        }
+                        intent.component = null
                         settingActivityResult.launch(intent)
-                    } else {
-                        openSettingsActivity()
+                    } catch (e: Exception) {
+                        AppLog.put("请求后台权限出错\n$e", e, true)
+                        RequestPlugins.sRequestCallback?.onError(e)
+                        finish()
                     }
                 }
             }
@@ -76,6 +143,11 @@ class PermissionActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this) {
 
         }
+    }
+
+    private fun onRequestPermissionFinish() {
+        RequestPlugins.sRequestCallback?.onSettingActivityResult()
+        finish()
     }
 
     private fun openSettingsActivity() {

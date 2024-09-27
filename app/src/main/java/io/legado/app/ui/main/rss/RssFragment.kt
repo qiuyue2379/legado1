@@ -8,12 +8,11 @@ import android.view.View
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
 import io.legado.app.base.VMBaseFragment
 import io.legado.app.constant.AppLog
-import io.legado.app.constant.AppPattern
+import io.legado.app.data.AppDatabase
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.RssSource
 import io.legado.app.databinding.FragmentRssBinding
@@ -30,9 +29,9 @@ import io.legado.app.ui.rss.source.manage.RssSourceActivity
 import io.legado.app.ui.rss.subscription.RuleSubActivity
 import io.legado.app.utils.applyTint
 import io.legado.app.utils.cnCompare
+import io.legado.app.utils.flowWithLifecycleAndDatabaseChange
 import io.legado.app.utils.openUrl
 import io.legado.app.utils.setEdgeEffectColor
-import io.legado.app.utils.splitNotBlank
 import io.legado.app.utils.startActivity
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
@@ -110,12 +109,8 @@ class RssFragment() : VMBaseFragment<RssViewModel>(R.layout.fragment_rss),
 
     private fun initSearchView() {
         searchView.applyTint(primaryTextColor)
-        searchView.onActionViewExpanded()
         searchView.isSubmitButtonEnabled = true
         searchView.queryHint = getString(R.string.rss)
-        searchView.post {
-            searchView.clearFocus()
-        }
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -145,16 +140,17 @@ class RssFragment() : VMBaseFragment<RssViewModel>(R.layout.fragment_rss),
     private fun initGroupData() {
         groupsFlowJob?.cancel()
         groupsFlowJob = viewLifecycleOwner.lifecycleScope.launch {
-            appDb.rssSourceDao.flowGroupEnabled().catch {
+            appDb.rssSourceDao.flowEnabledGroups().catch {
                 AppLog.put("订阅界面获取分组数据失败\n${it.localizedMessage}", it)
-            }.flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED)
-                .flowOn(IO).conflate().collect {
-                    groups.clear()
-                    it.map { group ->
-                        groups.addAll(group.splitNotBlank(AppPattern.splitGroupRegex))
-                    }
-                    upGroupsMenu()
-                }
+            }.flowWithLifecycleAndDatabaseChange(
+                viewLifecycleOwner.lifecycle,
+                Lifecycle.State.RESUMED,
+                AppDatabase.RSS_SOURCE_TABLE_NAME
+            ).conflate().collect {
+                groups.clear()
+                groups.addAll(it)
+                upGroupsMenu()
+            }
         }
     }
 
@@ -169,7 +165,11 @@ class RssFragment() : VMBaseFragment<RssViewModel>(R.layout.fragment_rss),
                 }
 
                 else -> appDb.rssSourceDao.flowEnabled(searchKey)
-            }.flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.RESUMED).catch {
+            }.flowWithLifecycleAndDatabaseChange(
+                viewLifecycleOwner.lifecycle,
+                Lifecycle.State.RESUMED,
+                AppDatabase.RSS_SOURCE_TABLE_NAME
+            ).catch {
                 AppLog.put("订阅界面更新数据出错", it)
             }.flowOn(IO).collect {
                 adapter.setItems(it)
