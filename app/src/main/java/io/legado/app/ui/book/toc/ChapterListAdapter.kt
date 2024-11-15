@@ -20,7 +20,9 @@ import io.legado.app.utils.getCompatColor
 import io.legado.app.utils.gone
 import io.legado.app.utils.longToastOnUi
 import io.legado.app.utils.visible
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 class ChapterListAdapter(context: Context, val callback: Callback) :
@@ -139,13 +141,23 @@ class ChapterListAdapter(context: Context, val callback: Callback) :
                     tvChapterItem.background =
                         ThemeUtils.resolveDrawable(context, android.R.attr.selectableItemBackground)
                 }
+
+                //卷名不显示
                 if (!item.tag.isNullOrEmpty() && !item.isVolume) {
-                    //卷名不显示tag(更新时间规则)
+                    //更新时间规则
                     tvTag.text = item.tag
                     tvTag.visible()
                 } else {
                     tvTag.gone()
                 }
+                if (!item.wordCount.isNullOrEmpty() && !item.isVolume) {
+                    //章节字数
+                    tvWordCount.text = item.wordCount
+                    tvWordCount.visible()
+                } else {
+                    tvWordCount.gone()
+                }
+
                 upHasCache(binding, isDur, cached)
             } else {
                 tvChapterName.text = getDisplayTitle(item)

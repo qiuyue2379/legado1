@@ -4,10 +4,10 @@
     minSdkVersion="21"
     targetSdkVersion="35"
     mergedManifest="build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml"
-    proguardFiles="build\intermediates\default_proguard_files\global\proguard-android.txt-8.6.0"
+    proguardFiles="build\intermediates\default_proguard_files\global\proguard-android.txt-8.7.3"
     consumerProguardFiles="consumer-rules.pro"
     partialResultsDir="build\intermediates\lint_vital_partial_results\release\lintVitalAnalyzeRelease\out"
-    desugaredMethodsFiles="C:\Users\Administrator\.gradle\caches\8.9\transforms\780cd1ba1eaaac040bb61895fa1fbab9\transformed\D8BackportedDesugaredMethods.txt">
+    desugaredMethodsFiles="C:\Users\Administrator\.gradle\caches\8.9\transforms\c675dcf916347585ce0c7fb890da9cfd\transformed\D8BackportedDesugaredMethods.txt">
   <buildFeatures
       namespacing="REQUIRED"/>
   <sourceProviders>
@@ -26,6 +26,6 @@
       type="MAIN"
       applicationId="com.script"
       generatedSourceFolders="build\generated\ap_generated_sources\release\out"
-      desugaredMethodsFiles="C:\Users\Administrator\.gradle\caches\8.9\transforms\780cd1ba1eaaac040bb61895fa1fbab9\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\Administrator\.gradle\caches\8.9\transforms\c675dcf916347585ce0c7fb890da9cfd\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

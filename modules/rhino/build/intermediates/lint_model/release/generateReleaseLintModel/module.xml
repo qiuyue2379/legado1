@@ -4,9 +4,9 @@
     name=":modules:rhino"
     type="LIBRARY"
     maven="legado.modules:rhino:unspecified"
-    agpVersion="8.6.0"
+    agpVersion="8.7.3"
     buildFolder="build"
-    bootClassPath="K:\sdks\platforms\android-35\android.jar;K:\sdks\build-tools\34.0.0\core-lambda-stubs.jar"
+    bootClassPath="K:\sdk\platforms\android-35\android.jar;K:\sdk\build-tools\34.0.0\core-lambda-stubs.jar"
     javaSourceLevel="17"
     compileTarget="android-35"
     neverShrinking="true">
