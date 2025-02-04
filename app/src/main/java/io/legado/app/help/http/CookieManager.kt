@@ -1,9 +1,11 @@
 package io.legado.app.help.http
 
+import android.webkit.CookieManager
 import io.legado.app.constant.AppLog
 import io.legado.app.data.appDb
 import io.legado.app.help.CacheManager
 import io.legado.app.utils.NetworkUtils
+import io.legado.app.utils.splitNotBlank
 import okhttp3.Cookie
 import okhttp3.Headers
 import okhttp3.HttpUrl
@@ -57,19 +59,18 @@ object CookieManager {
         val cookie = CookieStore.getCookie(domain)
         val requestCookie = request.header("Cookie")
 
-        mergeCookies(requestCookie, cookie)?.let { newCookie ->
-            kotlin.runCatching {
-                return request.newBuilder()
-                    .header("Cookie", newCookie)
-                    .build()
-            }.onFailure {
-                CookieStore.removeCookie(url)
-                AppLog.put(
-                    "设置cookie出错，已清除cookie $domain cookie:$newCookie\n${it.localizedMessage}",
-                    it
-                )
-            }
+        val newCookie = mergeCookies(requestCookie, cookie) ?: return request
+
+        kotlin.runCatching {
+            return request.newBuilder()
+                .header("Cookie", newCookie)
+                .build()
+        }.onFailure {
+            CookieStore.removeCookie(url)
+            val msg = "设置cookie出错，已清除cookie $domain cookie:$newCookie\n$it"
+            AppLog.put(msg, it)
         }
+
         return request
     }
 
@@ -136,6 +137,15 @@ object CookieManager {
         } else {
             val cookieBean = appDb.cookieDao.get(domain)
             cookieBean?.cookie ?: ""
+        }
+    }
+
+    fun applyToWebView(url: String) {
+        val baseUrl = NetworkUtils.getBaseUrl(url) ?: return
+        val cookies = CookieStore.getCookie(url).splitNotBlank(";")
+        val cookieManager = CookieManager.getInstance()
+        cookies.forEach {
+            cookieManager.setCookie(baseUrl, it)
         }
     }
 

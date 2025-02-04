@@ -11,6 +11,7 @@ import io.legado.app.constant.EventBus
 import io.legado.app.constant.IntentAction
 import io.legado.app.constant.NotificationId
 import io.legado.app.data.appDb
+import io.legado.app.help.book.update
 import io.legado.app.help.config.AppConfig
 import io.legado.app.model.CacheBook
 import io.legado.app.model.webBook.WebBook
@@ -50,6 +51,7 @@ class CacheBookService : BaseService() {
         val builder = NotificationCompat.Builder(this, AppConst.channelIdDownload)
             .setSmallIcon(R.drawable.ic_download)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .setContentTitle(getString(R.string.offline_cache))
             .setContentIntent(activityPendingIntent<CacheActivity>("cacheActivity"))
         builder.addAction(

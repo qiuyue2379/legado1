@@ -37,14 +37,17 @@ import io.legado.app.ui.file.HandleFileContract
 import io.legado.app.utils.ACache
 import io.legado.app.utils.gone
 import io.legado.app.utils.invisible
+import io.legado.app.utils.keepScreenOn
 import io.legado.app.utils.longSnackbar
 import io.legado.app.utils.openUrl
 import io.legado.app.utils.sendToClip
 import io.legado.app.utils.setDarkeningAllowed
 import io.legado.app.utils.startActivity
+import io.legado.app.utils.toggleNavigationBar
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import io.legado.app.utils.visible
 import java.net.URLDecoder
+import io.legado.app.help.http.CookieManager as AppCookieManager
 
 class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
 
@@ -169,8 +172,7 @@ class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
                 userAgentString = it
             }
         }
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setCookie(url, CookieStore.getCookie(url))
+        AppCookieManager.applyToWebView(url)
         binding.webView.addJavascriptInterface(this, "app")
         binding.webView.setOnLongClickListener {
             val hitTestResult = binding.webView.hitTestResult
@@ -237,12 +239,16 @@ class WebViewActivity : VMBaseActivity<ActivityWebViewBinding, WebViewModel>() {
             binding.llView.invisible()
             binding.customWebView.addView(view)
             customWebViewCallback = callback
+            keepScreenOn(true)
+            toggleNavigationBar(false)
         }
 
         override fun onHideCustomView() {
             binding.customWebView.removeAllViews()
             binding.llView.visible()
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            keepScreenOn(false)
+            toggleNavigationBar(true)
         }
     }
 

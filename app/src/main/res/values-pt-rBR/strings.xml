@@ -30,6 +30,7 @@
     <string name="draw">Aviso</string>
     <string name="edit">Editar</string>
     <string name="delete">Excluir</string>
+    <string name="delete_select_group">Excluir grupo selecionado</string>
     <string name="delete_all">Excluir tudo</string>
     <string name="replace">Substituir</string>
     <string name="replace_purify">Substituição</string>
@@ -769,6 +770,7 @@
     <string name="donate_summary">Sua doação tornará este App ainda melhor</string>
     <string name="about_summary">Conta oficial de Wechat [开源阅读软件]</string>
     <string name="read_record">Histórico de leitura</string>
+    <string name="del_read_record">Excluir histórico de leitura</string>
     <string name="read_record_summary">Leia o resumo do histórico</string>
     <string name="local_tts">TTS local</string>
     <string name="thread_count">Contagem de tópicos</string>
@@ -1129,6 +1131,7 @@
     <string name="exit_app">退出软件</string>
     <string name="result_analyzed">Analyzed</string>
     <string name="bookshelf_px_4">Comprehensive</string>
+    <string name="bookshelf_px_5">Ordenar por autor</string>
     <string name="effective_replaces">起效的替换</string>
     <string name="export_book">导出书籍</string>
     <string name="export_book_notification_content">正在导出(%1$s),还有%2$d本待导出</string>
@@ -1176,4 +1179,8 @@
     <string name="read_aloud_read_phone_state_permission_rationale">阅读需要读取手机状态实现来电期间暂停朗读功能</string>
     <string name="read_aloud_by_media_button_title">耳机按键启动朗读</string>
     <string name="read_aloud_by_media_button_summary">通过耳机按键来启动朗读</string>
+    <string name="show_same_source">显示重复书源</string>
+    <string name="theme_config">主题配置</string>
+    <string name="menu_download_after">Faça o download do próximo capítulo</string>
+    <string name="menu_download_all">Download de todos os capítulos</string>
 </resources>

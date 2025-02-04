@@ -90,6 +90,10 @@ class RssSortActivity : VMBaseActivity<ActivityRssArtivlesBinding, RssSortViewMo
                 viewModel.switchLayout()
                 upFragments()
             }
+
+            R.id.menu_read_record -> {
+                showDialogFragment<ReadRecordDialog>()
+            }
         }
         return super.onCompatOptionsItemSelected(item)
     }

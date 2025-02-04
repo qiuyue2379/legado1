@@ -359,12 +359,48 @@ object ChapterProvider {
             }
             var height = size.height
             var width = size.width
-            when (imageStyle?.toUpperCase(Locale.ROOT)) {
+            when (imageStyle?.uppercase(Locale.ROOT)) {
                 Book.imgStyleFull -> {
                     width = visibleWidth
                     height = size.height * visibleWidth / size.width
                 }
 
+                Book.imgStyleSingle -> {
+                    width = visibleWidth
+                    height = size.height * visibleWidth / size.width
+                    if (height > visibleHeight) {
+                        width = width * visibleHeight / height
+                        height = visibleHeight
+                    }
+                    if (durY > 0f) {
+                        val textPage = textPages.last()
+                        if (doublePage && absStartX < viewWidth / 2) {
+                            //当前页面左列结束
+                            textPage.leftLineSize = textPage.lineSize
+                            absStartX = viewWidth / 2 + paddingLeft
+                        } else {
+                            //当前页面结束
+                            if (textPage.leftLineSize == 0) {
+                                textPage.leftLineSize = textPage.lineSize
+                            }
+                            textPage.text = stringBuilder.toString().ifEmpty { "本页无文字内容" }
+                            stringBuilder.clear()
+                            textPages.add(TextPage())
+                        }
+                        // 双页的 durY 不正确，可能会小于实际高度
+                        if (textPage.height < durY) {
+                            textPage.height = durY
+                        }
+                        durY = 0f
+                    }
+
+                    // 图片竖直方向居中：调整 Y 坐标
+                    if (height < visibleHeight) {
+                        val adjustHeight = (visibleHeight - height) / 2f
+                        durY = adjustHeight // 将 Y 坐标设置为居中位置
+                    }
+                }
+                
                 else -> {
                     if (size.width > visibleWidth) {
                         height = size.height * visibleWidth / size.width
@@ -815,7 +851,11 @@ object ChapterProvider {
         titleTopSpacing = ReadBookConfig.titleTopSpacing.dpToPx()
         titleBottomSpacing = ReadBookConfig.titleBottomSpacing.dpToPx()
         val bodyIndent = ReadBookConfig.paragraphIndent
-        indentCharWidth = StaticLayout.getDesiredWidth(bodyIndent, contentPaint) / bodyIndent.length
+        var indentWidth = StaticLayout.getDesiredWidth(bodyIndent, contentPaint)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            indentWidth += contentPaint.letterSpacing * contentPaint.textSize
+        }
+        indentCharWidth = indentWidth / bodyIndent.length
         titlePaintTextHeight = titlePaint.textHeight
         contentPaintTextHeight = contentPaint.textHeight
         titlePaintFontMetrics = titlePaint.fontMetrics

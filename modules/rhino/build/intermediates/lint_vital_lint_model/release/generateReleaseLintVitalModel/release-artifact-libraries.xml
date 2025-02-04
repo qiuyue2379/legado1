@@ -1,16 +1,16 @@
 <libraries>
   <library
-      name="org.mozilla:rhino:1.7.15@jar"
-      jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.mozilla\rhino\1.7.15\39e53f8e769ea9a7e799f266aa47c85edd99a29e\rhino-1.7.15.jar"
-      resolved="org.mozilla:rhino:1.7.15"/>
+      name="org.mozilla:rhino:1.8.0@jar"
+      jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.mozilla\rhino\1.8.0\889636434674822ce2d14d6e92f7cf96726c6783\rhino-1.8.0.jar"
+      resolved="org.mozilla:rhino:1.8.0"/>
   <library
-      name="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.1@jar"
-      jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-core-jvm\1.8.1\bb0e192bd7c2b6b8217440d36e9758e377e450\kotlinx-coroutines-core-jvm-1.8.1.jar"
-      resolved="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.1"/>
+      name="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1@jar"
+      jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-core-jvm\1.10.1\fe066928754beda3d59c8282e04289546465a360\kotlinx-coroutines-core-jvm-1.10.1.jar"
+      resolved="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1"/>
   <library
-      name="org.jetbrains.kotlin:kotlin-stdlib:2.0.20@jar"
-      jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib\2.0.20\7388d355f7cceb002cd387ccb7ab3850e4e0a07f\kotlin-stdlib-2.0.20.jar"
-      resolved="org.jetbrains.kotlin:kotlin-stdlib:2.0.20"/>
+      name="org.jetbrains.kotlin:kotlin-stdlib:2.1.0@jar"
+      jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib\2.1.0\85f8b81009cda5890e54ba67d64b5e599c645020\kotlin-stdlib-2.1.0.jar"
+      resolved="org.jetbrains.kotlin:kotlin-stdlib:2.1.0"/>
   <library
       name="org.jetbrains:annotations:23.0.0@jar"
       jars="C:\Users\Administrator\.gradle\caches\modules-2\files-2.1\org.jetbrains\annotations\23.0.0\8cc20c07506ec18e0834947b84a864bfc094484e\annotations-23.0.0.jar"

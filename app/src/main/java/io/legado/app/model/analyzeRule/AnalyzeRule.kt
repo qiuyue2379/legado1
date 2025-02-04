@@ -372,9 +372,9 @@ class AnalyzeRule(
                         Mode.XPath -> getAnalyzeByXPath(it).getElements(sourceRule.rule)
                         else -> getAnalyzeByJSoup(it).getElements(sourceRule.rule)
                     }
-                    if (sourceRule.replaceRegex.isNotEmpty()) {
-                        result = replaceRegex(result.toString(), sourceRule)
-                    }
+//                    if (sourceRule.replaceRegex.isNotEmpty()) {
+//                        result = replaceRegex(result.toString(), sourceRule)
+//                    }
                 }
             }
         }
@@ -745,7 +745,7 @@ class AnalyzeRule(
             bindings["title"] = chapter?.title
             bindings["src"] = content
             bindings["nextChapterUrl"] = nextChapterUrl
-            bindings["rssArticle"] = rssArticle
+            bindings["rssArticle"] = rssArticle?.copy()
         }
         val scope = RhinoScriptEngine.getRuntimeScope(bindings)
         source?.getShareScope()?.let {

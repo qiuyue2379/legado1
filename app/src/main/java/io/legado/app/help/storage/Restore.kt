@@ -107,7 +107,11 @@ object Restore {
                 }
             val updateBooks = arrayListOf<Book>()
             val newBooks = arrayListOf<Book>()
+            val ignoreLocalBook = BackupConfig.ignoreLocalBook
             it.forEach { book ->
+                if (ignoreLocalBook && book.isLocal) {
+                    return@forEach
+                }
                 if (appDb.bookDao.has(book.bookUrl) == true) {
                     updateBooks.add(book)
                 } else {
@@ -259,7 +263,8 @@ object Restore {
             edit.apply()
         }
         ReadBookConfig.apply {
-            styleSelect = appCtx.getPrefInt(PreferKey.readStyleSelect)
+            comicStyleSelect = appCtx.getPrefInt(PreferKey.comicStyleSelect)
+            readStyleSelect = appCtx.getPrefInt(PreferKey.readStyleSelect)
             shareLayout = appCtx.getPrefBoolean(PreferKey.shareLayout)
             hideStatusBar = appCtx.getPrefBoolean(PreferKey.hideStatusBar)
             hideNavigationBar = appCtx.getPrefBoolean(PreferKey.hideNavigationBar)
