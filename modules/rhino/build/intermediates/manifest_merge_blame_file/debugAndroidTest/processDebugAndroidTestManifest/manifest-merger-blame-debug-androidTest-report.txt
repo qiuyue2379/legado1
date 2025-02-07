@@ -3,32 +3,32 @@
 3    package="com.script.test" >
 4
 5    <uses-sdk
-5-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:5:5-74
+5-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:5:5-74
 6        android:minSdkVersion="21"
-6-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:5:15-41
+6-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:5:15-41
 7        android:targetSdkVersion="35" />
-7-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:5:42-71
+7-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:5:42-71
 8
 9    <instrumentation
-9-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:11:5-15:65
+9-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:11:5-15:65
 10        android:name="android.test.InstrumentationTestRunner"
-10-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:11:22-75
+10-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:11:22-75
 11        android:functionalTest="false"
-11-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:14:22-52
+11-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:14:22-52
 12        android:handleProfiling="false"
-12-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:13:22-53
+12-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:13:22-53
 13        android:label="Tests for com.script.test"
-13-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:15:22-63
+13-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:15:22-63
 14        android:targetPackage="com.script.test" />
-14-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:12:22-61
+14-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:12:22-61
 15
 16    <application
-16-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:7:5-9:19
+16-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:7:5-9:19
 17        android:debuggable="true"
 18        android:extractNativeLibs="true" >
 19        <uses-library android:name="android.test.runner" />
-19-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:8:9-60
-19-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest6335704497899668226.xml:8:23-57
+19-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:8:9-60
+19-->K:\legado\modules\rhino\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest14305533703400390452.xml:8:23-57
 20    </application>
 21
 22</manifest>
